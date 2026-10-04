@@ -7,11 +7,11 @@
 | 路径 | 职责 | 谁维护 |
 | --- | --- | --- |
 | `README.md` | 唯一索引：按机构分组，列为 `编号\|论文\|年份\|论文单位\|笔记地址` | 人选读与分组，agent 只回写单个单元格 |
-| `notes/` | 笔记产物（首次实际阅读时创建）：`notes/papers/<...>/note.md`、`notes/blogs/<...>/note.md` | read-paper-blog skill |
+| `notes/` | 笔记产物（首次实际阅读时创建）：`notes/papers/<...>/note.md`、`notes/blogs/<...>/note.md` | read-paper-blog（生成）、check-paper-note（复核） |
 | `papers/` | 非 arXiv 来源的原文归档，命名 `<5位编号>-<短标题>.pdf` | skill 归档新论文，已有文件不改 |
 | `books/` | 书籍归档，独立编号（00001 起） | 人工 |
 
-阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，产物路径与回写规则都以那份为准。
+阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。
 
 ## 编号
 
@@ -31,7 +31,7 @@
 
 - `papers/`、`books/` 里已有的文件不覆盖、不重命名。
 - `README.md` 只允许回写笔记所在行的「笔记地址」单元格（规则见 SKILL.md 的「回写根 README」）：不重排分组、不改表头、不批量重写表格、不新增行。
-- `skills/read-paper-blog/` 经 `~/.claude/skills/read-paper-blog` 符号链接全局加载：改这里的 SKILL.md 会影响本机所有会话，改动前先确认影响范围。
+- `skills/` 下的 skill（read-paper-blog、check-paper-note）经 `~/.claude/skills/` 同名符号链接全局加载：改这里的 SKILL.md 会影响本机所有会话，改动前先确认影响范围。
 
 ## Git
 

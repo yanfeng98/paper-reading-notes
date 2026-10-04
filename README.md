@@ -50,7 +50,7 @@
 
 |编号|论文|年份|论文单位|笔记地址|
 |:-:|:-:|:-:|:-:|:-:|
-|[00002](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00002-ZeRO.pdf)|[ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054)|2020|Microsoft|—（待生成笔记）|
+|[00002](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00002-ZeRO.pdf)|[ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054)|2020|Microsoft|[笔记](./notes/papers/1910.02054-v3-zero/note.md)|
 |[00004](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00004-Phi-3.pdf)|[Phi-3 Technical Report: A Highly Capable Language Model Locally on Your Phone](https://arxiv.org/abs/2404.14219)|2024|Microsoft|—（待生成笔记）|
 |[00013](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00013-DeepSpeed-Chat.pdf)|[DeepSpeed-Chat: Easy, Fast and Affordable RLHF Training of ChatGPT-like Models at All Scales](https://arxiv.org/abs/2308.01320)|2023|Microsoft|—（待生成笔记）|
 |[00014](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00014-ZeroQuant(4+2).pdf)|[ZeroQuant(4+2): Redefining LLMs Quantization with a New FP6-Centric Strategy for Diverse Generative Tasks](https://arxiv.org/abs/2312.08583)|2023|Microsoft|—（待生成笔记）|
