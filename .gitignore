@@ -1,0 +1,28 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+\#*\#
+.\#*
+
+# AI agent runtime config (generated at runtime)
+.claude/
+
+# Python bytecode (for any helper scripts)
+__pycache__/
+*.py[cod]
+
+# Temporary files
+*.tmp
