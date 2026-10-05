@@ -38,7 +38,7 @@
 |:-:|:-:|:-:|:-:|:-:|
 |[00083](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00083-Kimi-K2.pdf)|[Kimi K2: Open Agentic Intelligence](https://arxiv.org/abs/2507.20534)|2025|KimiTeam|—（待生成笔记）|
 |[00132](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00132-Kimi-Linear.pdf)|[Kimi Linear: An Expressive, Efficient Attention Architecture](https://arxiv.org/abs/2510.26692)|2025|KimiTeam|—（待生成笔记）|
-|[00156](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00156-kimi-k2.5.pdf)|[Kimi K2.5: Visual Agentic Intelligence](https://arxiv.org/abs/2602.02276)|2026|KimiTeam|—（待生成笔记）|
+|[00156](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00156-kimi-k2.5.pdf)|[Kimi K2.5: Visual Agentic Intelligence](https://arxiv.org/abs/2602.02276)|2026|KimiTeam|[笔记](./notes/papers/2602.02276-v2-kimi-k2.5/note.md)|
 
 ### MiniMax
 
