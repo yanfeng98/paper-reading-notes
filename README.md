@@ -30,7 +30,7 @@
 |[00150](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00150-Engram.pdf)|[Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models](https://arxiv.org/abs/2601.07372)|2026|DeepSeek-AI|—（待生成笔记）|
 |[00172](./papers/00172-DeepSeek_V4.pdf)|[DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf)|2026|DeepSeek-AI|—（待生成笔记）|
 |[00174](./papers/00174-DSpark_paper.pdf)|[DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation](https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf)|2026|DeepSeek-AI|—（待生成笔记）|
-|[00191](./papers/00191-DeepSeek_V41.pdf)|[DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/DeepSeek_V41_Tech_Report.pdf)|2026|DeepSeek-AI|—（待生成笔记）|
+|[00191](./papers/00191-DeepSeek_V41.pdf)|[DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/DeepSeek_V41_Tech_Report.pdf)|2026|DeepSeek-AI|[笔记](./notes/papers/deepseek-v4.1-flash/note.md)|
 
 ### KimiTeam
 
