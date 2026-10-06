@@ -2,7 +2,7 @@
 
 论文就是你所需要的。
 
-> 「编号」是原文归档编号：来源非 arXiv 的论文，其 PDF 归档在本仓库 [`papers/`](./papers)；其余论文的原文 PDF 在归档仓库 [paper-is-all-you-need](https://github.com/yanfeng98/paper-is-all-you-need)；「笔记地址」指向 `notes/` 下由 read-paper-blog skill 生成的笔记。
+> 「编号」是原文归档编号：来源非 arXiv 的论文，其 PDF 归档在本仓库 [`papers/`](./papers)；其余论文的原文 PDF 在归档仓库 [paper-is-all-you-need](https://github.com/yanfeng98/paper-is-all-you-need)。**非论文条目（如博客导读）同样占用编号列**，但它们没有可归档的 PDF，编号单元格直接指向原文在线地址（例：00192 指向 Awesome RSI 站点的博客页）。「笔记地址」指向 `notes/` 下由 read-paper-blog skill 生成的笔记。
 
 ## 论文
 
@@ -390,6 +390,7 @@
 |[00180](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00180-Dive-into-Claude-Code.pdf)|[Dive into Claude Code: The Design Space of Today's and Future AI Agent Systems](https://arxiv.org/abs/2604.14228)|2026|VILA Lab|—（待生成笔记）|
 |[00187](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00187-Miles.pdf)|[Miles v0.1: Production-Level Post-Training](https://arxiv.org/abs/2609.08368)|2026|Miles Team|—（待生成笔记）|
 |[00190](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00190-MechMem-RTL.pdf)|[MechMem-RTL: Reusing Verified Mechanism Memories for LLM-Based RTL Repair](https://arxiv.org/abs/2607.17053)|2026|Hunan University|—（待生成笔记）|
+|[00192](https://prism-shadow.github.io/awesome-rsi/#blog/understanding-rsi)|[万字长文带你读懂 RSI（自进化，Self-Evolving）](https://prism-shadow.github.io/awesome-rsi/#blog/understanding-rsi)|2026|Prism-Shadow|[笔记](./notes/blogs/awesome-rsi-understanding-rsi/note.md)|
 
 ## 书籍
 
