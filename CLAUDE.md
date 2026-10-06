@@ -39,4 +39,4 @@
 
 - 单人仓库，直接提交 `main`，不建分支、不走 PR。
 - 提交由用户发起：`./push.sh` 即 `git add -A && git commit && git push`。生成笔记后默认不自动提交，用户明确要求时再提交。
-- 署名沿用 `LuYF-Lemon-love <3555028709@qq.com>`。
+- 署名沿用 `yanfeng98 <3555028709@qq.com>`（2026-10-06 由 `LuYF-Lemon-love` 改名，历史提交保留旧署名）。
