@@ -446,7 +446,7 @@
 
 |编号|论文|年份|论文单位|笔记地址|
 |:-:|:-:|:-:|:-:|:-:|
-|[00212](https://arxiv.org/abs/2609.24972)|[RRSI: Regularized Recursive Self-Improvement of Agent Harnesses](https://arxiv.org/abs/2609.24972)|2026|Google Cloud AI Research|—（待生成笔记）|
+|[00212](https://arxiv.org/abs/2609.24972)|[RRSI: Regularized Recursive Self-Improvement of Agent Harnesses](https://arxiv.org/abs/2609.24972)|2026|Google Cloud AI Research|[笔记](./notes/papers/2609.24972-v3-rrsi/note.md)|
 
 ### AgentScope Team
 
