@@ -2,7 +2,7 @@
 
 论文就是你所需要的。
 
-> 「编号」是原文归档编号：来源非 arXiv 的论文，其 PDF 归档在本仓库 [`papers/`](./papers)；其余论文的原文 PDF 在归档仓库 [paper-is-all-you-need](https://github.com/yanfeng98/paper-is-all-you-need)。**非论文条目（如博客导读）同样占用编号列**，但它们没有可归档的 PDF，编号单元格直接指向原文在线地址（例：00192 指向 Awesome RSI 站点的博客页）。「笔记地址」指向 `notes/` 下由 read-paper-blog skill 生成的笔记。
+> 「编号」是原文归档编号：来源非 arXiv 的论文，其 PDF 归档在本仓库 [`papers/`](./papers)；其余论文的原文 PDF 在归档仓库 [paper-is-all-you-need](https://github.com/yanfeng98/paper-is-all-you-need)。**非论文条目（如博客导读、系统）同样占用编号列**，但它们没有可归档的 PDF，编号单元格直接指向原文在线地址（例：00192 指向 Awesome RSI 站点的博客页，00215 指向 GitHub 仓库）；**上游归档里还没有的 arXiv 论文也暂指 arXiv 官方页**，归档到上游后再改指 PDF。「笔记地址」指向 `notes/` 下由 read-paper-blog skill 生成的笔记。
 
 ## 论文
 
@@ -94,6 +94,7 @@
 |[00078](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00078-ReAct.pdf)|[ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629)|2022|Google|—（待生成笔记）|
 |[00080](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00080-Gemini-2.5.pdf)|[Gemini 2.5: Pushing the Frontier with Advanced Reasoning, Multimodality, Long Context, and Next Generation Agentic Capabilities](https://arxiv.org/abs/2507.06261)|2025|Google|—（待生成笔记）|
 |[00081](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00081-Gemma-3.pdf)|[Gemma 3 Technical Report](https://arxiv.org/abs/2503.19786)|2025|Google|—（待生成笔记）|
+|[00214](./papers/00214-Dream-RSI.pdf)|[Dream-RSI: Recursive Self-Improvement through Evolving Worlds](https://dream-rsi.com/)|2026|Google|—（待生成笔记）|
 
 ### Meta
 
@@ -190,6 +191,8 @@
 |编号|论文|年份|论文单位|笔记地址|
 |:-:|:-:|:-:|:-:|:-:|
 |[00162](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00162-ThinkOmni.pdf)|[ThinkOmni: Lifting Textual Reasoning to Omni-modal Scenarios via Guidance Decoding](https://arxiv.org/abs/2602.23306)|2026|Xiaomi|—（待生成笔记）|
+|[00204](https://arxiv.org/abs/2608.22793)|[TRACE: A Self-Evolving Skill Bank for Consistent, Limit-Aware LLM Agents](https://arxiv.org/abs/2608.22793)|2026|Xiaomi|—（待生成笔记）|
+|[00213](https://arxiv.org/abs/2609.29166)|[HarnessPAI: An Evolving Harness for Physical AI](https://arxiv.org/abs/2609.29166)|2026|Xiaomi|—（待生成笔记）|
 
 ### OPPO AI Agent Team
 
@@ -231,6 +234,7 @@
 |:-:|:-:|:-:|:-:|:-:|
 |[00142](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00142-FlowSearch.pdf)|[FlowSearch: Advancing deep research with dynamic structured knowledge flow](https://arxiv.org/abs/2510.08521)|2025|Shanghai Artificial Intelligence Laboratory|—（待生成笔记）|
 |[00188](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00188-Harness-of-Harness.pdf)|[Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement](https://arxiv.org/abs/2609.01481)|2026|Shanghai Artificial Intelligence Laboratory|—（待生成笔记）|
+|[00198](https://arxiv.org/abs/2606.09498)|[Self-Harness: Harnesses That Improve Themselves](https://arxiv.org/abs/2606.09498)|2026|Shanghai Artificial Intelligence Laboratory|—（待生成笔记）|
 
 ### EleutherAI
 
@@ -299,12 +303,14 @@
 |:-:|:-:|:-:|:-:|:-:|
 |[00119](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00119-STAT.pdf)|[Skill-Targeted Adaptive Training](https://arxiv.org/abs/2510.10023)|2025|Princeton University|—（待生成笔记）|
 |[00171](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00171-OpenClaw-RL.pdf)|[OpenClaw-RL: Train Any Agent Simply by Talking](https://arxiv.org/abs/2603.10165)|2026|Princeton University|—（待生成笔记）|
+|[00205](https://arxiv.org/abs/2608.23552)|[Prime Agent: A Self-Improving RLM Harness](https://arxiv.org/abs/2608.23552)|2026|Princeton University|—（待生成笔记）|
 
 ### National University of Singapore
 
 |编号|论文|年份|论文单位|笔记地址|
 |:-:|:-:|:-:|:-:|:-:|
 |[00048](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00048-understand-r1-zero.pdf)|[Understanding R1-Zero-Like Training: A Critical Perspective](https://arxiv.org/abs/2503.20783)|2025|National University of Singapore|—（待生成笔记）|
+|[00206](https://arxiv.org/abs/2608.24876)|[Recursive Experiential-Working Memory Evolution for Long-Horizon Agent Harnesses](https://arxiv.org/abs/2608.24876)|2026|National University of Singapore|—（待生成笔记）|
 
 ### Fudan University
 
@@ -342,6 +348,8 @@
 |[00147](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00147-SmartSearch.pdf)|[SmartSearch: Process Reward-Guided Query Refinement for Search Agents](https://arxiv.org/abs/2601.04888)|2026|Renmin University of China|—（待生成笔记）|
 |[00149](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00149-EnvScaler.pdf)|[EnvScaler: Scaling Tool-Interactive Environments for LLM Agent via Programmatic Synthesis](https://arxiv.org/abs/2601.05808)|2026|Renmin University of China|—（待生成笔记）|
 |[00178](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00178-Arbor.pdf)|[Toward Generalist Autonomous Research via Hypothesis-Tree Refinement](https://arxiv.org/abs/2606.11926)|2026|Renmin University of China|—（待生成笔记）|
+|[00209](https://arxiv.org/abs/2609.08944)|[SkillAdam: Stable and Efficient Skill Evolution for Agents](https://arxiv.org/abs/2609.08944)|2026|Renmin University of China|—（待生成笔记）|
+|[00210](https://arxiv.org/abs/2609.15779)|[EvoOntology: A Self-Evolving Ontology Layer for Data Agents](https://arxiv.org/abs/2609.15779)|2026|Renmin University of China|—（待生成笔记）|
 
 ### University of Illinois Urbana-Champaign
 
@@ -351,12 +359,14 @@
 |[00061](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00061-Search-R1.pdf)|[Search-R1: Training LLMs to Reason and Leverage Search Engines with Reinforcement Learning](https://arxiv.org/abs/2503.09516)|2025|University of Illinois Urbana-Champaign|—（待生成笔记）|
 |[00166](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00166-CodeAct.pdf)|[Executable Code Actions Elicit Better LLM Agents](https://arxiv.org/abs/2402.01030)|2024|University of Illinois Urbana-Champaign|—（待生成笔记）|
 |[00170](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00170-CoRNStack.pdf)|[CoRNStack: High-Quality Contrastive Data for Better Code Retrieval and Reranking](https://arxiv.org/abs/2412.01007)|2024|University of Illinois Urbana-Champaign|—（待生成笔记）|
+|[00202](https://arxiv.org/abs/2608.15071)|[Evo-Harness: Context-to-Harness Skill Compilation for Self-Evolving Agents](https://arxiv.org/abs/2608.15071)|2026|University of Illinois Urbana-Champaign|—（待生成笔记）|
 
 ### Hong Kong University of Science and Technology
 
 |编号|论文|年份|论文单位|笔记地址|
 |:-:|:-:|:-:|:-:|:-:|
 |[00169](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00169-Dr.RTL.pdf)|[Dr. RTL: Autonomous Agentic RTL Optimization through Tool-Grounded Self-Improvement](https://arxiv.org/abs/2604.14989)|2026|Hong Kong University of Science and Technology|—（待生成笔记）|
+|[00196](https://arxiv.org/abs/2606.01139)|[SkillRevise: Improving LLM-Authored Agent Skills via Trace-Conditioned Skill Revision](https://arxiv.org/abs/2606.01139)|2026|Hong Kong University of Science and Technology|—（待生成笔记）|
 
 ### Institute of Computing Technology, Chinese Academy of Sciences
 
@@ -370,6 +380,91 @@
 |编号|论文|年份|论文单位|笔记地址|
 |:-:|:-:|:-:|:-:|:-:|
 |[00183](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00183-NoTB.pdf)|[NoTB: Oracle-Free Triage of LLM-Generated RTL via Cross-Model Formal Consensus](https://arxiv.org/abs/2608.21962)|2026|Columbia University|—（待生成笔记）|
+
+### University of British Columbia
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00193](https://arxiv.org/abs/2603.19461)|[Hyperagents](https://arxiv.org/abs/2603.19461)|2026|University of British Columbia|—（待生成笔记）|
+
+### Hong Kong University of Science and Technology (Guangzhou)
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00194](https://arxiv.org/abs/2604.16839)|[HeLa-Mem: Hebbian Learning and Associative Memory for LLM Agents](https://arxiv.org/abs/2604.16839)|2026|Hong Kong University of Science and Technology (Guangzhou)|—（待生成笔记）|
+
+### University of Maryland
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00195](https://arxiv.org/abs/2605.08083)|[LLMs Improving LLMs: Agentic Discovery for Test-Time Scaling](https://arxiv.org/abs/2605.08083)|2026|University of Maryland|—（待生成笔记）|
+
+### Lehigh University
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00197](https://arxiv.org/abs/2606.06741)|[OpenSkill: Open-World Self-Evolution for LLM Agents](https://arxiv.org/abs/2606.06741)|2026|Lehigh University|—（待生成笔记）|
+
+### Darwin Agent Team
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00199](https://arxiv.org/abs/2606.14249)|[HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry](https://arxiv.org/abs/2606.14249)|2026|Darwin Agent Team|—（待生成笔记）|
+
+### University of Maryland, Baltimore County
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00200](https://arxiv.org/abs/2606.31191)|[ISM: Self-Improving Strategy Memory for Continual Mathematical Reasoning](https://arxiv.org/abs/2606.31191)|2026|University of Maryland, Baltimore County|—（待生成笔记）|
+
+### California Institute of Technology
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00201](https://arxiv.org/abs/2607.19592)|[Knowledge-Centric Self-Improvement](https://arxiv.org/abs/2607.19592)|2026|California Institute of Technology|—（待生成笔记）|
+
+### Zhejiang University
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00203](https://arxiv.org/abs/2608.20920)|[ForeDreamer: A Self-Evolving Dual-Agent Memory Architecture for Future Event Prediction](https://arxiv.org/abs/2608.20920)|2026|Zhejiang University|—（待生成笔记）|
+|[00211](https://arxiv.org/abs/2609.17653)|[Reflect, Revise, Reuse: Training-Free Skill Evolution for GUI Agents](https://arxiv.org/abs/2609.17653)|2026|Zhejiang University|—（待生成笔记）|
+
+### Xiamen University
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00207](https://arxiv.org/abs/2609.02074)|[CHIME: Credit-Aware Hierarchical Memory Evolution for Long-Horizon Agentic Planning](https://arxiv.org/abs/2609.02074)|2026|Xiamen University|—（待生成笔记）|
+
+### Jilin University
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00208](https://arxiv.org/abs/2609.03753)|[SimSkill: A Self-Evolving LLM Agent for Skill and Knowledge Accumulation in Traffic Simulation](https://arxiv.org/abs/2609.03753)|2026|Jilin University|—（待生成笔记）|
+
+### Google Cloud AI Research
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00212](https://arxiv.org/abs/2609.24972)|[RRSI: Regularized Recursive Self-Improvement of Agent Harnesses](https://arxiv.org/abs/2609.24972)|2026|Google Cloud AI Research|—（待生成笔记）|
+
+### AgentScope Team
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00215](https://github.com/agentscope-ai/ReMe)|[ReMe: A Local-First, Self-Evolving Personal Knowledge Base for AI Agents](https://github.com/agentscope-ai/ReMe)|2026|AgentScope Team|—（待生成笔记）|
+
+### Proteus Authors
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00216](https://github.com/proteus-evolve/Proteus)|[Proteus: A Harness-Agnostic Self-Evolution Framework for AI Agents](https://github.com/proteus-evolve/Proteus)|2026|Proteus Authors|—（待生成笔记）|
+
+### Human-Agent-Society
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00217](https://github.com/Human-Agent-Society/reef)|[Reef: Continual Learning Infrastructure for Self-Improving Agents](https://github.com/Human-Agent-Society/reef)|2026|Human-Agent-Society|—（待生成笔记）|
 
 ### 其他
 
