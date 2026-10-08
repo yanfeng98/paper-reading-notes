@@ -88,7 +88,7 @@
 |[00078](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00078-ReAct.pdf)|[ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629)|2022|Google|—（待生成笔记）|
 |[00080](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00080-Gemini-2.5.pdf)|[Gemini 2.5: Pushing the Frontier with Advanced Reasoning, Multimodality, Long Context, and Next Generation Agentic Capabilities](https://arxiv.org/abs/2507.06261)|2025|Google|—（待生成笔记）|
 |[00081](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00081-Gemma-3.pdf)|[Gemma 3 Technical Report](https://arxiv.org/abs/2503.19786)|2025|Google|—（待生成笔记）|
-|[00214](./papers/00214-Dream-RSI.pdf)|[Dream-RSI: Recursive Self-Improvement through Evolving Worlds](https://dream-rsi.com/)|2026|Google|—（待生成笔记）|
+|[00214](https://arxiv.org/abs/2609.14858)|[Dream-RSI: Recursive Self-Improvement through Evolving Worlds](https://dream-rsi.com/)|2026|Google|[笔记](./notes/papers/dream-rsi/note.md)|
 |[00212](https://arxiv.org/abs/2609.24972)|[RRSI: Regularized Recursive Self-Improvement of Agent Harnesses](https://arxiv.org/abs/2609.24972)|2026|Google Cloud AI Research|[笔记](./notes/papers/2609.24972-v3-rrsi/note.md)|
 
 ### Meta
