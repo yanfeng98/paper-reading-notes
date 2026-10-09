@@ -167,7 +167,7 @@
 |[00109](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00109-MemAgent.pdf)|[MemAgent: Reshaping Long-Context LLM with Multi-Conv RL-based Memory Agent](https://arxiv.org/abs/2507.02259)|2025|ByteDance|—（待生成笔记）|
 |[00122](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00122-Ouro.pdf)|[Scaling Latent Reasoning via Looped Language Models](https://arxiv.org/abs/2510.25741)|2025|ByteDance|—（待生成笔记）|
 |[00128](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00128-context-folding.pdf)|[Scaling Long-Horizon LLM Agent via Context-Folding](https://arxiv.org/abs/2510.11967)|2025|ByteDance|—（待生成笔记）|
-|[00189](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00189-HarnessDev.pdf)|[HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?](https://arxiv.org/abs/2609.01437)|2026|ByteDance|—（待生成笔记）|
+|[00189](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00189-HarnessDev.pdf)|[HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness?](https://arxiv.org/abs/2609.01437)|2026|ByteDance|[笔记](./notes/papers/2609.01437-v1-harnessdev/note.md)|
 
 ### Tencent
 
