@@ -263,7 +263,7 @@
 |:-:|:-:|:-:|:-:|:-:|
 |[00119](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00119-STAT.pdf)|[Skill-Targeted Adaptive Training](https://arxiv.org/abs/2510.10023)|2025|Princeton University|—（待生成笔记）|
 |[00171](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00171-OpenClaw-RL.pdf)|[OpenClaw-RL: Train Any Agent Simply by Talking](https://arxiv.org/abs/2603.10165)|2026|Princeton University|—（待生成笔记）|
-|[00205](https://arxiv.org/abs/2608.23552)|[Prime Agent: A Self-Improving RLM Harness](https://arxiv.org/abs/2608.23552)|2026|Princeton University|—（待生成笔记）|
+|[00205](https://arxiv.org/abs/2608.23552)|[Prime Agent: A Self-Improving RLM Harness](https://arxiv.org/abs/2608.23552)|2026|Princeton University|[笔记](./notes/papers/2608.23552-v1-prime-agent/note.md)|
 
 ### National University of Singapore
 
