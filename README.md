@@ -374,7 +374,7 @@
 |[00193](https://arxiv.org/abs/2603.19461)|[Hyperagents](https://arxiv.org/abs/2603.19461)|2026|University of British Columbia|—（待生成笔记）|
 |[00195](https://arxiv.org/abs/2605.08083)|[LLMs Improving LLMs: Agentic Discovery for Test-Time Scaling](https://arxiv.org/abs/2605.08083)|2026|University of Maryland|—（待生成笔记）|
 |[00197](https://arxiv.org/abs/2606.06741)|[OpenSkill: Open-World Self-Evolution for LLM Agents](https://arxiv.org/abs/2606.06741)|2026|Lehigh University|—（待生成笔记）|
-|[00199](https://arxiv.org/abs/2606.14249)|[HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry](https://arxiv.org/abs/2606.14249)|2026|Darwin Agent Team|—（待生成笔记）|
+|[00199](https://arxiv.org/abs/2606.14249)|[HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry](https://arxiv.org/abs/2606.14249)|2026|Darwin Agent Team|[笔记](./notes/papers/2606.14249-v3-harnessx/note.md)|
 |[00200](https://arxiv.org/abs/2606.31191)|[ISM: Self-Improving Strategy Memory for Continual Mathematical Reasoning](https://arxiv.org/abs/2606.31191)|2026|University of Maryland, Baltimore County|—（待生成笔记）|
 |[00201](https://arxiv.org/abs/2607.19592)|[Knowledge-Centric Self-Improvement](https://arxiv.org/abs/2607.19592)|2026|California Institute of Technology|—（待生成笔记）|
 |[00207](https://arxiv.org/abs/2609.02074)|[CHIME: Credit-Aware Hierarchical Memory Evolution for Long-Horizon Agentic Planning](https://arxiv.org/abs/2609.02074)|2026|Xiamen University|—（待生成笔记）|
