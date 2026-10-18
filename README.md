@@ -4,7 +4,7 @@
 
 > 「编号」是原文归档编号：来源非 arXiv 的论文，其 PDF 归档在本仓库 [`papers/`](./papers)；其余论文的原文 PDF 在归档仓库 [paper-is-all-you-need](https://github.com/yanfeng98/paper-is-all-you-need)。**非论文条目（如博客导读、系统）同样占用编号列**，但它们没有可归档的 PDF，编号单元格直接指向原文在线地址（例：00192 指向 Awesome RSI 站点的博客页，00215 指向 GitHub 仓库）；**上游归档里还没有的 arXiv 论文也暂指 arXiv 官方页**，归档到上游后再改指 PDF。「笔记地址」指向 `notes/` 下由 read-paper-blog skill 生成的笔记。
 
-> 主题汇总：[RSI（自进化）方法汇总](./docs/rsi-methods.md)——收录 00189 / 00205 / 00212 / 00214 四篇已读论文的方法拆解与横向对比。
+> 主题汇总：[RSI（自进化）方法汇总](./docs/rsi-methods.md)——收录 00189 / 00199 / 00205 / 00212 / 00214 五篇已读论文的方法拆解与横向对比。
 
 ## 论文
 

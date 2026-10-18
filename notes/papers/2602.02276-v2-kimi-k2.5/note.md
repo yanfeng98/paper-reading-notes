@@ -106,16 +106,16 @@
 
 $$r_{\mathrm{PARL}}(x,y)=\lambda_1 \cdot r_{\text{parallel}} + \lambda_2 \cdot r_{\text{finish}} + r_{\text{perf}}(x,y)$$
 
-- $r_{\text{perf}}$：任务级结果奖励（主目标）；
-- $r_{\text{parallel}}$：实例化奖励，对抗 **serial collapse**（局部最优：总是单 agent 干活）；
-- $r_{\text{finish}}$：子任务完成率，对抗 **spurious parallelism**（奖励黑客：疯狂 spawn subagent 但不做有意义的分解）；
-- $\lambda_1,\lambda_2$ 随训练**退火到 0**，保证最终只优化主目标。
+- `r_perf`：任务级结果奖励（主目标）；
+- `r_parallel`：实例化奖励，对抗 **serial collapse**（局部最优：总是单 agent 干活）；
+- `r_finish`：子任务完成率，对抗 **spurious parallelism**（奖励黑客：疯狂 spawn subagent 但不做有意义的分解）；
+- `λ1`、`λ2` 随训练**退火到 0**，保证最终只优化主目标。
 
 **Critical steps 资源约束**（§3）：把「并行组里最慢的那个 subagent」当作该阶段时长，总步数按关键路径累计：
 
 $$\text{CriticalSteps}=\sum_{t=1}^{T}\Big(S_{\mathrm{main}}^{(t)}+\max_i S_{\mathrm{sub},i}^{(t)}\Big)$$
 
-其中 $S_{\mathrm{main}}^{(t)}$ 是主 agent 在第 $t$ 阶段自己的步数（通常为 1），$S_{\mathrm{sub},i}^{(t)}$ 是第 $i$ 个 subagent 的步数。以 critical steps 而非总步数计预算/评测，意味着「狂开子任务但没缩短最长分支」几乎没有收益，只有**均衡的分解**能真正降低关键路径——这是全文里我认为最精巧的设计：奖励结构使得「并行」必须是有信息价值的。
+其中 `S_main^(t)` 是主 agent 在第 `t` 阶段自己的步数（通常为 1），`S_(sub,i)^(t)` 是第 `i` 个 subagent 的步数。以 critical steps 而非总步数计预算/评测，意味着「狂开子任务但没缩短最长分支」几乎没有收益，只有**均衡的分解**能真正降低关键路径——这是全文里我认为最精巧的设计：奖励结构使得「并行」必须是有信息价值的。
 
 **Prompt 构造**：合成两类压力 prompt——wide search（许多独立信息源的并行探索）与 deep search（多推理分支+延迟聚合），外加真实工作负载（长文档分析、大批量下载）；**不显式要求并行**，只让任务分布在串行预算下天然完不成，从而让「并行分解」在 RL 探索中自发出现。
 
@@ -129,19 +129,19 @@ $$\text{CriticalSteps}=\sum_{t=1}^{T}\Big(S_{\mathrm{main}}^{(t)}+\max_i S_{\mat
 
 ### 5. 后训练 RL 算法与 token 效率（§4.4.2）
 
-**目标函数**（式(1)）：对每个问题采 $K$ 条回复，逐 token 计算：
+**目标函数**（式(1)）：对每个问题采 `K` 条回复，逐 token 计算：
 
 $$L_{\mathrm{RL}}(\theta)=\mathbb{E}_{x\sim\mathcal{D}}\Big[\frac{1}{N}\sum_{j=1}^{K}\sum_{i=1}^{|y_j|}\mathrm{Clip}\big(\tfrac{\pi_\theta(y_j^i|x,y_j^{0:i})}{\pi_{\mathrm{old}}(y_j^i|x,y_j^{0:i})},\alpha,\beta\big)\,(r(x,y_j)-\bar r(x))-\tau\big(\log\tfrac{\pi_\theta}{\pi_{\mathrm{old}}}\big)^2\Big]$$
 
-关键点：Clip 是**基于 log-ratio 的梯度掩码**（比值在 $[\alpha,\beta]$ 外的 token 梯度置零，不看 advantage 符号，区别于 PPO），用于抑制训练/推理框架不一致带来的 off-policy 漂移；另加 $\tau(\log\text{-ratio})^2$ 惩罚项。$\bar r$ 为 batch 内平均奖励（类似 GRPO 的基线）。作者称该机制对长程多步工具使用推理的稳定性是必需的；优化器仍用 MuonClip。
+关键点：Clip 是**基于 log-ratio 的梯度掩码**（比值在 `[α, β]` 外的 token 梯度置零，不看 advantage 符号，区别于 PPO），用于抑制训练/推理框架不一致带来的 off-policy 漂移；另加 `τ·(log-ratio)²` 惩罚项。`r_bar` 为 batch 内平均奖励（类似 GRPO 的基线）。作者称该机制对长程多步工具使用推理的稳定性是必需的；优化器仍用 MuonClip。
 
 **奖励构成**：可验证任务用规则奖励；另加 budget-control 奖励鼓励 token 效率；通用任务用 **GRM**（多种 rubric：helpfulness、response readiness、contextual relevance、细节程度、产物美观度、严格指令遵循；多套 rubric 并存以抗 reward hacking）；视觉任务专用奖励 = grounding 用 IoU 软匹配 F1、点定位用高斯加权距离、多边形分割栅格化后算 IoU、OCR 用归一化编辑距离、计数用绝对差；视觉谜题用 Kimi K2 当 LLM verifier。
 
 **Toggle：token 效率与推理能力的双目标交替优化**（§4.4.2）：
 
 - 动机：刚性 token 预算训练会**长度过拟合**——模型学不会在更高算力下花更多 token 解题；
-- 机制：每 $m$ 次迭代在两种模式间切换。Phase 0（预算受限）：仅在**该题平均正确率超过阈值 $\lambda$** 时才施加预算约束；Phase 1（标准缩放）：只给最大 token 上限，鼓励用推理时算力换质量；
-- 预算 $=\text{Percentile}(\{|y_j|: r(x,y_i)=1\},\rho)$（原文式(2)），即**正确回复** token 长度的 $\rho$ 分位数，训练开始时算一次后固定；
+- 机制：每 `m` 次迭代在两种模式间切换。Phase 0（预算受限）：仅在**该题平均正确率超过阈值 `λ`** 时才施加预算约束；Phase 1（标准缩放）：只给最大 token 上限，鼓励用推理时算力换质量；
+- 预算 = `Percentile({|y_j| : r(x,y_i)=1}, ρ)`（原文式(2)），即**正确回复** token 长度的 `ρ` 分位数，训练开始时算一次后固定；
 - 实测（在 **K2 Thinking** 上，Figure 5 及对应正文）：输出长度平均降 **25~30%**，性能影响可忽略；只在数学/代码上训的模型在 GPQA、MMLU-Pro 上也有 token 降幅（域泛化）。
 
 ### 6. 训练基础设施（§4.5、附录 C、D）
@@ -172,7 +172,7 @@ flowchart LR
   - **GPT-5.2 在视觉评测中约 10% 请求失败**（重试 3 次无输出），失败计为错答——作者自己声明 GPT-5.2 视觉分数可能是保守下界；GPT-5.2 API 不稳定，WideSearch 等昂贵评测被跳过。
   - 编码类评测：SWE-Bench 三个变体的**峰值出现在 non-thinking 模式**；Terminal Bench 2.0 也跑在 non-thinking（因为 thinking 模式的上下文管理与 Terminus-2 的会话状态处理不兼容）。
   - BrowseComp 有/无上下文管理两套设置；HLE 工具版用 Hide-Tool-Result 策略；GPT-5.2 的 65.8 为公开报告值（Table 4 中不带 `*`，非作者复测）。
-  - LongBench v2：输入统一截断到约 128k；因 GPT-5.2-xhigh 不遵守多选题输出格式，改报 GPT5.2-high 的结果（Table 4 的 54.5*）。
+  - LongBench v2：输入统一截断到约 128k；因 GPT-5.2-xhigh 不遵守多选题输出格式，改报 GPT5.2-high 的结果（Table 4 的 54.5\*）。
   - OSWorld 中 Claude Opus 4.5 **只给 computer-use 工具**（不含 browser tools），偏离其 System Card 配置；WebArena 用 GPT-4o 判分；GDPVal-AA 引用 Artificial Analysis 官方榜单，截至 2026-01-28。
   - Computer-use 通用口径：`max_steps_per_episode=100`、temperature 0（OSWorld）/ 0.1（WebArena）、所有模型 one-shot、agent 上下文含最近 3 张历史图像。
 
@@ -226,12 +226,12 @@ flowchart LR
 
 ### 失败模式与设计取舍（原文点名的 + 我的归纳）
 
-- **Serial collapse**：不加 $r_{\text{parallel}}$ 时 orchestrator 退化为单 agent——并行不会自发出现，需要奖励塑形。
-- **Spurious parallelism**：只鼓励并行会诱导「狂开 subagent」的奖励黑客，需 $r_{\text{finish}}$ 与 critical-steps 双重约束。
+- **Serial collapse**：不加 `r_parallel` 时 orchestrator 退化为单 agent——并行不会自发出现，需要奖励塑形。
+- **Spurious parallelism**：只鼓励并行会诱导「狂开 subagent」的奖励黑客，需 `r_finish` 与 critical-steps 双重约束。
 - **长度过拟合**：刚性预算训练导致模型在更高算力下不会用额外 token（Toggle 的动机）。
 - **反应式上下文管理的代价**：truncation 牺牲结构信息；Swarm 的选择是 context sharding。
 - **zero-vision SFT 依赖前置条件**：作者明确说它成立「likely because joint pretraining already establishes strong vision-text alignment」——没有联合预训练时该结论未必可迁移（解读）。
-- 一个可移植的教训：主奖励之外给辅助塑形奖励时，**务必退火**（$\lambda_1,\lambda_2\to 0$），否则最终策略会被代理指标带偏。
+- 一个可移植的教训：主奖励之外给辅助塑形奖励时，**务必退火**（`λ1, λ2 → 0`），否则最终策略会被代理指标带偏。
 
 ### 伪代码（解读，非作者实现）
 
@@ -271,7 +271,7 @@ def orchestrate(task):
 - **内部基准不可复现**：In-house Swarm Bench 与 image-to-code SOTA 声明均无公开数据、指标定义或评审协议。
 - **GRM 细节缺失**：rubric 数量、训练数据、跨域权重、与规则奖励的混合比例都没给。
 - **多处数字/表述不一致**（72.8/72.7；ZeroBench 表述）提示报告在终稿校对上有瑕疵，引用其数字时应以表格为准并交叉核对。
-- **可复现性**：训练数据配比只给了域级描述（附录 B），15T 联合 token 的视觉:文本比例、SFT 数据规模、PARL 与 Toggle 的具体超参（$\lambda$、$m$、$\rho$ 等）均未公布——开源的是权重，不是训练过程。
+- **可复现性**：训练数据配比只给了域级描述（附录 B），15T 联合 token 的视觉:文本比例、SFT 数据规模、PARL 与 Toggle 的具体超参（`λ`、`m`、`ρ` 等）均未公布——开源的是权重，不是训练过程。
 
 ---
 

@@ -35,7 +35,7 @@
 | 长上下文设置 | 明写「We offload the main context **in each harness** to a file in memory to start」，并说明 GLM-5.2 一侧两臂同用一个 open-weights 模型、Pi-mono 带 sub-agents | 只写 Prime Agent 把初始上下文放进可读文件；**对照 harness 是否同样处理未写**；`Pi-mono` 的来源与配置全篇未交代 |
 | nanoGPT / 离环实验 | **没有**（全篇无 Kimi K3、DeepSeek V4 Pro、speedrun、out-of-loop 等字样） | v1 新增 §3.3 与图 6，以及引言的 85.5 小时 / 19 条验证记录 |
 | Factorio | 口径是 production score（「in the 100K+ range … in a matter of hours」，四名角色，`/refine` 同时造出正当 skill 与作弊 skill） | 换成 7 天 Sonnet 5 run 的科技进度口径（24/196、71%、23.4M token、633 个子 agent） |
-| 公式与实现细节 | 含 Continual Harness 的形式化 $H=(\rho,G,K,M)$、JSONL 会话历史、`/tree`、`compact.run()`、CLI 的 `--autonomous` / `--autonomous-gate` 等参数 | 全部未进 v1（v1 无任何公式） |
+| 公式与实现细节 | 含 Continual Harness 的形式化 `H=(ρ,G,K,M)`、JSONL 会话历史、`/tree`、`compact.run()`、CLI 的 `--autonomous` / `--autonomous-gate` 等参数 | 全部未进 v1（v1 无任何公式） |
 | 致谢与出处 | 写明「Prime Agent is built on top of **pi**」并致谢 pi 作者 | 改为感谢跑实验的人（Florian Brand、SinatraS、Patience Cave），未提 pi |
 
 对「原文自身的表述张力」的版本适用性：**第 1 条（95.5 vs 95）与第 5 条（85.5 小时 / 19 条）只适用于 v1**；第 3 条（Kimi-Code）只适用于 v1（博客全篇未出现 Kimi-Code）；第 2 条两版同向（博客也有「higher maximum score … at a lower overall token usage」的宣称，只是位置在 ARC 一节末而非摘要）；第 4 条两版都成立——**两版下 Prime 更高的格数都是 20/27**（唯一差异格里 Prime 仍更高）。

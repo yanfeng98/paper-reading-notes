@@ -1,6 +1,6 @@
 # paper-reading-notes
 
-论文阅读笔记仓库：根 `README.md` 是选读清单兼唯一索引，`notes/` 是笔记产物，`papers/` 是非 arXiv 来源的原文归档。
+论文阅读笔记仓库：根 `README.md` 是选读清单兼唯一索引，`notes/` 是笔记产物，`docs/` 是跨篇主题汇总，`papers/` 是非 arXiv 来源的原文归档。
 
 ## 目录职责
 
@@ -8,10 +8,11 @@
 | --- | --- | --- |
 | `README.md` | 唯一索引：按机构分组，列为 `编号\|论文\|年份\|论文单位\|笔记地址` | 人选读与分组；agent 默认只回写单个单元格（例外见「修改边界」） |
 | `notes/` | 笔记产物（首次实际阅读时创建）：`notes/papers/<...>/note.md`、`notes/blogs/<...>/note.md` | read-paper-blog（生成）、check-paper-note（复核） |
+| `docs/` | 跨篇主题汇总文档（如 `docs/rsi-methods.md`），不是逐篇笔记 | summarize-paper-methods（生成与复核） |
 | `papers/` | 非 arXiv 来源的原文归档，命名 `<5位编号>-<短标题>.pdf` | skill 归档新论文，已有文件不改 |
 | `books/` | 书籍归档，独立编号（00001 起） | 人工 |
 
-阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。
+阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行，跨篇方法汇总的生成与复核按 `skills/summarize-paper-methods/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。
 
 ## 编号
 
@@ -36,8 +37,8 @@
 ## 修改边界
 
 - `papers/`、`books/` 里已有的文件不覆盖、不重命名。
-- `README.md` 只允许回写笔记所在行的「笔记地址」单元格（规则见 SKILL.md 的「回写根 README」）：不重排分组、不改表头、不批量重写表格、不新增行。**例外**（均须用户明确要求）：① 为某条目（如博客导读、系统）收录并分配编号——可在既有分组内追加一行，或按用户确认的机构／署名方**新建分组**（新分组与既有分组同级、插在「### 其他」之前，不重排既有分组），编号与链接按「编号」一节的规则处理；② 分组结构性改动——撤并分组、给分组改名或在分组间搬迁既有行，按「编号」一节的分组规则执行；③ 更换某条目**编号单元格的来源指向**——如非 arXiv 来源的论文随后在 arXiv 发布，或原链接失效／改版，把编号单元格改指新地址（arXiv 则指向官方页、不再写 `papers/` 路径），已归档的 PDF 按上一条保留不动，笔记的来源信息注明改指原因与本次实际阅读的版本。
-- `skills/` 下的 skill（read-paper-blog、check-paper-note）经 `~/.claude/skills/` 同名符号链接全局加载：改这里的 SKILL.md 会影响本机所有会话，改动前先确认影响范围。
+- `README.md` 只允许回写笔记所在行的「笔记地址」单元格（规则见 `skills/read-paper-blog/SKILL.md` 的「回写根 README」）：不重排分组、不改表头、不批量重写表格、不新增行。**例外**（均须用户明确要求）：① 为某条目（如博客导读、系统）收录并分配编号——可在既有分组内追加一行，或按用户确认的机构／署名方**新建分组**（新分组与既有分组同级、插在「### 其他」之前，不重排既有分组），编号与链接按「编号」一节的规则处理；② 分组结构性改动——撤并分组、给分组改名或在分组间搬迁既有行，按「编号」一节的分组规则执行；③ 更换某条目**编号单元格的来源指向**——如非 arXiv 来源的论文随后在 arXiv 发布，或原链接失效／改版，把编号单元格改指新地址（arXiv 则指向官方页、不再写 `papers/` 路径），已归档的 PDF 按上一条保留不动，笔记的来源信息注明改指原因与本次实际阅读的版本；④ 维护主题汇总链接行——仅在用户明确要求时，在编号说明 blockquote 之后、`## 论文` 之前新增或更新**一行**主题汇总链接（同步编号集合与篇数），不重排其他行。
+- `skills/` 下的 skill（read-paper-blog、check-paper-note、summarize-paper-methods）经 `~/.claude/skills/` 同名符号链接全局加载：改这里的 SKILL.md 会影响本机所有会话，改动前先确认影响范围。
 
 ## Git
 
