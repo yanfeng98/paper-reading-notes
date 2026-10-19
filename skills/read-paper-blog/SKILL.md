@@ -114,6 +114,6 @@ arXiv 论文仍会获取完整原文用于阅读和核对，只是不把 PDF 归
 
 后者调用 GitHub Markdown API，要求源公式/图块数与 `<math-renderer>`/`highlight-source-mermaid` 数一致，且没有 `language-math`/`language-mermaid` 残留；它只验证公式/图块被识别，不验证 Mermaid 图语法，图要在站点/阅读页实际渲染检查。网络不可达时如实标注「未做」。
 
-笔记会自动进入静态笔记库：`python3 site/build.py --out _site` 扫描 `notes/papers/*/note.md` 与 `notes/blogs/*/note.md`；每个 note.md 必须有 README 行（构建会双向校验并检查图片/链接），所以生成笔记后仍要按上文回写 README。构建后用 `python3 -m http.server 8000 --directory _site` 预览；构建只写本地 `_site`，**要上线必须 commit/push**——Actions 在 `notes/**` 或 `README.md` 变化时自动构建并部署。不生成单篇 PDF（PDF 只为汇总生成，流程见 summarize-paper-methods）。旧笔记里单行/缩进 `$$` 的批量改写需用户明确要求。缺失内容如实标注，不为填满章节而推测。
+笔记会自动进入静态笔记库：`python3 site/build.py --out _site` 扫描 `notes/papers/*/note.md` 与 `notes/blogs/*/note.md`；每个 note.md 必须有 README 行（构建会双向校验并检查图片/链接），所以生成笔记后仍要按上文回写 README。本地链接一律用相对 note.md 的路径，不要写 `/...` 根绝对路径（构建会拒绝）；图片放在本篇 `assets/` 下，其余仓库文件链接会转到 GitHub。构建后用 `python3 -m http.server 8000 --directory _site` 预览；构建只写本地 `_site`，**要上线必须 commit/push**——Actions 在 `notes/**` 或 `README.md` 变化时自动构建并部署。不生成单篇 PDF（PDF 只为汇总生成，流程见 summarize-paper-methods）。旧笔记里单行/缩进 `$$` 的批量改写需用户明确要求。缺失内容如实标注，不为填满章节而推测。
 
 完成后在对话中给出核心结论，并说明影响理解的材料缺失或未验证事项。生成了文件时附笔记及实际归档的 PDF 路径（arXiv 论文不归档 PDF、只附 note.md 链接）；仅对话解答时直接交付解读，不输出未创建文件的链接。
