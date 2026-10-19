@@ -103,7 +103,9 @@
 
 设并行 worker 数 `W ≥ 1`（每个 worker 一次只能跑一个生成–评测请求）。对当前树 `T`（花体 T），可继续节点集合与可行批：
 
-$$A(\mathcal{T}) = \{r\} \cup \{v \in \mathcal{T} : v \text{ 是叶子}\}, \qquad A(\mathcal{T}; W) = \{C \subseteq A(\mathcal{T}) : |C| \le W\}$$
+```math
+A(\mathcal{T}) = \{r\} \cup \{v \in \mathcal{T} : v \text{ 是叶子}\}, \qquad A(\mathcal{T}; W) = \{C \subseteq A(\mathcal{T}) : |C| \le W\}
+```
 
 探索策略每一轮从当前树里选一个批 `C ∈ A(T; W)`，观察这一批全部完成后的结果，再进入下一轮。**选空批 = 终止 rollout。**根在开出分支后仍然可选（所以可以继续开新根），而从非根叶子继续则把该分支推进到它的新子节点。
 
@@ -124,17 +126,23 @@ $$A(\mathcal{T}) = \{r\} \cup \{v \in \mathcal{T} : v \text{ 是叶子}\}, \qqua
 
 记 `N_i^m = |T_i^{m,k_i^{m,⋆}}| - 1` 为回放中揭示的非根节点数——**回放本身不执行任何新尝试**，但 `N_i^m` 计的就是这条轨迹**所代表的**生成–评测请求数。对固定系数 `β1, β2 ≥ 0`：
 
-$$V_i^m \;=\; \underbrace{\max_{v \in \mathcal{T}_i^{m,k_i^{m,\star}}} s_v}_{\text{discovery quality}} \;-\; \underbrace{\beta_1 N_i^m}_{\text{execution cost}} \;+\; \underbrace{\beta_2 \cdot \frac{N_i^m}{\max\{1,\, k_i^{m,\star}\}}}_{\text{parallelism bonus}} \tag{1}$$
+```math
+V_i^m \;=\; \underbrace{\max_{v \in \mathcal{T}_i^{m,k_i^{m,\star}}} s_v}_{\text{discovery quality}} \;-\; \underbrace{\beta_1 N_i^m}_{\text{execution cost}} \;+\; \underbrace{\beta_2 \cdot \frac{N_i^m}{\max\{1,\, k_i^{m,\star}\}}}_{\text{parallelism bonus}} \tag{1}
+```
 
 三项的直觉：① 回放期间达到的**最好解质量**；② 惩罚尝试过的生成次数（总工作量）；③ 对**非空回放**，奖励"每个决策轮平均执行了多少次尝试"——即鼓励把有用的继续**成批**发出，而不是串行一个个跑（`k_i^{m,⋆}` 是该次回放完成的轮数）。
 
 策略版本 `π_t^m` 的评测分是在固定历史上的平均回放分：
 
-$$V^m = \frac{1}{t}\sum_{i=1}^{t} V_i^m$$
+```math
+V^m = \frac{1}{t}\sum_{i=1}^{t} V_i^m
+```
 
 离线阶段先评测当前策略 `π_t^0 = π_t`，再由 policy-development agent 阅读回放轨迹与分数（以及更早修订的反馈），识别成功决策与反复出现的失败，改出 `π_t^{m+1}` 并在同样的 `t` 个回放世界上评测。`M` 次修订后选
 
-$$\pi_{t+1} = \pi_t^{m^\star}, \qquad m^\star \in \arg\max_{m \in \{0,\ldots,M-1\}} V^m$$
+```math
+\pi_{t+1} = \pi_t^{m^\star}, \qquad m^\star \in \arg\max_{m \in \{0,\ldots,M-1\}} V^m
+```
 
 **这是全文唯一的"保证"**：因为候选集包含当前策略本身，所以 `V^{m⋆} ≥ V^0`——**即下一轮策略在固定历史 `H_t` 上的平均回放分不劣于当前策略**。注意这是对**回放分数**的保证，不是对在线发现结果的保证（见「局限」）。
 

@@ -66,7 +66,9 @@ DeepSeek-V4 的结构是「全局注意力分支 + 滑窗注意力（SWA）分�
 
 对全局注意力，把底部 L/2 层当作 causal encoder；对上半层（decoder，`l > L/2`），KV 条目与其压缩权重不再取自本层隐藏态 `H_l`，而是从第 `L/2` 层的隐藏态投影（式 (1)）：
 
-$$C_l = H_{L/2}W_l^{KV},\qquad Z_l = H_{L/2}W_l^{Z},\qquad l>\tfrac{L}{2}$$
+```math
+C_l = H_{L/2}W_l^{KV},\qquad Z_l = H_{L/2}W_l^{Z},\qquad l>\tfrac{L}{2}
+```
 
 白话读法：`C` 是 KV 条目、`Z` 是对应的压缩权重，`W_l^{KV}` 与 `W_l^{Z}` 逐层不同。**直觉**：decoder 的全局上下文表示只需要「一份」，不同层通过各自的投影得到自己需要的版本；代价是 decoder 各层不再往上下文里写新信息（只写 SWA 与输出），收益是 prefill 时只需算前 20 层。
 
@@ -170,7 +172,9 @@ SWA 侧刻意保留逐层计算（`K`、`V` 来自本层隐藏态 `H_l`），以
 - **DSec（§5.1.3）**：为百万级并发 sandbox 自建的生产级平台。要点：**分片 + 松弛一致性的调度**（多个无同步协调的 placement 副本各自按近期测量做「足够好」的决策，由每个计算节点做**本地硬准入校验**兜底）；**节点级高密度**（硬件 sub-NUMA 分区、每个 worker VM 绑定一个 NUMA 域，容器 CPU/内存限制在 VM 本地，密度从约 1,000 提升到 **>2,500 并发容器/节点**）；**延迟敏感（LS）执行类**（非 LS 任务 SCHED_IDLE，core scheduling 保证只有同优先级任务共享超线程）；**防越狱/防崩坏**（每 sandbox AppArmor profile + 细粒度 eBPF 网络策略；agent 打崩环境即记为失败轨迹并向 RL 框架报「repercussion」信号）。作者明确记录了 RL 中观察到的 agent 攻击行为（利用 XFS 权限问题、AppArmor 非法内存访问、从镜像源套取答案、删关键二进制乃至删文件系统）。
 - **可控推理强度（§5.1.4）**：标量 `b ∈ {1, …, 100}` 作为显式条件信号（系统提示加一行 `Reasoning Effort: {effort} (range 1–100; higher values request more thorough reasoning)`）。对每个 prompt `x` 在每个档位 `b` 采 `M_b` 条回复（式 (8)），**同一 `(x, b)` 子组内做奖励均值中心化**（不同档位不直接比较），档位差异由长度惩罚项施加（式 (9)）：
 
-  $$r^{len}_{b,j}=-\min\Big[C_{max},\,k(b)\frac{\ell_{b,j}}{L_{norm}}\Big],\qquad k(b)=k_0\exp\Big(-\frac{b-b_{\min}}{\tau}\Big),\ \tau=\lambda\overline{\Delta b}$$
+  ```math
+  r^{len}_{b,j}=-\min\Big[C_{max},\,k(b)\frac{\ell_{b,j}}{L_{norm}}\Big],\qquad k(b)=k_0\exp\Big(-\frac{b-b_{\min}}{\tau}\Big),\ \tau=\lambda\overline{\Delta b}
+  ```
 
   白话读法：`ℓ` 为推理 token 数、`L_norm` 为参考长度、`C_max` 封顶；**档位越高惩罚系数指数衰减**（`b` 增 `τ` 则系数乘 `e^{-1}`），`k_0` 控制整体压缩压力、`τ` 越小档位间行为分离越大。附录 C 给出该指数形式的边际效用动机：设解题概率 `p_x(ℓ)`、其边际增益近似指数衰减 `p'_x(ℓ) ≈ a_x·e^{-ℓ/s_x}`，则一阶条件下最优推理长度 `ℓ*_x(b) ≈ C_x - s_x·log k_0 + (s_x/τ)·(b - b_min)`——**努力档位与偏好长度呈一阶仿射关系**（式 (13)–(17)；作者声明这是局部近似，不保证实测长度线性或逐点单调）。公开 API 暴露三档（Table 2：max=100 / high=75 / low=50），**不改权重、不改解码配置**即可切换成本–质量工作点。
 - **异步后训练设施（§5.2）**：rollout 与训练**同机共置、时分复用**；调度的粒度最终定为 **sample-level dispatch**（新完成样本数达到下一 prompt 的 GRPO 组大小就派发，不关心是哪些组完成的），作者记录了两次失败尝试（batch 级导致指标剧烈震荡；prompt 级易被组内长尾样本卡住）。训练需要时**token 级中断**生成；rollout 状态（KV cache、专家路由）按 **token 粒度持久化**，新 checkpoint 直接复用、免重 prefill；样本级 GC 及时释放。对异步的两个副作用分别处置：**长度偏差**（dispatcher 按数据集限并发 + 丢弃早返回的短样本）与 **off-policy**（限制最大 off-policy 比例 + 对过陈旧 token 做 loss masking）。训练与 rollout 跨 checkpoint 时用 **concatenated routing-replay**（拼接各段 rollout 产生的路由，而不是丢弃重算）。

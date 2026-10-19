@@ -64,7 +64,9 @@
 
 把一轮演进写成（附录 D.1，式 8）：
 
-$$\mathcal{H}_t \sim P_{\mathrm{reg}}(\cdot \mid H_t, \mathcal{F}_t, \mathcal{L}_t, b_t, \mathcal{E}_t, \mathcal{B}_t) \subseteq \Omega(H_t), \qquad H_{t+1} = \operatorname*{arg\,max}_{H' \in \mathcal{H}_t \cap \mathcal{A}_t} \hat{S}(H'),$$
+```math
+\mathcal{H}_t \sim P_{\mathrm{reg}}(\cdot \mid H_t, \mathcal{F}_t, \mathcal{L}_t, b_t, \mathcal{E}_t, \mathcal{B}_t) \subseteq \Omega(H_t), \qquad H_{t+1} = \operatorname*{arg\,max}_{H' \in \mathcal{H}_t \cap \mathcal{A}_t} \hat{S}(H'),
+```
 
 即：提议分布 `P_reg` 受**编辑历史 `L_t`、退火预算 `b_t`、探索指令 `E_t`、剪枝目标 `B_t`** 约束；只有**可准入集合 `A_t`** 里的候选才能替换 incumbent；若 `A_t = ∅` 则原地不动。
 
@@ -76,7 +78,9 @@ $$\mathcal{H}_t \sim P_{\mathrm{reg}}(\cdot \mid H_t, \mathcal{F}_t, \mathcal{L}
 
 **A. `L_0` 式退火编辑预算**（式 4）：一轮里可独立归因的编辑数上限
 
-$$b_t=\Big\lceil b_{\min}+(b_{\max}-b_{\min})\cdot\tfrac{1}{2}\big(1+\cos(\pi t/T)\big)\Big\rceil,$$
+```math
+b_t=\Big\lceil b_{\min}+(b_{\max}-b_{\min})\cdot\tfrac{1}{2}\big(1+\cos(\pi t/T)\big)\Big\rceil,
+```
 
 从 `b_max` 退火到 `b_min=1`：早期允许"几个协同改动一起上"以发现新机制，后期只留**单一可归因**的改动。附录 D.2 把它写成 `z_t ∈ {0,1}^{|E_t|}` 上的基数约束——非零项数不超过 `b_t`（式 9）——注意约束的是**一轮更新里捆绑的编辑数**，不是 harness 能包含哪些组件。
 

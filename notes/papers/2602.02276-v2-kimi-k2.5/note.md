@@ -104,7 +104,9 @@
 
 **PARL 奖励**（§3，原文该式未编号）：
 
-$$r_{\mathrm{PARL}}(x,y)=\lambda_1 \cdot r_{\text{parallel}} + \lambda_2 \cdot r_{\text{finish}} + r_{\text{perf}}(x,y)$$
+```math
+r_{\mathrm{PARL}}(x,y)=\lambda_1 \cdot r_{\text{parallel}} + \lambda_2 \cdot r_{\text{finish}} + r_{\text{perf}}(x,y)
+```
 
 - `r_perf`：任务级结果奖励（主目标）；
 - `r_parallel`：实例化奖励，对抗 **serial collapse**（局部最优：总是单 agent 干活）；
@@ -113,7 +115,9 @@ $$r_{\mathrm{PARL}}(x,y)=\lambda_1 \cdot r_{\text{parallel}} + \lambda_2 \cdot r
 
 **Critical steps 资源约束**（§3）：把「并行组里最慢的那个 subagent」当作该阶段时长，总步数按关键路径累计：
 
-$$\text{CriticalSteps}=\sum_{t=1}^{T}\Big(S_{\mathrm{main}}^{(t)}+\max_i S_{\mathrm{sub},i}^{(t)}\Big)$$
+```math
+\text{CriticalSteps}=\sum_{t=1}^{T}\Big(S_{\mathrm{main}}^{(t)}+\max_i S_{\mathrm{sub},i}^{(t)}\Big)
+```
 
 其中 `S_main^(t)` 是主 agent 在第 `t` 阶段自己的步数（通常为 1），`S_(sub,i)^(t)` 是第 `i` 个 subagent 的步数。以 critical steps 而非总步数计预算/评测，意味着「狂开子任务但没缩短最长分支」几乎没有收益，只有**均衡的分解**能真正降低关键路径——这是全文里我认为最精巧的设计：奖励结构使得「并行」必须是有信息价值的。
 
@@ -131,7 +135,9 @@ $$\text{CriticalSteps}=\sum_{t=1}^{T}\Big(S_{\mathrm{main}}^{(t)}+\max_i S_{\mat
 
 **目标函数**（式(1)）：对每个问题采 `K` 条回复，逐 token 计算：
 
-$$L_{\mathrm{RL}}(\theta)=\mathbb{E}_{x\sim\mathcal{D}}\Big[\frac{1}{N}\sum_{j=1}^{K}\sum_{i=1}^{|y_j|}\mathrm{Clip}\big(\tfrac{\pi_\theta(y_j^i|x,y_j^{0:i})}{\pi_{\mathrm{old}}(y_j^i|x,y_j^{0:i})},\alpha,\beta\big)\,(r(x,y_j)-\bar r(x))-\tau\big(\log\tfrac{\pi_\theta}{\pi_{\mathrm{old}}}\big)^2\Big]$$
+```math
+L_{\mathrm{RL}}(\theta)=\mathbb{E}_{x\sim\mathcal{D}}\Big[\frac{1}{N}\sum_{j=1}^{K}\sum_{i=1}^{|y_j|}\mathrm{Clip}\big(\tfrac{\pi_\theta(y_j^i|x,y_j^{0:i})}{\pi_{\mathrm{old}}(y_j^i|x,y_j^{0:i})},\alpha,\beta\big)\,(r(x,y_j)-\bar r(x))-\tau\big(\log\tfrac{\pi_\theta}{\pi_{\mathrm{old}}}\big)^2\Big]
+```
 
 关键点：Clip 是**基于 log-ratio 的梯度掩码**（比值在 `[α, β]` 外的 token 梯度置零，不看 advantage 符号，区别于 PPO），用于抑制训练/推理框架不一致带来的 off-policy 漂移；另加 `τ·(log-ratio)²` 惩罚项。`r_bar` 为 batch 内平均奖励（类似 GRPO 的基线）。作者称该机制对长程多步工具使用推理的稳定性是必需的；优化器仍用 MuonClip。
 

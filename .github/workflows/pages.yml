@@ -1,0 +1,43 @@
+name: Deploy docs to GitHub Pages
+
+# 两种部署方式只能有一个生效：
+# - 本 workflow：Settings → Pages → Source 选 "GitHub Actions"；
+# - 分支部署：Settings → Pages → Source 选 "Deploy from a branch" → main /docs。
+# 两者都使用 docs/ 目录；docs/index.html 是入口。
+# 若选择分支部署，请在 Actions 页禁用本 workflow（否则 push 时它会因
+# Pages source 不是 "GitHub Actions" 而失败；站点仍由分支部署正常更新）。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  # 与 GitHub 官方 Pages 模板一致：让正在进行的部署跑完，避免旧版本被半途取消。
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v4

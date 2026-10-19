@@ -162,7 +162,9 @@ HarnessX 把 **harness 本身做成一等公民**：用类型化 processor 挂�
 
 **Pass@k（Eq. 6，p29）**——所有曲线的口径：
 
-$$\text{Pass@k}=\frac{1}{|D|}\sum_{i=1}^{|D|}\left(1-\frac{\binom{n-c_i}{k}}{\binom{n}{k}}\right)$$
+```math
+\text{Pass@k}=\frac{1}{|D|}\sum_{i=1}^{|D|}\left(1-\frac{\binom{n-c_i}{k}}{\binom{n}{k}}\right)
+```
 
 白话读法：对每个任务，先算「从 `n` 次 rollout 里取 `k` 次全都失败」的概率，取它的补概率就得到该任务的 pass@k，再对所有任务取平均。
 
@@ -170,7 +172,9 @@ $$\text{Pass@k}=\frac{1}{|D|}\sum_{i=1}^{|D|}\left(1-\frac{\binom{n-c_i}{k}}{\bi
 
 **Cross-harness 组（Eq. 2）与组相对优势（Eq. 3）**：
 
-$$\mathcal G_x=\{\tau_i\in\mathcal B \mid \text{task}(\tau_i)=x\}=\bigcup_k\{\tau\sim\text{Agent}(\mathcal M_k,\mathcal H_k,x)\},\qquad \hat A(\tau_i)=\frac{r_i-\mu(\mathcal G_x)}{\sigma(\mathcal G_x)+\epsilon}$$
+```math
+\mathcal G_x=\{\tau_i\in\mathcal B \mid \text{task}(\tau_i)=x\}=\bigcup_k\{\tau\sim\text{Agent}(\mathcal M_k,\mathcal H_k,x)\},\qquad \hat A(\tau_i)=\frac{r_i-\mu(\mathcal G_x)}{\sigma(\mathcal G_x)+\epsilon}
+```
 
 白话读法：把一个任务 `x` 在所有 harness 版本下采到的轨迹并成一组，组内每条轨迹的优势 `Â(τ_i)` 就是它的奖励减去组均值、再除以（组标准差 `σ` 加 `ε`）。
 
@@ -178,7 +182,9 @@ $$\mathcal G_x=\{\tau_i\in\mathcal B \mid \text{task}(\tau_i)=x\}=\bigcup_k\{\ta
 
 **GRPO 目标（Eq. 4–5）**：
 
-$$J_{GRPO}(\theta)=\mathbb E_{x,\tau_i\sim\mathcal B}\Big[\min\big(\rho_i(\theta)\hat A(\tau_i),\ \text{clip}(\rho_i(\theta),1-\epsilon_c,1+\epsilon_c)\hat A(\tau_i)\big)\Big]-\beta D_{KL}(\pi_\theta\|\pi_{ref})$$
+```math
+J_{GRPO}(\theta)=\mathbb E_{x,\tau_i\sim\mathcal B}\Big[\min\big(\rho_i(\theta)\hat A(\tau_i),\ \text{clip}(\rho_i(\theta),1-\epsilon_c,1+\epsilon_c)\hat A(\tau_i)\big)\Big]-\beta D_{KL}(\pi_\theta\|\pi_{ref})
+```
 
 白话读法：对所有采样轨迹取期望——取「新旧策略比值乘优势」与「把该比值裁剪到以 `ε_c` 为半宽的区间后再乘优势」两者中的较小值，再减去相对参考策略的 KL 惩罚（`β` 是 KL 权重）。
 

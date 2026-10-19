@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | `README.md` | 唯一索引：按机构分组，列为 `编号\|论文\|年份\|论文单位\|笔记地址` | 人选读与分组；agent 默认只回写单个单元格（例外见「修改边界」） |
 | `notes/` | 笔记产物（首次实际阅读时创建）：`notes/papers/<...>/note.md`、`notes/blogs/<...>/note.md` | read-paper-blog（生成）、check-paper-note（复核） |
-| `docs/` | 跨篇主题汇总文档（如 `docs/rsi-methods.md`），不是逐篇笔记 | summarize-paper-methods（生成与复核） |
+| `docs/` | 跨篇主题汇总文档（如 `docs/rsi-methods.md`）及其 Pages 阅读页／PDF 资产，不是逐篇笔记 | summarize-paper-methods（生成与复核） |
 | `papers/` | 非 arXiv 来源的原文归档，命名 `<5位编号>-<短标题>.pdf` | skill 归档新论文，已有文件不改 |
 | `books/` | 书籍归档，独立编号（00001 起） | 人工 |
 

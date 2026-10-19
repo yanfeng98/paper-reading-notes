@@ -5,7 +5,7 @@
     python3 -I doc_lint.py <doc.md> [<doc2.md> ...]
 
 检查项:
-  1. 代码围栏成对；统计围栏数与公式块数（含单行 $$…$$）
+  1. 代码围栏成对；统计围栏数与公式块数（含单行 $$…$$ 与 ```math 围栏）
   2. 以 | 开头（可缩进）的表格行：块内列数一致（按未转义 | 切分）；
      行内代码里的裸 | 也会拆列，按错误报出
   3. 围栏外的行内反引号成对（奇数报错）
@@ -13,10 +13,11 @@
   5. $ 只出现在 $$…$$ 块内（围栏外、公式块外出现即报错；货币符号请放进代码段）
   6. 相对链接目标存在（跳过 http/https/#/mailto；代码段内的链接不检查）
 
-约定：公式块可用**独立成行**的 $$ 起止（可带缩进），也可写成单行 $$…$$——单行块必须**整行只有
-该公式**（内部不再含 $）；混有其他内容时按普通行检查。Markdown 自动链接
+约定：公式块首选 **```math 围栏**（GitHub 上最稳，列表项内也可用）；也可用 $$ 起止（各自单独
+成行且顶格）。**单行 $$…$$ 与带缩进/列表项内的 $$ 在 GitHub 上不可靠**，脚本会把它们报为问题，
+建议统一改为 ```math 围栏。Markdown 自动链接
 <https://…>、<http://…>、<mailto:…> 与邮箱 <user@example.com> 不算裸 HTML。
-已知限制：只识别行首的 ``` 围栏（不识别 ~~~ 与缩进围栏）；链接标题里含 `)` 时可能误报。
+已知限制：识别行首或缩进的 ``` 围栏（不识别 ~~~ 围栏）；链接标题里含 `)` 时可能误报。
 退出码: 0 = 无问题；1 = 发现问题或读取失败；2 = 用法错误。
 """
 
@@ -55,8 +56,10 @@ def lint(path: str) -> tuple[list[str], int, int]:
         table.clear()
 
     for lineno, line in enumerate(lines, 1):
-        if line.startswith("```"):
+        if line.lstrip().startswith("```"):
             flush_table()
+            if not in_fence and line.strip().lower().startswith("```math"):
+                math_blocks += 1
             in_fence = not in_fence
             fence_lines.append(lineno)
             continue
@@ -68,6 +71,11 @@ def lint(path: str) -> tuple[list[str], int, int]:
             flush_table()
             if in_math:
                 math_blocks += 1
+            elif line != line.lstrip():
+                # 列表项/缩进内的 $$ 在 GitHub 上经常不被识别，而 ```math 围栏不受缩进影响。
+                problems.append(
+                    f"行 {lineno}: 缩进/列表内的 $$ 公式块在 GitHub 上不可靠，请改用 ```math 围栏"
+                )
             in_math = not in_math
             continue
         if in_math:
@@ -77,6 +85,9 @@ def lint(path: str) -> tuple[list[str], int, int]:
         if re.fullmatch(r"\$\$[^$]+\$\$", stripped):
             flush_table()
             math_blocks += 1
+            problems.append(
+                f"行 {lineno}: 单行 $$…$$ 在 GitHub 上不可靠，请改用 ```math 围栏"
+            )
             continue
 
         if line.lstrip().startswith("|"):

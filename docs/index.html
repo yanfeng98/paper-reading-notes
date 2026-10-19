@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RSI 方法汇总</title>
+  <meta name="description" content="跨论文方法汇总（Markdown 源：docs/rsi-methods.md）">
+  <link rel="stylesheet" href="./assets/reader.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: { fontCache: 'global' },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="./assets/mathjax/tex-svg.js"></script>
+  <script src="./assets/marked.min.js"></script>
+  <script src="./assets/mermaid.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./">RSI 方法汇总</a>
+    <nav class="nav">
+      <a id="source-link" href="https://github.com/yanfeng98/paper-reading-notes/blob/main/docs/rsi-methods.md">Markdown 源</a>
+      <a id="pdf-link" href="./rsi-methods.pdf">PDF</a>
+      <a href="https://github.com/yanfeng98/paper-reading-notes">仓库</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <main id="content" class="markdown-body">
+      <p>正在加载文档……</p>
+    </main>
+    <aside id="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      <ul id="toc-list"></ul>
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var REPO = 'https://github.com/yanfeng98/paper-reading-notes';
+      var DEFAULT_DOC = 'rsi-methods.md';
+      var content = document.getElementById('content');
+      var tocList = document.getElementById('toc-list');
+      var params = new URLSearchParams(window.location.search);
+      var docFile = (params.get('doc') || DEFAULT_DOC).replace(/^\/+/, '');
+
+      // 只允许渲染 docs/ 下的 Markdown，避免路径穿越。
+      if (!/^[A-Za-z0-9._-]+\.md$/.test(docFile)) {
+        content.innerHTML = '<p class="render-error">不支持的文档名：' + escapeHtml(docFile) + '</p>';
+        window.__renderDone = true;
+        return;
+      }
+
+      var sourceLink = document.getElementById('source-link');
+      sourceLink.href = REPO + '/blob/main/docs/' + docFile;
+      var pdfLink = document.getElementById('pdf-link');
+      pdfLink.href = './' + docFile.replace(/\.md$/, '.pdf');
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function rewriteLinks(root) {
+        root.querySelectorAll('a[href]').forEach(function (a) {
+          var href = a.getAttribute('href');
+          if (!href || href.charAt(0) === '#' || /^(https?:|mailto:|tel:)/i.test(href)) return;
+          var clean = href.replace(/^\.\//, '').replace(/^\.\.\//, '');
+          a.setAttribute('href', REPO + '/blob/main/' + clean);
+          a.setAttribute('target', '_blank');
+          a.setAttribute('rel', 'noopener');
+        });
+        root.querySelectorAll('img[src]').forEach(function (img) {
+          var src = img.getAttribute('src');
+          if (!src || /^(https?:|data:)/i.test(src)) return;
+          var clean = src.replace(/^\.\//, '').replace(/^\.\.\//, '');
+          img.setAttribute('src', REPO + '/raw/main/' + clean);
+        });
+      }
+
+      // 把 ```math 围栏转成 MathJax 可处理的显示公式。
+      function liftMath(root) {
+        root.querySelectorAll('pre > code.language-math').forEach(function (code) {
+          var div = document.createElement('div');
+          div.className = 'math-display';
+          div.textContent = '$$' + code.textContent.trim() + '$$';
+          code.parentElement.replaceWith(div);
+        });
+      }
+
+      // 把 ```mermaid 围栏转成 Mermaid 容器。
+      function liftMermaid(root) {
+        root.querySelectorAll('pre > code.language-mermaid').forEach(function (code) {
+          var div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = code.textContent;
+          code.parentElement.replaceWith(div);
+        });
+      }
+
+      function slugify(text, index) {
+        return 'h-' + index;
+      }
+
+      function buildToc(root) {
+        var headings = root.querySelectorAll('h2, h3');
+        var items = [];
+        headings.forEach(function (h, i) {
+          var id = h.id || slugify(h.textContent, i + 1);
+          h.id = id;
+          var li = document.createElement('li');
+          li.className = h.tagName === 'H3' ? 'toc-h3' : 'toc-h2';
+          var a = document.createElement('a');
+          a.href = '#' + id;
+          a.textContent = h.textContent;
+          li.appendChild(a);
+          tocList.appendChild(li);
+          items.push(li);
+        });
+        if (!items.length) {
+          document.getElementById('toc').style.display = 'none';
+        }
+      }
+
+      async function render() {
+        var res = await fetch('./' + docFile, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status + '：' + docFile);
+        var md = await res.text();
+
+        content.innerHTML = marked.parse(md, { gfm: true, breaks: false });
+
+        var h1 = content.querySelector('h1');
+        if (h1) document.title = h1.textContent;
+
+        liftMath(content);
+        liftMermaid(content);
+        rewriteLinks(content);
+        buildToc(content);
+
+        // MathJax：tex-svg.js 是 defer 加载，可能晚于本次 fetch 完成；
+        // 轮询等待 startup 就绪（最多 20 秒），避免竞态导致公式不渲染。
+        async function waitForMathJax() {
+          var deadline = Date.now() + 20000;
+          while (Date.now() < deadline) {
+            if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
+              await MathJax.startup.promise;
+              return true;
+            }
+            await new Promise(function (resolve) { setTimeout(resolve, 50); });
+          }
+          return false;
+        }
+
+        if (await waitForMathJax()) {
+          await MathJax.typesetPromise([content]);
+        } else {
+          console.warn('MathJax did not load in time');
+        }
+
+        // Mermaid：渲染所有 .mermaid 容器；单块失败不阻断其它块。
+        if (window.mermaid) {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: { htmlLabels: true, useMaxWidth: true }
+          });
+          try {
+            await mermaid.run({ querySelector: '.mermaid' });
+          } catch (err) {
+            console.error('Mermaid render failed:', err);
+          }
+        }
+
+        var note = document.createElement('div');
+        note.className = 'footer-note';
+        note.innerHTML = '本页由 <a href="' + REPO + '/blob/main/docs/' + docFile + '">docs/' + docFile +
+          '</a> 在浏览器中渲染；公式用 MathJax，图用 Mermaid。PDF 版见上方导航。';
+        content.appendChild(note);
+
+        window.__renderDone = true;
+      }
+
+      render().catch(function (err) {
+        console.error(err);
+        content.innerHTML = '<p class="render-error">文档渲染失败：' + escapeHtml(err.message || err) + '</p>';
+        window.__renderDone = true;
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -104,7 +104,9 @@ HarnessDev 只做第三层（系统集成）；前两层由同项目组的 Aspir
 
 角色分离是本文方法论的骨架，写成式 (1)：
 
-$$(L_C, D) \to H, \qquad (H, L_E, x) \to y \xrightarrow{J} \text{score}$$
+```math
+(L_C, D) \to H, \qquad (H, L_E, x) \to y \xrightarrow{J} \text{score}
+```
 
 - `L_C`（creator LLM）在开发环境 `D` 里产出 harness `H`；`H` 冻结后，执行模型 `L_E` 在它里面跑下游任务 `x`，评测器 `J` 给结果 `y` 打分。
 - **Self-Eval**：`L_E = L_C`（创建者用自己的 harness 跑），对应真实部署形态，测的是「模型—harness 协同设计」；
@@ -137,13 +139,17 @@ $$(L_C, D) \to H, \qquad (H, L_E, x) \to y \xrightarrow{J} \text{score}$$
 
 ### 式 (1)：三角色分离（p.4）
 
-$$(L_C, D) \to H, \qquad (H, L_E, x) \to y \xrightarrow{J} \text{score}$$
+```math
+(L_C, D) \to H, \qquad (H, L_E, x) \to y \xrightarrow{J} \text{score}
+```
 
 直觉：把「造 harness 的模型」（`L_C`）、「造 harness 用的开发环境」（`D`，Claude Code 这类）、「跑任务的模型」（`L_E`）、「打分器」（`J`）四样东西分开记账。这样 Creation 的分数不会把 `D` 的辅助或 `L_E` 的能力算进 harness 质量；Unified-Eval 下同一 harness 换执行者复跑，差异就只剩「harness 与模型的兼容性」（论文找到了大量此类差异，见「实验」）。
 
 ### 式 (2)：反馈对的同等权重组合（p.11）
 
-$$\bar{P}_t = \tfrac{1}{2}\left(P_t^{\text{SWE100}} + P_t^{\text{Term89}}\right)$$
+```math
+\bar{P}_t = \tfrac{1}{2}\left(P_t^{\text{SWE100}} + P_t^{\text{Term89}}\right)
+```
 
 `P_t` 是版本 `t`（完成了完整正式评测的冻结版本）在两个基准上的百分制得分；带横线的 `P̄_t` 是论文用于叙述的「pair 分」。选这两个基准做演化反馈的原因在协议里：SWE-Pro 可切出互不相交的反馈/留出子集（100 / 630），Terminal-Bench 全部 89 个任务都当反馈（因此**没有**留出腿）。式中两项等权、均为百分数——读 Table 6 时注意「feedback pair」一列是这两项的平均，而「held-out」列只是 SWE-Pro-630 一项。
 

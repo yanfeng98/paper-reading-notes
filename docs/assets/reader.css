@@ -1,0 +1,243 @@
+:root {
+  --fg: #1f2328;
+  --muted: #59636e;
+  --bg: #ffffff;
+  --border: #d1d9e0;
+  --code-bg: #f6f8fa;
+  --link: #0969da;
+  --accent: #8250df;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  color: var(--fg);
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans CJK SC",
+    "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+
+.topbar .brand {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.topbar .nav {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+}
+
+.topbar .nav a { color: var(--muted); text-decoration: none; }
+.topbar .nav a:hover { color: var(--link); }
+
+.layout {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding: 28px 24px 80px;
+}
+
+.markdown-body {
+  width: 100%;
+  max-width: 920px;
+  min-width: 0;
+}
+
+#toc {
+  width: 232px;
+  flex: 0 0 232px;
+  position: sticky;
+  top: 76px;
+  align-self: flex-start;
+  max-height: calc(100vh - 96px);
+  overflow: auto;
+  font-size: 13px;
+  color: var(--muted);
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+}
+
+#toc .toc-title {
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 8px;
+}
+
+#toc ul { list-style: none; padding-left: 0; margin: 0; }
+#toc li { margin: 4px 0; }
+#toc li.toc-h3 { padding-left: 12px; font-size: 12px; }
+#toc a { color: var(--muted); text-decoration: none; }
+#toc a:hover { color: var(--link); }
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  line-height: 1.3;
+  margin: 1.6em 0 0.6em;
+  scroll-margin-top: 76px;
+}
+
+.markdown-body h1 { font-size: 2em; border-bottom: 1px solid var(--border); padding-bottom: .3em; }
+.markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid var(--border); padding-bottom: .3em; }
+.markdown-body h3 { font-size: 1.22em; }
+.markdown-body h4 { font-size: 1.05em; }
+
+.markdown-body p { margin: 0.8em 0; }
+
+.markdown-body a { color: var(--link); text-decoration: none; }
+.markdown-body a:hover { text-decoration: underline; }
+
+.markdown-body ul,
+.markdown-body ol { padding-left: 1.8em; margin: 0.7em 0; }
+.markdown-body li { margin: 0.3em 0; }
+
+.markdown-body blockquote {
+  margin: 1em 0;
+  padding: 0.2em 1em;
+  color: var(--muted);
+  border-left: 4px solid var(--border);
+  background: #fafbfc;
+}
+
+.markdown-body code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 5px;
+}
+
+.markdown-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow: auto;
+  line-height: 1.5;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.85em;
+  white-space: pre;
+}
+
+.markdown-body table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 14px;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  vertical-align: top;
+}
+
+.markdown-body table th { background: #f6f8fa; font-weight: 700; }
+.markdown-body table tr:nth-child(2n) td { background: #fbfcfd; }
+
+.markdown-body hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2em 0;
+}
+
+.markdown-body img { max-width: 100%; height: auto; }
+
+.math-display {
+  overflow-x: auto;
+  padding: 6px 0;
+  margin: 1em 0;
+  text-align: center;
+}
+
+.mermaid {
+  margin: 1.2em 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+.mermaid svg { max-width: 100%; height: auto; }
+
+mjx-container[jax="SVG"][display="true"] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+mjx-container[jax="SVG"][display="true"] > svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.render-error {
+  color: #9a6700;
+  background: #fff8c5;
+  border: 1px solid #d4a72c;
+  padding: 10px 12px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+}
+
+.footer-note {
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 1180px) {
+  #toc { display: none; }
+}
+
+@media print {
+  @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+  .topbar, #toc, .footer-note { display: none !important; }
+  .layout { display: block; padding: 0; }
+  .markdown-body { max-width: none; width: 100%; }
+  body { font-size: 11.5pt; line-height: 1.6; }
+  .markdown-body h1, .markdown-body h2, .markdown-body h3 { break-after: avoid; }
+  .markdown-body table { display: table; width: 100%; font-size: 10pt; break-inside: auto; }
+  .markdown-body tr { break-inside: avoid; }
+  .math-display, .mermaid { break-inside: avoid; }
+  /* 页面内容高度约 265mm；把 Mermaid 限高到 250mm，避免高图跨页时被从中间裁断。
+     高度受限后宽度按 viewBox 等比缩放，图会变窄但完整。 */
+  .mermaid svg {
+    max-width: 100% !important;
+    max-height: 250mm !important;
+    width: auto !important;
+    height: auto !important;
+  }
+  .markdown-body pre { white-space: pre-wrap; word-break: break-word; }
+  .markdown-body a { color: inherit; text-decoration: none; }
+}
