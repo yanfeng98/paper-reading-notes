@@ -489,11 +489,11 @@ def discover_entries() -> tuple[list[Entry], list[Entry], dict[str, Entry], dict
             entry.next_route, entry.next_title = notes[index + 1].route, notes[index + 1].title
 
     entries = [*summaries, *notes]
-    validate_links(entries, routes)
+    validate_links(entries)
     return entries, summaries, routes, stats
 
 
-def validate_links(entries: list[Entry], routes: dict[str, Entry]) -> None:
+def validate_links(entries: list[Entry]) -> None:
     known_sources = {entry.source_path for entry in entries}
     pdf_paths = {entry.pdf_rel for entry in entries if entry.pdf_rel}
     for entry in entries:
@@ -520,7 +520,7 @@ def validate_links(entries: list[Entry], routes: dict[str, Entry]) -> None:
             assert repo_path is not None
             if repo_path.startswith("../") or repo_path == "..":
                 raise BuildError(f"{entry.source_path}: 链接越出仓库 {target!r}")
-            if repo_path in known_sources or repo_path in routes:
+            if repo_path in known_sources:
                 continue
             if repo_path in pdf_paths:
                 continue
