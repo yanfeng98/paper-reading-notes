@@ -1,18 +1,22 @@
-name: Deploy docs to GitHub Pages
+name: Build and deploy reading notes
 
-# 两种部署方式只能有一个生效：
-# - 本 workflow：Settings → Pages → Source 选 "GitHub Actions"；
-# - 分支部署：Settings → Pages → Source 选 "Deploy from a branch" → main /docs。
-# 两者都使用 docs/ 目录；docs/index.html 是入口。
-# 首次使用前必须在 Settings → Pages 里启用一次（GITHUB_TOKEN 无权限自动开启）。
-# workflow 会先查询 Pages 的 build_type：未启用或仍为分支部署时跳过部署并给出 notice，
-# 避免每次 push 都失败；切换成 "GitHub Actions" 后下次 push/手动运行即可生效。
+# GitHub Actions is the only supported full-site deployment. It builds
+# site/ + notes/ + docs/ into _site/ and uploads that artifact to Pages.
+# Branch deployment (main /docs) is retired: docs/index.html and docs/assets
+# were removed when the library reader moved to site/.
+#
+# First-time setup (required once): Settings → Pages → Source = "GitHub Actions".
+# The workflow builds and validates on every relevant push even when Pages is
+# not enabled; deployment steps are skipped with a notice in that case.
 
 on:
   push:
     branches: [main]
     paths:
+      - "notes/**"
       - "docs/**"
+      - "site/**"
+      - "README.md"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -28,12 +32,22 @@ concurrency:
 
 jobs:
   deploy:
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url || format('https://github.com/{0}', github.repository) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Build before the Pages guard so README/notes/link validation always runs.
+      - name: Build static site
+        run: python3 site/build.py --out _site
+
       - id: pages
         name: Check Pages configuration
         env:
@@ -45,19 +59,22 @@ jobs:
           set -e
           if [ "$status" -ne 0 ]; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Pages 尚未启用。请在 Settings → Pages 选择 GitHub Actions（或 main /docs 分支部署）。"
+            echo "::notice::Pages 尚未启用。请在 Settings → Pages 选择 GitHub Actions。"
           elif [ "$build_type" = "workflow" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Pages 当前是分支部署（build_type=$build_type），本 workflow 跳过；若要改用 Actions，请在 Settings → Pages 切换 Source。"
+            echo "::notice::Pages 当前是分支部署（build_type=$build_type）；完整笔记库只支持 GitHub Actions，请在 Settings → Pages 切换 Source。"
           fi
+
       - if: steps.pages.outputs.enabled == 'true'
         uses: actions/configure-pages@v5
+
       - if: steps.pages.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: _site
+
       - if: steps.pages.outputs.enabled == 'true'
         id: deployment
         uses: actions/deploy-pages@v4

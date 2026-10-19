@@ -1,6 +1,6 @@
 # paper-reading-notes
 
-论文阅读笔记仓库：根 `README.md` 是选读清单兼唯一索引，`notes/` 是笔记产物，`docs/` 是跨篇主题汇总，`papers/` 是非 arXiv 来源的原文归档。
+论文阅读笔记仓库：根 `README.md` 是选读清单兼唯一索引，`notes/` 是笔记产物，`docs/` 是跨篇主题汇总，`site/` 是静态站点源码与构建脚本，`papers/` 是非 arXiv 来源的原文归档。
 
 ## 目录职责
 
@@ -8,11 +8,13 @@
 | --- | --- | --- |
 | `README.md` | 唯一索引：按机构分组，列为 `编号\|论文\|年份\|论文单位\|笔记地址` | 人选读与分组；agent 默认只回写单个单元格（例外见「修改边界」） |
 | `notes/` | 笔记产物（首次实际阅读时创建）：`notes/papers/<...>/note.md`、`notes/blogs/<...>/note.md` | read-paper-blog（生成）、check-paper-note（复核） |
-| `docs/` | 跨篇主题汇总文档（如 `docs/rsi-methods.md`）及其 Pages 阅读页／PDF 资产，不是逐篇笔记 | summarize-paper-methods（生成与复核） |
+| `docs/` | 跨篇主题汇总 Markdown（如 `docs/rsi-methods.md`）及同名 PDF；阅读页与站点资源在 `site/`，不是逐篇笔记 | summarize-paper-methods（生成与复核） |
+| `site/` | 静态站点源码：`build.py`、`templates/`、`assets/`、`vendor/`；构建到 `_site/` | summarize-paper-methods / site build |
+| `_site/` | GitHub Pages 构建产物，`.gitignore` 忽略，不手改 | `python3 site/build.py` |
 | `papers/` | 非 arXiv 来源的原文归档，命名 `<5位编号>-<短标题>.pdf` | skill 归档新论文，已有文件不改 |
 | `books/` | 书籍归档，独立编号（00001 起） | 人工 |
 
-阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行，跨篇方法汇总的生成与复核按 `skills/summarize-paper-methods/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。
+阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行，跨篇方法汇总的生成与复核按 `skills/summarize-paper-methods/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。笔记与汇总中的公式统一用 ```math 围栏（不用行内 `$…$`、单行或列表内的 `$$`）；汇总的静态站点、PDF 与 Pages 发布按 summarize-paper-methods 的〈渲染与发布〉执行，构建命令为 `python3 site/build.py --out _site`。
 
 ## 编号
 
@@ -33,6 +35,16 @@
 - **arXiv 链接或编号**：不归档 PDF，只记官方链接。
 - **其他来源**（GitHub、Hugging Face、Nature、OpenReview、ScienceDirect 等）：必须归档原文 PDF 到 `papers/`，编号接续递增。非论文条目（博客、系统）没有可归档的 PDF，编号单元格指向原文在线地址（见「编号」一节）。
 - **多渠道与后续改指**：同一工作可能先后出现在多个渠道（项目页、arXiv、OpenReview、期刊等），且其 arXiv 版可能是比首次收录所用版本更新的版本（实际发生过：项目页版 36 页，arXiv v1 同日同内容、v2 已实质修订为 43 页）。**以清单当行的指向为准**，不以首次收录时的来源或笔记记录为准；需改指时按「修改边界」例外 ③ 处理——换链接、不复用编号、已归档 PDF 不删不改。
+
+## 站点
+
+- 源码在 `site/`：`build.py`（仅 Python 标准库）、`templates/home.html`、`templates/doc.html`、`assets/site.css`、`assets/site.js`、`vendor/`（marked/MathJax/Mermaid 与许可证）。构建输出 `_site/`，已加入 `.gitignore`，不提交。
+- `python3 site/build.py --out _site` 会自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；每个 `note.md` 必须有 README 对应行，构建会做双向校验、图片/链接校验和公式/Mermaid 计数校验。
+- 阅读页按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库。汇总同名 PDF 复制到 `_site/docs/<slug>/<slug>.pdf`，并保留根级 `rsi-methods.pdf` 兼容别名。
+- 旧 `docs/index.html`、`docs/assets/reader.css` 与 `docs/.nojekyll` 已删除；旧 `?doc=rsi-methods.md` 由首页 JS 重定向到 `/docs/rsi-methods/`。
+- GitHub Pages **只支持 GitHub Actions**：`.github/workflows/pages.yml` 构建并上传 `_site`；分支部署 `main /docs` 已退役。首次需在 Settings → Pages 选择 GitHub Actions。
+- 本地预览：`python3 -m http.server 8000 --directory _site`。PDF：先构建，再用 `skills/summarize-paper-methods/scripts/render_pdf.mjs`（`--site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf`），最后重新构建以复制新 PDF。
+- README 的在线链接仍遵守「只加一行主题汇总」的边界；站点构建不自动改 README。
 
 ## 修改边界
 

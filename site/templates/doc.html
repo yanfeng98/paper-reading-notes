@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PAGE_TITLE}}</title>
+  <meta name="description" content="{{PAGE_DESCRIPTION}}">
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="{{ROOT}}assets/site.css?v={{ASSET_VERSION}}">
+  <script>
+    (function () {
+      try {
+        var mode = localStorage.getItem('prn-theme') || 'auto';
+        var resolved = mode === 'auto'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : mode;
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.dataset.themeMode = mode;
+      } catch (error) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    })();
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: { fontCache: 'global' },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+</head>
+<body data-page="doc" data-root="{{ROOT}}" data-source="{{SOURCE_PATH}}" data-source-hash="{{SOURCE_HASH}}" data-md-url="{{MD_URL}}" data-expected-math="{{EXPECTED_MATH}}" data-expected-mermaid="{{EXPECTED_MERMAID}}" data-kind="{{KIND}}">
+  <a class="skip-link" href="#doc-content">跳到正文</a>
+  <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+
+  <header class="topbar topbar-doc">
+    <a class="brand" href="{{ROOT}}">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span class="brand-text">Paper <em>Reading</em> Notes</span>
+    </a>
+    <nav class="doc-breadcrumb" aria-label="面包屑">
+      <a href="{{ROOT}}">资料库</a><span aria-hidden="true">/</span><span>{{KIND_LABEL}}</span>
+    </nav>
+    <div class="topbar-actions">
+      <a class="topbar-link search-jump" href="{{ROOT}}?q=" aria-label="搜索笔记">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+        <span>搜索</span>
+      </a>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换主题">
+        <span class="theme-icon" aria-hidden="true">◐</span>
+        <span class="theme-label">自动</span>
+      </button>
+      <a class="topbar-link" href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">GitHub</a>
+      {{PDF_BUTTON}}
+    </div>
+  </header>
+
+  <main class="doc-layout">
+    <article class="doc" aria-labelledby="doc-title">
+      <header class="doc-header">
+        <div class="doc-kicker">
+          <span class="kind-badge kind-{{KIND}}">{{KIND_LABEL}}</span>
+          <span class="doc-id">{{DOC_ID}}</span>
+          <span>{{DOC_YEAR}}</span>
+        </div>
+        <h1 id="doc-title">{{TITLE}}</h1>
+        {{SUBTITLE_HTML}}
+        <div class="doc-meta">{{META_HTML}}</div>
+        <div class="doc-links">{{ORIGINAL_LINK}}{{SOURCE_LINK}}</div>
+      </header>
+
+      <div id="doc-content" class="prose">
+        <p class="loading">正在加载正文…</p>
+      </div>
+
+      <noscript>
+        <p class="noscript-note">正文需要 JavaScript 渲染。你也可以直接阅读
+          <a href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">GitHub 上的 Markdown 源</a>。
+        </p>
+      </noscript>
+
+      <nav class="page-navs" aria-label="上一篇和下一篇">
+        {{PREV_HTML}}
+        {{NEXT_HTML}}
+      </nav>
+
+      <footer class="doc-footer">
+        <span>版本与核对信息见正文中的「来源信息」。</span>
+        <a href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">查看 GitHub 源 ↗</a>
+      </footer>
+    </article>
+
+    <aside class="toc" aria-label="本页目录">
+      <p class="toc-title">本页目录</p>
+      <nav id="toc-list"></nav>
+    </aside>
+  </main>
+
+  <details class="mobile-toc">
+    <summary>本页目录</summary>
+    <nav id="mobile-toc-list"></nav>
+  </details>
+
+  <button class="to-top" id="to-top" type="button" aria-label="回到顶部" hidden>↑</button>
+
+  <dialog class="lightbox" id="lightbox" aria-label="图片预览">
+    <button class="lightbox-close" type="button" data-lightbox-close aria-label="关闭">×</button>
+    <img id="lightbox-image" alt="">
+    <p id="lightbox-caption"></p>
+  </dialog>
+
+  <script id="doc-data" type="application/json">{{DOC_JSON}}</script>
+  <script src="{{ROOT}}assets/vendor/marked.min.js?v={{ASSET_VERSION}}" defer></script>
+  <script src="{{ROOT}}assets/site.js?v={{ASSET_VERSION}}" defer></script>
+</body>
+</html>

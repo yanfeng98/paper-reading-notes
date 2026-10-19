@@ -1,13 +1,13 @@
 ---
 name: summarize-paper-methods
-description: 生成或复核跨论文的「主题方法汇总」文档（落在本仓库 docs/<slug>.md）：把同一主题或同一系列的多篇论文按统一问题框架重写——每篇到底改了什么、各组件干什么、一轮迭代怎么走、轮与轮之间更新什么、什么时候停与怎么验收、监督信号从哪来、关键数字、陷阱与版本关系——并给出速览表、术语消歧与横向对比。生成时逐篇按实际版本回原文核对并标注页/表/图/节；复核时对照原文与各篇笔记修复事实错误、未标注推断和跨篇不一致。用于用户要求汇总、横向对比、方法综述、系列论文串讲（如「把这几篇论文的方法汇总成一篇」「做一个横向对比」「新增一篇论文并同步全文」），或要求检查、复核已有汇总文档（如「检查这份汇总有没有问题」「和原文对一下」）时。不替代单篇精读笔记：缺笔记的论文按 read-paper-blog 处理，单篇核对细节按 check-paper-note 执行。
+description: 生成或复核跨论文的「主题方法汇总」文档（落在本仓库 docs/<slug>.md）：把同一主题或同一系列的多篇论文按统一问题框架重写——每篇到底改了什么、各组件干什么、一轮迭代怎么走、轮与轮之间更新什么、什么时候停与怎么验收、监督信号从哪来、关键数字、陷阱与版本关系——并给出速览表、术语消歧与横向对比。生成时逐篇按实际版本回原文核对并标注页/表/图/节；复核时对照原文与各篇笔记修复事实错误、未标注推断和跨篇不一致。同时提供静态笔记库（资料库首页 + 独立阅读页）、PDF 生成、GitHub Pages 发布与 GitHub 原生渲染检查。用于用户要求汇总、横向对比、方法综述、系列论文串讲（如「把这几篇论文的方法汇总成一篇」「做一个横向对比」「新增一篇论文并同步全文」），或要求检查、复核已有汇总文档（如「检查这份汇总有没有问题」「和原文对一下」）时。不替代单篇精读笔记：缺笔记的论文按 read-paper-blog 处理，单篇核对细节按 check-paper-note 执行。
 ---
 
 # 跨论文方法汇总（生成与复核）
 
 默认产物是一份 `docs/<slug>.md`，把同一主题的多篇**已读论文**按同一套问题重写，并在篇间做横向对比与术语消歧。**权威是原文**——按文档声明的版本重新获取的原文，不是记忆，也不是各篇笔记（笔记是索引与二次材料；两者冲突时回原文，并在文档里标明版本）。
 
-本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
+本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）与 `<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
 
 ## 这份 skill 管什么、不管什么
 
@@ -29,7 +29,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 1. **篇目与纳入标准**：至少 2 篇；用户只给主题时，从根 `README.md` 与 `notes/` 提候选（编号 / 标题 / 是否已有笔记 / 建议版本），列给用户确认后再开工。
 2. **版本基准**：**README 当行已锁定具体版本（如 v2/v3 或归档 PDF）时以该版本为准**；用户指定版本时用指定版；两者都未锁定版本时取生成日最新版并写明。非 arXiv 来源用归档 PDF 的版本。同一工作有多个渠道（项目页/arXiv/OpenReview/期刊）时，不混用不同版本的实验数字。
 3. **产物路径**：`docs/<slug>.md`（slug 用简短英文短横线）。不新建其他目录，不改 `notes/` 里的单篇笔记（除非用户同时要求）。
-4. **公式与渲染约定**（用户已明确要求；如需例外须用户明确说明）：正文段落/列表/表格**不写行内公式**；独立公式块优先用 `math` 代码围栏（```math，GitHub 上最稳），也可用 `$$…$$`（`$$` 起止各自单独成行；**单行 `$$…$$` 与列表项内的 `$$` 在 GitHub 上不可靠**）；全篇不超过 3 处、每块紧跟一句白话读法；伪代码用围栏代码块；迭代闭环用 Mermaid。货币符号 `$` 请放进代码段或改写（检查脚本会把正文中的 `$` 视为行内公式）。
+4. **公式与渲染约定**（用户已明确要求；如需例外须用户明确说明）：正文段落/列表/表格**不写行内公式**；独立公式块**一律用 ```math 代码围栏**（GitHub 原生支持，列表内也可用）；新文档**不要写 `$$…$$`**（单行 `$$` 与列表项内的 `$$` 在 GitHub 上不可靠，只有旧文档兼容时才保留）。全篇不超过 3 处、每块紧跟一句白话读法；伪代码用围栏代码块；迭代闭环用 Mermaid。货币符号 `$` 请放进代码段或改写（检查脚本会把正文中的 `$` 视为行内公式）。
 5. **README**：默认不动。用户明确要求挂链接时，只在**编号说明 blockquote 之后、`## 论文` 之前**新增或更新**一行**主题汇总链接（同步编号集合与篇数），不重排、不改表格、不动其他行。
 6. **提交**：不自动提交；用户明确要求时再提交。
 
@@ -61,7 +61,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 ### 第 6 步：核对与交付
 
-按〈检查清单 A–H〉自查，跑 `<skill 目录>/scripts/doc_lint.py`，再按〈复核模式〉执行相应轮次；用户要求挂 README 时加一行；在对话里交付（见〈交付〉）。
+按〈检查清单 A–H〉自查，跑 `doc_lint.py` 和（有公式/Mermaid 时）`github_render_check.py`，再按〈复核模式〉执行相应轮次；用户要求发布时按〈渲染与发布〉运行 `site/build.py`、生成/更新 PDF 并核对 Pages 链接；用户要求挂 README 时加一行；在对话里交付（见〈交付〉）。
 
 ## 逐篇 dossier：固定问题与证据要求
 
@@ -118,7 +118,8 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 6. 总体判断补上该篇的定位，必要时调整旧结论（如「唯一……的一篇」要重新核）；
 7. 版本与核对说明里的篇数、核对轮次、图内读数来源；
 8. 「与各篇笔记的关系」里的条目；
-9. README 顶部链接行里的编号集合与「N 篇」（仅在用户要求维护该行时）。
+9. README 顶部链接行里的编号集合与「N 篇」（仅在用户要求维护该行时）；
+10. 发布联动：按〈渲染与发布〉运行 `python3 site/build.py --out _site`、重新生成 PDF、跑 `github_render_check.py`；若更新 README 行，在线链接指向站点根/`/docs/<slug>/`，PDF 文件名对得上；Pages 部署后核对实际 URL。
 
 替换/更新版本时同样走一遍，并在该篇〈版本关系〉写清旧版与新版的差异。
 
@@ -127,12 +128,12 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 **分层**：
 
 - **新建或大改**（新增论文、重写章节、批量修复）：走完整五轮；
-- **单点修正**（一个数字、一处措辞）：只查受影响的 A/B 项 + 关联的一致性项 + lint。
+- **单点修正**（一个数字、一处措辞）：只查受影响的 A/B 项 + 关联的一致性项 + lint；若动到公式/Mermaid 或 PDF，按〈渲染与发布〉补跑渲染检查/重生成 PDF。
 
 **五轮**（本次实战验证有效；每轮可派独立子 agent，要求「只报告、不改文件」，其结论逐条自验）：
 
 1. **全量回原文**：逐篇核对数字、机制、表格与图内标签；
-2. **修正项复查 + 内部一致性 + 渲染**：上一轮每项修复是否改对；跨表列序、同一数字多处一致、lint；
+2. **修正项复查 + 内部一致性 + 渲染**：上一轮每项修复是否改对；跨表列序、同一数字多处一致、lint；有公式/Mermaid 时跑 `github_render_check.py`；有 PDF 时重新生成并目检高图完整；
 3. **术语审计 + 文档 vs 笔记/README**：负断言逐条检索；文档与各篇笔记的版本/结论是否一致；README 链接与篇数；
 4. **元数据直查**：版本列表/日期、页数、sha、README 指向；
 5. **读者视角连贯性 + 数字抽查**：只读文档能否回答每篇的四个问题（改了什么/组件/一轮流程/轮间更新）+ 验收/监督/数字/版本；随机抽查数字。
@@ -155,7 +156,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 **G. 读者理解**：只读文档能回答每篇的四问 + 验收/监督/关键数字/版本；Mermaid 与文字流程一致；伪代码与文字一致；公式块后跟白话读法，且**全篇公式块不超过 3 处**（人工核对，脚本只计数）；没有「见下节」指不到的地方。
 
-**H. 机械检查与交付**：`<skill 目录>/scripts/doc_lint.py` 零错误（脚本只做机械项；Mermaid 语法、锚点与链接语义仍需人工或渲染核对）；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
+**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（源块数与 GitHub 渲染数一致、无 `language-*` 残留）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接/计数校验通过）；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
 
 ## 修复规则
 
@@ -177,6 +178,8 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 7. **跨表列序不一致**：概念对照/坐标系与正文章节顺序不同，读者对列错位；新增一篇时列序必须同步。
 8. **README 越界**：顺手改了表格、分组或其他行；默认只允许用户明确要求的一行链接。
 9. **二手材料当原文**：只读笔记不读原文就写机制；笔记的推断被当成论文结论。
+10. **公式渲染**：行内 `$…$`、单行 `$$…$$` 或列表项内的 `$$` 在 GitHub 上不可靠；新文档统一用 ```math（列表内也有效），并用 `github_render_check.py` 验证。
+11. **PDF 高图 / Pages**：Mermaid 图超过一页高时会被跨页裁断；阅读页打印样式已限高 250mm，仍要目检高图完整。Pages 未启用时 workflow 应跳过部署而不是每次 push 红叉；分支部署已退役，完整站点必须用 Actions。
 
 ## 环境与工具
 
@@ -188,10 +191,52 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
   - 下载：`curl -sSL -m <sec> -A '<UA>' -o <out> <url>`；大文件放后台，别用默认超时。
 - pymupdf 的字体判定（`page.get_text('dict')`）、矢量/图块定位（`get_drawings()`/`get_image_info()`）、局部裁剪（`page.get_pixmap(clip=…)`）与 PIL/numpy 像素测量均可用；换到未装这些包的机器时，把相应核对标注「未做」，不得声称已核。
 - `Read` 工具读 PDF 每次最多 20 页，长文分页读；文本抽取只做检索，公式/表格/上下标以渲染页为准。
-- 渲染发布：仓库的 `docs/index.html` 是阅读页（marked + MathJax + Mermaid，依赖本地化在 `docs/assets/`）；生成 PDF 用
-  `PLAYWRIGHT_MODULE=<playwright 模块路径> node <skill 目录>/scripts/render_pdf.mjs docs/<slug>.pdf`。
-  脚本会核对公式与 Mermaid 的渲染计数，渲染失败时**非零退出且不写出 PDF**（避免得到缺公式/缺图的“成功”产物）。
+- 渲染发布（静态站点 / PDF / Pages）见下一节〈渲染与发布〉。
 - 临时目录 `/tmp/<topic>-docs/<编号>/`；用后清理，不把临时文件提交进仓库。
+
+## 渲染与发布（静态站点 / PDF / Pages）
+
+### 站点源码与构建
+
+- 源码在 `site/`：`build.py`（Python 标准库）、`templates/home.html`（资料库）、`templates/doc.html`（阅读页）、`assets/site.css`、`assets/site.js`、`vendor/`（marked/MathJax/Mermaid 与许可证）。构建输出 `_site/`，已 gitignore，不提交。
+- 构建：
+  - `python3 site/build.py --out _site`
+  - 本地预览：`python3 -m http.server 8000 --directory _site`
+- `build.py` 自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；从 README 5 列表取编号/标题/年份/单位/原文链接；每个 note.md 必须有 README 行，否则构建失败（双向校验）。它同时校验 31 张笔记图片、全部本地链接、公式/Mermaid 围栏计数。
+- 路由按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库（卡片、筛选、搜索、排序），阅读页是独立文章页。笔记图片按原 `assets/` 目录复制，不扁平化。
+- 新汇总：放到 `docs/<slug>.md` 即自动进入资料库；同名 `docs/<slug>.pdf` 会复制到 `/docs/<slug>/<slug>.pdf` 并在阅读页显示 PDF 按钮。新笔记：写入 `notes/.../note.md` 并回写 README 后自动进入；不需要手改站点。
+- 汇总相对链接 `../notes/...` 在阅读页由 resolver 改成站内笔记路由；`papers/*.pdf` 等未复制文件跳到 GitHub；笔记的 `assets/...` 用站内复制路径。Python 构建期与 JS 运行期规则一致，构建失败即代表链接不可达。
+- 旧 `docs/index.html`、`docs/assets/reader.css`、`docs/.nojekyll` 已删除；旧 `?doc=rsi-methods.md` 由首页 JS 重定向到 `/docs/rsi-methods/`，根级 `_site/rsi-methods.pdf` 保留旧 PDF 链接兼容别名。
+- 打印 CSS 把 Mermaid 限高 250mm；高图等比缩放避免跨页裁断，宽幅 LR 图在 A4 上会偏小，必要时改成 TD/拆图。
+
+### GitHub 原生渲染检查（笔记和汇总都适用）
+
+- 公式/Mermaid 一律用围栏（```math / ```mermaid）；不用行内 `$…$`、单行 `$$…$$` 或列表项内的 `$$`。
+- 机械检查：
+  - `python3 -I <skill 目录>/scripts/doc_lint.py <file.md>`
+  - `python3 -I <skill 目录>/scripts/github_render_check.py <file.md>`
+- `github_render_check.py` 会 POST 到 GitHub Markdown API，要求源公式/图块数与 `<math-renderer>`/`highlight-source-mermaid` 数一致，且没有 `language-math`/`language-mermaid` 残留；需要联网，未认证限 60 次/小时，可设 `GITHUB_TOKEN`。它只验证 GitHub 是否识别围栏，**不验证 Mermaid 图语法**——图语法由站点/PDF 渲染或 mermaid 解析器另行检查。
+- 旧文档若仍有 `$$` 块，先按用户要求改写为 ```math；批量改写旧笔记需要用户明确要求。
+
+### PDF
+
+- 先生成站点，再打印：
+  ```bash
+  python3 site/build.py --out _site
+  PLAYWRIGHT_MODULE=<playwright 模块路径> node <skill 目录>/scripts/render_pdf.mjs \
+    --site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf
+  python3 site/build.py --out _site   # 把新 PDF 复制进 _site
+  ```
+- 脚本服务 `_site`，强制浅色 + print media，等待 `window.__renderDone`；检查 `.render-error`、公式/Mermaid 计数、`leftover`、打印溢出，失败**非零退出且不写 PDF**。
+- 每次改动汇总 Markdown 或站点样式后重新生成；用 pymupdf/`gs` 抽查页数、公式页和含图页，重点看高图完整、宽图可读。构建发现 PDF 比 Markdown/样式旧会警告，不失败。
+- PDF 文件名必须与汇总 Markdown 同名；阅读页 PDF 按钮和根级别名都依赖这个约定。CI 不安装 Playwright，不生成 PDF。
+
+### GitHub Pages
+
+- **只支持 GitHub Actions**；分支部署 `main /docs` 已退役。`.github/workflows/pages.yml` 在 `notes/**`、`docs/**`、`site/**`、`README.md` 或 workflow 变化时触发，执行 `python3 site/build.py --out _site`，再上传 `_site`。
+- 构建在 Pages `build_type` 守卫之前执行，保证 README/链接/图片校验每次 push 都跑；未启用或仍是 `legacy` 分支部署时只跳过部署步骤并给 notice。
+- **首次必须在 Settings → Pages 选择 GitHub Actions**：`GITHUB_TOKEN` 没有权限自动开启 Pages；启用后手动 Run workflow 或下次 push 生效。
+- 部署后核对实际 URL：账号自定义域名可能让 `github.io` 301 到自定义域名；README 只加用户要求的一行链接，链接用实际可达地址。旧 `?doc=` 与根 PDF 别名只用于兼容，不再作为文档主入口。
 
 ## 与其他 skill 的分工
 
@@ -207,4 +252,5 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 2. 核对轮次与覆盖度（哪些表/数字/术语逐项查过，哪些没查）；
 3. 修复清单（位置、原文依据、判定、修法）；
 4. 仍未核实或无法核实的事项；
-5. README 是否改动、是否提交。
+5. README 是否改动、是否提交；
+6. 若发布：站点构建结果（条目/链接/图片校验）、PDF 路径、Pages 部署方式与实际 URL、README 链接是否可用（未启用/未部署时如实说明）。

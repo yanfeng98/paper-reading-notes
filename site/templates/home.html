@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{PAGE_TITLE}}</title>
+  <meta name="description" content="{{PAGE_DESCRIPTION}}">
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="{{ROOT}}assets/site.css?v={{ASSET_VERSION}}">
+  <script>
+    (function () {
+      try {
+        var mode = localStorage.getItem('prn-theme') || 'auto';
+        var resolved = mode === 'auto'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : mode;
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.dataset.themeMode = mode;
+      } catch (error) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    })();
+  </script>
+</head>
+<body data-page="home">
+  <a class="skip-link" href="#library">跳到资料库</a>
+
+  <header class="topbar">
+    <a class="brand" href="{{ROOT}}">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span class="brand-text">Paper <em>Reading</em> Notes</span>
+    </a>
+    <nav class="topbar-actions" aria-label="站点操作">
+      <a class="topbar-link" href="{{REPO_URL}}" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换主题">
+        <span class="theme-icon" aria-hidden="true">◐</span>
+        <span class="theme-label">自动</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <p class="eyebrow">PAPER READING NOTES</p>
+      <h1>论文阅读笔记</h1>
+      <p class="hero-lede">把一篇论文读成自己的东西：核心结论、方法拆解、关键数字与横向对比。</p>
+      <div class="hero-stats">{{STATS_HTML}}</div>
+      <div class="hero-tools">
+        <label class="search-box">
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+          </span>
+          <input id="search" type="search" placeholder="搜索标题、编号、单位、章节…" autocomplete="off" aria-label="搜索笔记">
+          <kbd class="search-kbd">/</kbd>
+        </label>
+        <a class="index-link" href="{{REPO_URL}}/blob/main/README.md" target="_blank" rel="noopener noreferrer">完整论文清单 <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="library" id="library" aria-label="笔记资料库">
+      <div class="library-toolbar">
+        <div class="filters" role="group" aria-label="按类型筛选">
+          <button class="filter is-active" type="button" data-filter="all" aria-pressed="true">全部 <span class="filter-count">{{COUNT_ALL}}</span></button>
+          <button class="filter" type="button" data-filter="paper" aria-pressed="false">论文笔记 <span class="filter-count">{{COUNT_PAPER}}</span></button>
+          <button class="filter" type="button" data-filter="blog" aria-pressed="false">博客笔记 <span class="filter-count">{{COUNT_BLOG}}</span></button>
+          <button class="filter" type="button" data-filter="summary" aria-pressed="false">主题汇总 <span class="filter-count">{{COUNT_SUMMARY}}</span></button>
+        </div>
+        <label class="sort-control">排序
+          <select id="sort">
+            <option value="recent">最近阅读</option>
+            <option value="year">年份</option>
+            <option value="title">标题</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="featured">{{FEATURED_HTML}}</div>
+
+      <div class="result-line">
+        <span id="result-count">{{COUNT_ALL}} 份文档</span>
+        <span class="result-hint">点击卡片进入阅读</span>
+      </div>
+
+      <div class="cards" id="cards">{{CARDS_HTML}}</div>
+      <div class="empty-state" id="empty" hidden>
+        <p class="empty-title">没有匹配的笔记</p>
+        <p>换一个关键词，或清除筛选后再试。</p>
+        <button class="button button-ghost" type="button" id="clear-filters">清除筛选</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <strong>Paper Reading Notes</strong>
+      <p>论文精读笔记与主题汇总。站点由 GitHub Pages 从 repo 内容构建。</p>
+    </div>
+    <nav class="footer-links" aria-label="页脚链接">
+      <a href="{{REPO_URL}}" target="_blank" rel="noopener noreferrer">仓库</a>
+      <a href="{{REPO_URL}}/blob/main/README.md" target="_blank" rel="noopener noreferrer">论文索引</a>
+      <a href="{{REPO_URL}}/issues" target="_blank" rel="noopener noreferrer">问题</a>
+    </nav>
+  </footer>
+
+  <noscript><p class="nojs">搜索和筛选需要 JavaScript；页面上的卡片仍可直接打开。</p></noscript>
+
+  <script>
+    window.__FILTER_COUNTS__ = {{FILTER_COUNTS_JSON}};
+    window.__LEGACY_MAP__ = {{LEGACY_MAP_JSON}};
+  </script>
+  <script src="{{ROOT}}assets/site.js?v={{ASSET_VERSION}}" defer></script>
+</body>
+</html>
