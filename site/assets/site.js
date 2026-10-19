@@ -100,7 +100,7 @@
     var cardsEl = document.getElementById('cards');
     var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
     var featuredWrap = document.querySelector('.featured');
-    var featuredCard = document.querySelector('.featured-card');
+    var featuredCards = Array.prototype.slice.call(document.querySelectorAll('.featured-card'));
     var search = document.getElementById('search');
     var sort = document.getElementById('sort');
     var empty = document.getElementById('empty');
@@ -158,11 +158,14 @@
         card.hidden = !show;
         if (show) visible += 1;
       });
-      if (featuredWrap && featuredCard) {
-        var showFeatured = matches(featuredCard);
-        featuredWrap.hidden = !showFeatured;
-        if (showFeatured) visible += 1;
-      }
+      var featuredVisible = 0;
+      featuredCards.forEach(function (card) {
+        var show = matches(card);
+        card.hidden = !show;
+        if (show) featuredVisible += 1;
+      });
+      if (featuredWrap) featuredWrap.hidden = featuredVisible === 0;
+      visible += featuredVisible;
       if (empty) empty.hidden = visible !== 0;
       if (resultCount) resultCount.textContent = visible + ' 份文档';
       filters.forEach(function (button) {
@@ -332,8 +335,9 @@
         return { href: repo + '/blob/main/' + path, external: true };
       }
       var suffix = url.search + url.hash;
+      var noteAsset = /^notes\/(?:papers|blogs)\/[^/]+\/assets\//.test(path);
       if (isImage) {
-        if (path.indexOf('notes/') === 0) {
+        if (noteAsset) {
           return { href: data.root + path + suffix, external: false };
         }
         return { href: repo + '/raw/main/' + path + suffix, external: true };
@@ -344,7 +348,7 @@
       if (pdfFiles[path]) {
         return { href: data.root + pdfFiles[path] + suffix, external: false };
       }
-      if (path.indexOf('notes/') === 0 && !/\.md$/i.test(path)) {
+      if (noteAsset) {
         return { href: data.root + path + suffix, external: false };
       }
       return { href: repo + '/blob/main/' + path + suffix, external: true };

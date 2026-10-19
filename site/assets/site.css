@@ -391,7 +391,7 @@ main { width: 100%; }
 
 /* ---------- featured summary ---------- */
 
-.featured { margin: 24px 0 0; }
+.featured { display: grid; gap: 16px; margin: 24px 0 0; }
 .featured-card {
   position: relative;
   display: flex;

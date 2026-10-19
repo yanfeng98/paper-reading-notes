@@ -440,7 +440,7 @@ def analyze(
     return entry
 
 
-def discover_entries() -> tuple[list[Entry], Entry, dict[str, Entry], dict[str, int]]:
+def discover_entries() -> tuple[list[Entry], list[Entry], dict[str, Entry], dict[str, int]]:
     readme_map, stats = parse_readme()
     note_files = sorted(NOTES.glob("papers/*/note.md")) + sorted(
         NOTES.glob("blogs/*/note.md")
@@ -469,19 +469,14 @@ def discover_entries() -> tuple[list[Entry], Entry, dict[str, Entry], dict[str, 
     docs_paths = [path for path in docs_paths if path.name.lower() != "readme.md"]
     if not docs_paths:
         raise BuildError("docs/ 下没有汇总文档")
-    summary_candidates: list[Entry] = []
+    summaries: list[Entry] = []
     for path in docs_paths:
         pdf = path.with_suffix(".pdf")
         entry = analyze(path, "summary", None, pdf if pdf.exists() else None)
         if entry.route in routes:
             raise BuildError(f"路由重复: {entry.route}")
         routes[entry.route] = entry
-        summary_candidates.append(entry)
-    if len(summary_candidates) != 1:
-        raise BuildError("当前站点按单篇汇总设计，但 docs/ 下有多篇 .md；请扩展首页 featured 逻辑")
-    summary = summary_candidates[0]
-    if summary.unit == "跨篇汇总" and not summary.paper_title:
-        summary.paper_title = ""
+        summaries.append(entry)
 
     notes.sort(
         key=lambda item: (item.read_date or "", item.year or "", item.doc_id or ""),
@@ -493,9 +488,9 @@ def discover_entries() -> tuple[list[Entry], Entry, dict[str, Entry], dict[str, 
         if index + 1 < len(notes):
             entry.next_route, entry.next_title = notes[index + 1].route, notes[index + 1].title
 
-    entries = [summary, *notes]
+    entries = [*summaries, *notes]
     validate_links(entries, routes)
-    return entries, summary, routes, stats
+    return entries, summaries, routes, stats
 
 
 def validate_links(entries: list[Entry], routes: dict[str, Entry]) -> None:
@@ -574,11 +569,14 @@ def render_card(entry: Entry, root: str = "") -> str:
 </article>"""
 
 
-def render_featured(summary: Entry) -> str:
-    pdf = ""
-    if summary.pdf_rel:
-        pdf = f'<a class="button button-ghost" href="{html.escape(summary.pdf_rel)}" target="_blank" rel="noopener">PDF</a>'
-    return f"""<article class="featured-card" data-kind="summary" data-title="{html.escape(summary.title)}" data-year="" data-read-date="" data-search="{html.escape(card_search_text(summary))}">
+def render_featured(summaries: list[Entry]) -> str:
+    cards: list[str] = []
+    for summary in summaries:
+        pdf = ""
+        if summary.pdf_rel:
+            pdf = f'<a class="button button-ghost" href="{html.escape(summary.pdf_rel)}" target="_blank" rel="noopener">PDF</a>'
+        cards.append(
+            f"""<article class="featured-card" data-kind="summary" data-title="{html.escape(summary.title)}" data-year="" data-read-date="" data-search="{html.escape(card_search_text(summary))}">
   <div class="featured-main">
     <div class="card-top"><span class="card-id">专题</span><span class="card-kind">主题汇总</span><span class="featured-count">跨篇方法汇总</span></div>
     <h2><a href="{html.escape(summary.route)}">{html.escape(summary.title)}</a></h2>
@@ -590,6 +588,8 @@ def render_featured(summary: Entry) -> str:
     <a class="button" href="{html.escape(summary.route)}">阅读汇总 <span aria-hidden="true">→</span></a>
   </div>
 </article>"""
+        )
+    return "\n".join(cards)
 
 
 def doc_meta_html(entry: Entry) -> str:
@@ -651,7 +651,7 @@ def copy_file(source: Path, destination: Path) -> None:
 
 
 def build_site(out_dir: Path) -> None:
-    entries, summary, routes, stats = discover_entries()
+    entries, summaries, routes, stats = discover_entries()
     site_css = SITE / "assets" / "site.css"
     site_js = SITE / "assets" / "site.js"
     if not site_css.exists() or not site_js.exists():
@@ -684,7 +684,7 @@ def build_site(out_dir: Path) -> None:
             "ASSET_VERSION": asset_version,
             "REPO_URL": REPO_URL,
             "STATS_HTML": readme_stats_html(stats),
-            "FEATURED_HTML": render_featured(summary),
+            "FEATURED_HTML": render_featured(summaries),
             "CARDS_HTML": cards,
             "FILTER_COUNTS_JSON": json_for_script(filter_counts),
             "LEGACY_MAP_JSON": json_for_script(legacy_map),
@@ -703,7 +703,7 @@ def build_site(out_dir: Path) -> None:
         if entry.original_url:
             original_link = f'<a class="doc-link" href="{html.escape(entry.original_url)}" target="_blank" rel="noopener">原文 ↗</a>'
         source_link = f'<a class="doc-link" href="{html.escape(source_url)}" target="_blank" rel="noopener">GitHub 源 ↗</a>'
-        route_map = {source_path: value.route for source_path, value in routes.items()}
+        route_map = {item.source_path: item.route for item in entries}
         doc_data = {
             "source": entry.source_path,
             "sourceHash": entry.source_hash,
@@ -836,14 +836,18 @@ def build_site(out_dir: Path) -> None:
     print(
         f"Built {out_dir}: {len(entries)} documents "
         f"({filter_counts['paper']} papers, {filter_counts['blog']} blog, "
-        f"{filter_counts['summary']} summary); {stats['rows']} README rows "
+        f"{filter_counts['summary']} summaries); {stats['rows']} README rows "
         f"({stats['notes']} read, {stats['pending']} pending); "
-        f"{sum(e.math_count for e in notes)} note math + {summary.math_count} summary math; "
-        f"{sum(e.mermaid_count for e in notes)} note Mermaid + {summary.mermaid_count} summary Mermaid."
+        f"{sum(e.math_count for e in notes)} note math + "
+        f"{sum(e.math_count for e in summaries)} summary math; "
+        f"{sum(e.mermaid_count for e in notes)} note Mermaid + "
+        f"{sum(e.mermaid_count for e in summaries)} summary Mermaid."
     )
     for entry in entries:
         print(f"  {entry.route}  {entry.title}")
-    if summary.pdf_rel:
+    for summary in summaries:
+        if not summary.pdf_rel:
+            continue
         pdf = (ROOT / summary.source_path).with_suffix(".pdf")
         newest = max(
             (ROOT / summary.source_path).stat().st_mtime,

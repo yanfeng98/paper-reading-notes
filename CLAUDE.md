@@ -39,8 +39,9 @@
 ## 站点
 
 - 源码在 `site/`：`build.py`（仅 Python 标准库）、`templates/home.html`、`templates/doc.html`、`assets/site.css`、`assets/site.js`、`vendor/`（marked/MathJax/Mermaid 与许可证）。构建输出 `_site/`，已加入 `.gitignore`，不提交。
-- `python3 site/build.py --out _site` 会自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；每个 `note.md` 必须有 README 对应行，构建会做双向校验、图片/链接校验和公式/Mermaid 计数校验。
-- 阅读页按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库。汇总同名 PDF 复制到 `_site/docs/<slug>/<slug>.pdf`，并保留根级 `rsi-methods.pdf` 兼容别名。
+- `python3 site/build.py --out _site` 会自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；每个 `note.md` 必须有 README 对应行，构建会做双向校验、图片/链接校验和公式/Mermaid 计数校验。`docs/` 支持多篇汇总，都会作为首页 featured 卡片。
+- 阅读页按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库。汇总同名 PDF 复制到 `_site/docs/<slug>/<slug>.pdf`，并为每篇汇总保留根级 `<slug>.pdf` 兼容别名。
+- 本地构建与 PDF 只写 `_site`/`docs`，**不会自动上线**；要更新网站必须 commit/push，由 Actions 构建部署。
 - 旧 `docs/index.html`、`docs/assets/reader.css` 与 `docs/.nojekyll` 已删除；旧 `?doc=rsi-methods.md` 由首页 JS 重定向到 `/docs/rsi-methods/`。
 - GitHub Pages **只支持 GitHub Actions**：`.github/workflows/pages.yml` 构建并上传 `_site`；分支部署 `main /docs` 已退役。首次需在 Settings → Pages 选择 GitHub Actions。
 - 本地预览：`python3 -m http.server 8000 --directory _site`。PDF：先构建，再用 `skills/summarize-paper-methods/scripts/render_pdf.mjs`（`--site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf`），最后重新构建以复制新 PDF。

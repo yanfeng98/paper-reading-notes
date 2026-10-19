@@ -204,7 +204,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
   - 本地预览：`python3 -m http.server 8000 --directory _site`
 - `build.py` 自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；从 README 5 列表取编号/标题/年份/单位/原文链接；每个 note.md 必须有 README 行，否则构建失败（双向校验）。它同时校验 31 张笔记图片、全部本地链接、公式/Mermaid 围栏计数。
 - 路由按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库（卡片、筛选、搜索、排序），阅读页是独立文章页。笔记图片按原 `assets/` 目录复制，不扁平化。
-- 新汇总：放到 `docs/<slug>.md` 即自动进入资料库；同名 `docs/<slug>.pdf` 会复制到 `/docs/<slug>/<slug>.pdf` 并在阅读页显示 PDF 按钮。新笔记：写入 `notes/.../note.md` 并回写 README 后自动进入；不需要手改站点。
+- 新汇总：放到 `docs/<slug>.md` 即自动进入资料库；多篇汇总都会作为首页 featured 卡片，各自有独立 `/docs/<slug>/` 阅读页。同名 `docs/<slug>.pdf` 会复制到 `/docs/<slug>/<slug>.pdf` 并在阅读页显示 PDF 按钮。新笔记：写入 `notes/.../note.md` 并回写 README 后自动进入；不需要手改站点。
 - 汇总相对链接 `../notes/...` 在阅读页由 resolver 改成站内笔记路由；`papers/*.pdf` 等未复制文件跳到 GitHub；笔记的 `assets/...` 用站内复制路径。Python 构建期与 JS 运行期规则一致，构建失败即代表链接不可达。
 - 旧 `docs/index.html`、`docs/assets/reader.css`、`docs/.nojekyll` 已删除；旧 `?doc=rsi-methods.md` 由首页 JS 重定向到 `/docs/rsi-methods/`，根级 `_site/rsi-methods.pdf` 保留旧 PDF 链接兼容别名。
 - 打印 CSS 把 Mermaid 限高 250mm；高图等比缩放避免跨页裁断，宽幅 LR 图在 A4 上会偏小，必要时改成 TD/拆图。
@@ -227,13 +227,13 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
     --site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf
   python3 site/build.py --out _site   # 把新 PDF 复制进 _site
   ```
-- 脚本服务 `_site`，强制浅色 + print media，等待 `window.__renderDone`；检查 `.render-error`、公式/Mermaid 计数、`leftover`、打印溢出，失败**非零退出且不写 PDF**。
+- 脚本服务 `_site`，强制浅色 + print media，等待 `window.__renderDone`；检查 `.render-error`、公式/Mermaid 计数、`leftover`、打印溢出，失败**非零退出且不写 PDF**。多篇汇总时把 `docs/rsi-methods/...` 和 `docs/rsi-methods.pdf` 换成目标 slug 即可。
 - 每次改动汇总 Markdown 或站点样式后重新生成；用 pymupdf/`gs` 抽查页数、公式页和含图页，重点看高图完整、宽图可读。构建发现 PDF 比 Markdown/样式旧会警告，不失败。
 - PDF 文件名必须与汇总 Markdown 同名；阅读页 PDF 按钮和根级别名都依赖这个约定。CI 不安装 Playwright，不生成 PDF。
 
 ### GitHub Pages
 
-- **只支持 GitHub Actions**；分支部署 `main /docs` 已退役。`.github/workflows/pages.yml` 在 `notes/**`、`docs/**`、`site/**`、`README.md` 或 workflow 变化时触发，执行 `python3 site/build.py --out _site`，再上传 `_site`。
+- **只支持 GitHub Actions**；分支部署 `main /docs` 已退役。`.github/workflows/pages.yml` 在 `notes/**`、`docs/**`、`site/**`、`README.md` 或 workflow 变化时触发，执行 `python3 site/build.py --out _site`，再上传 `_site`。**本地构建/PDF 不会上线；必须 commit/push**，Actions 才会构建部署。
 - 构建在 Pages `build_type` 守卫之前执行，保证 README/链接/图片校验每次 push 都跑；未启用或仍是 `legacy` 分支部署时只跳过部署步骤并给 notice。
 - **首次必须在 Settings → Pages 选择 GitHub Actions**：`GITHUB_TOKEN` 没有权限自动开启 Pages；启用后手动 Run workflow 或下次 push 生效。
 - 部署后核对实际 URL：账号自定义域名可能让 `github.io` 301 到自定义域名；README 只加用户要求的一行链接，链接用实际可达地址。旧 `?doc=` 与根 PDF 别名只用于兼容，不再作为文档主入口。
