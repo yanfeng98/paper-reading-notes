@@ -4,8 +4,9 @@ name: Deploy docs to GitHub Pages
 # - 本 workflow：Settings → Pages → Source 选 "GitHub Actions"；
 # - 分支部署：Settings → Pages → Source 选 "Deploy from a branch" → main /docs。
 # 两者都使用 docs/ 目录；docs/index.html 是入口。
-# 若选择分支部署，请在 Actions 页禁用本 workflow（否则 push 时它会因
-# Pages source 不是 "GitHub Actions" 而失败；站点仍由分支部署正常更新）。
+# 首次使用前必须在 Settings → Pages 里启用一次（GITHUB_TOKEN 无权限自动开启）。
+# workflow 会先查询 Pages 的 build_type：未启用或仍为分支部署时跳过部署并给出 notice，
+# 避免每次 push 都失败；切换成 "GitHub Actions" 后下次 push/手动运行即可生效。
 
 on:
   push:
@@ -29,15 +30,34 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || format('https://github.com/{0}', github.repository) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
+      - id: pages
+        name: Check Pages configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          build_type=$(gh api "repos/${{ github.repository }}/pages" --jq '.build_type' 2>/dev/null)
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Pages 尚未启用。请在 Settings → Pages 选择 GitHub Actions（或 main /docs 分支部署）。"
+          elif [ "$build_type" = "workflow" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Pages 当前是分支部署（build_type=$build_type），本 workflow 跳过；若要改用 Actions，请在 Settings → Pages 切换 Source。"
+          fi
+      - if: steps.pages.outputs.enabled == 'true'
+        uses: actions/configure-pages@v5
+      - if: steps.pages.outputs.enabled == 'true'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs
-      - id: deployment
+      - if: steps.pages.outputs.enabled == 'true'
+        id: deployment
         uses: actions/deploy-pages@v4
