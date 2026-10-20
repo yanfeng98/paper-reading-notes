@@ -509,7 +509,10 @@ def validate_links(entries: list[Entry]) -> None:
             assert repo_path is not None
             if repo_path.startswith("../") or repo_path == "..":
                 raise BuildError(f"{entry.source_path}: 图片越出仓库 {target!r}")
-            if not (ROOT / repo_path).exists():
+            image_path = ROOT / repo_path
+            if image_path.is_dir():
+                raise BuildError(f"{entry.source_path}: 图片路径指向目录: {target!r}")
+            if not image_path.exists():
                 raise BuildError(f"{entry.source_path}: 图片不存在: {target!r} -> {repo_path}")
         for target in links:
             repo_path, status = resolve_repo_path(entry.source_path, target)
@@ -524,7 +527,10 @@ def validate_links(entries: list[Entry]) -> None:
                 continue
             if repo_path in pdf_paths:
                 continue
-            if not (ROOT / repo_path).exists():
+            link_path = ROOT / repo_path
+            if link_path.is_dir():
+                raise BuildError(f"{entry.source_path}: 链接指向目录: {target!r}；请链接到具体文件")
+            if not link_path.exists():
                 raise BuildError(f"{entry.source_path}: 链接目标不存在: {target!r} -> {repo_path}")
 
 
@@ -716,9 +722,13 @@ def build_site(out_dir: Path) -> None:
             "readDate": entry.read_date,
             "routes": route_map,
             "pdfFiles": {
-                f"docs/{Path(value.source_path).stem}.pdf": value.pdf_rel
+                key: value.pdf_rel
                 for value in routes.values()
                 if value.pdf_rel
+                for key in (
+                    f"docs/{Path(value.source_path).stem}.pdf",
+                    value.pdf_rel,
+                )
             },
             "assetVersion": asset_version,
             "expectedMath": entry.math_count,
