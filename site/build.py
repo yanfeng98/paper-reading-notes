@@ -557,7 +557,7 @@ def card_search_text(entry: Entry) -> str:
 
 
 def render_card(entry: Entry, root: str = "") -> str:
-    href = f"{root}{entry.route}"
+    href = html.escape(f"{root}{entry.route}")
     paper = ""
     if entry.paper_title and entry.paper_title != entry.title:
         paper = f'<p class="card-paper">{html.escape(entry.paper_title)}</p>'
@@ -624,9 +624,9 @@ def nav_links(entry: Entry) -> tuple[str, str]:
     prev_html = ""
     next_html = ""
     if entry.prev_route:
-        prev_html = f'<a class="page-nav prev" href="{entry.root}{entry.prev_route}"><span>上一篇</span><strong>{html.escape(entry.prev_title)}</strong></a>'
+        prev_html = f'<a class="page-nav prev" href="{html.escape(entry.root + entry.prev_route)}"><span>上一篇</span><strong>{html.escape(entry.prev_title)}</strong></a>'
     if entry.next_route:
-        next_html = f'<a class="page-nav next" href="{entry.root}{entry.next_route}"><span>下一篇</span><strong>{html.escape(entry.next_title)}</strong></a>'
+        next_html = f'<a class="page-nav next" href="{html.escape(entry.root + entry.next_route)}"><span>下一篇</span><strong>{html.escape(entry.next_title)}</strong></a>'
     return prev_html, next_html
 
 
@@ -684,8 +684,8 @@ def build_site(out_dir: Path) -> None:
     home_html = fill_template(
         home_template,
         {
-            "PAGE_TITLE": f"{SITE_TITLE} · 论文阅读笔记",
-            "PAGE_DESCRIPTION": SITE_DESCRIPTION,
+            "PAGE_TITLE": html.escape(f"{SITE_TITLE} · 论文阅读笔记"),
+            "PAGE_DESCRIPTION": html.escape(SITE_DESCRIPTION),
             "ROOT": "./",
             "ASSET_VERSION": asset_version,
             "REPO_URL": REPO_URL,
@@ -737,8 +737,8 @@ def build_site(out_dir: Path) -> None:
         doc_html = fill_template(
             doc_template,
             {
-                "PAGE_TITLE": f"{entry.title} · {SITE_TITLE}",
-                "PAGE_DESCRIPTION": entry.excerpt or SITE_DESCRIPTION,
+                "PAGE_TITLE": html.escape(f"{entry.title} · {SITE_TITLE}"),
+                "PAGE_DESCRIPTION": html.escape(entry.excerpt or SITE_DESCRIPTION),
                 "ROOT": entry.root,
                 "ASSET_VERSION": asset_version,
                 "REPO_URL": REPO_URL,
@@ -754,7 +754,7 @@ def build_site(out_dir: Path) -> None:
                 "META_HTML": doc_meta_html(entry),
                 "ORIGINAL_LINK": original_link,
                 "SOURCE_LINK": source_link,
-                "SOURCE_PATH": entry.source_path,
+                "SOURCE_PATH": html.escape(entry.source_path),
                 "SOURCE_HASH": entry.source_hash,
                 "MD_URL": f"./{html.escape(Path(entry.source_path).name)}?v={entry.source_hash}",
                 "PDF_BUTTON": pdf_button(entry),
