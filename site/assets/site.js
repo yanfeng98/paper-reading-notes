@@ -547,7 +547,7 @@
         button.textContent = '↗ 放大';
         button.setAttribute('aria-label', '放大查看图表');
         button.setAttribute('aria-haspopup', 'dialog');
-        block.appendChild(button);
+        block.insertBefore(button, svg);
       });
     }
 

@@ -912,15 +912,16 @@ mjx-container[jax="SVG"][display="true"] > svg { max-width: 100%; height: auto; 
 }
 .mermaid svg { max-width: 100%; height: auto; }
 .mermaid > svg { cursor: zoom-in; }
+/* Firefox clips Mermaid HTML-label glyphs at the foreignObject box; let the ink paint out. */
+.mermaid foreignObject,
+.diagram-stage foreignObject { overflow: visible; }
 .mermaid-zoom {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 1;
-  display: inline-flex;
+  display: flex;
+  width: max-content;
   align-items: center;
   justify-content: center;
   min-height: 26px;
+  margin: 0 0 6px auto;
   padding: 2px 9px;
   border: 1px solid var(--border);
   border-radius: 999px;
