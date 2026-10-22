@@ -426,6 +426,185 @@
       });
     }
 
+    /* ---------------- diagram zoom ---------------- */
+
+    var ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4];
+    var diagramState = {
+      dialog: null,
+      stage: null,
+      percent: null,
+      reset: null,
+      zoomOut: null,
+      zoomIn: null,
+      svg: null,
+      natural: null,
+      scale: 1
+    };
+
+    function diagramNaturalSize(svg) {
+      var box = svg.viewBox && svg.viewBox.baseVal;
+      if (box && box.width > 0 && box.height > 0) {
+        return { width: box.width, height: box.height };
+      }
+      var rect = svg.getBoundingClientRect();
+      var width = parseFloat(svg.style.maxWidth) || rect.width || 960;
+      var height = rect.height || width * 0.66;
+      return { width: width, height: height };
+    }
+
+    function setDiagramScale(next) {
+      var state = diagramState;
+      if (!state.svg || !state.natural) return;
+      var scale = Math.max(ZOOM_STEPS[0], Math.min(ZOOM_STEPS[ZOOM_STEPS.length - 1], next));
+      var stage = state.stage;
+      var stageRect = stage.getBoundingClientRect();
+      var oldRect = state.svg.getBoundingClientRect();
+      var focusX = oldRect.width ? (stageRect.left + stage.clientWidth / 2 - oldRect.left) / oldRect.width : 0.5;
+      var focusY = oldRect.height ? (stageRect.top + stage.clientHeight / 2 - oldRect.top) / oldRect.height : 0.5;
+      var width = Math.round(state.natural.width * scale);
+      var height = Math.round(state.natural.height * scale);
+      state.scale = scale;
+      state.svg.setAttribute('width', String(width));
+      state.svg.setAttribute('height', String(height));
+      state.svg.style.width = width + 'px';
+      state.svg.style.height = height + 'px';
+      state.svg.style.maxWidth = 'none';
+      var newRect = state.svg.getBoundingClientRect();
+      stage.scrollLeft += (newRect.left + focusX * newRect.width) - (stageRect.left + stage.clientWidth / 2);
+      stage.scrollTop += (newRect.top + focusY * newRect.height) - (stageRect.top + stage.clientHeight / 2);
+      var percent = Math.round(scale * 100);
+      if (state.percent) state.percent.textContent = percent + '%';
+      if (state.reset) state.reset.setAttribute('aria-label', '当前缩放 ' + percent + '%，重置为 100%');
+      if (state.zoomOut) state.zoomOut.disabled = scale <= ZOOM_STEPS[0];
+      if (state.zoomIn) state.zoomIn.disabled = scale >= ZOOM_STEPS[ZOOM_STEPS.length - 1];
+    }
+
+    function stepDiagramScale(direction) {
+      var index = ZOOM_STEPS.indexOf(diagramState.scale);
+      if (index < 0) index = ZOOM_STEPS.indexOf(1);
+      index = Math.max(0, Math.min(ZOOM_STEPS.length - 1, index + direction));
+      setDiagramScale(ZOOM_STEPS[index]);
+    }
+
+    function resetDiagramStage() {
+      var state = diagramState;
+      if (state.stage) state.stage.innerHTML = '';
+      state.svg = null;
+      state.natural = null;
+      state.scale = 1;
+      if (state.percent) state.percent.textContent = '100%';
+      if (state.reset) state.reset.setAttribute('aria-label', '当前缩放 100%，重置为 100%');
+      if (state.zoomOut) state.zoomOut.disabled = false;
+      if (state.zoomIn) state.zoomIn.disabled = false;
+    }
+
+    function closeDiagram() {
+      var dialog = diagramState.dialog;
+      if (!dialog || !dialog.open) return;
+      resetDiagramStage();
+      if (dialog.close) dialog.close();
+      else dialog.removeAttribute('open');
+    }
+
+    function openDiagram(block) {
+      var state = diagramState;
+      if (!state.dialog || !state.stage) return;
+      var source = block.querySelector(':scope > svg');
+      if (!source || source.getAttribute('aria-roledescription') === 'error') return;
+      var natural = diagramNaturalSize(source);
+      var width = Math.round(natural.width);
+      var height = Math.round(natural.height);
+      var clone = source.cloneNode(true);
+      clone.style.display = 'block';
+      clone.style.maxWidth = 'none';
+      clone.style.width = width + 'px';
+      clone.style.height = height + 'px';
+      clone.setAttribute('width', String(width));
+      clone.setAttribute('height', String(height));
+      state.natural = natural;
+      state.scale = 1;
+      state.svg = clone;
+      state.stage.innerHTML = '';
+      state.stage.appendChild(clone);
+      if (!state.dialog.open) {
+        if (state.dialog.showModal) state.dialog.showModal();
+        else state.dialog.setAttribute('open', '');
+      }
+      setDiagramScale(1);
+      state.stage.scrollLeft = 0;
+      state.stage.scrollTop = 0;
+      state.stage.focus();
+    }
+
+    function decorateMermaidBlocks() {
+      mermaidBlocks.forEach(function (block) {
+        if (block.querySelector('.mermaid-zoom')) return;
+        var svg = block.querySelector(':scope > svg');
+        if (!svg || svg.getAttribute('aria-roledescription') === 'error') return;
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'mermaid-zoom';
+        button.textContent = '↗ 放大';
+        button.setAttribute('aria-label', '放大查看图表');
+        button.setAttribute('aria-haspopup', 'dialog');
+        block.appendChild(button);
+      });
+    }
+
+    function initDiagramDialog() {
+      var dialog = document.getElementById('diagram-dialog');
+      if (!dialog) return;
+      var state = diagramState;
+      state.dialog = dialog;
+      state.stage = document.getElementById('diagram-stage');
+      state.percent = dialog.querySelector('[data-diagram-percent]');
+      state.reset = dialog.querySelector('[data-diagram-reset]');
+      state.zoomOut = dialog.querySelector('[data-diagram-zoom-out]');
+      state.zoomIn = dialog.querySelector('[data-diagram-zoom-in]');
+      var close = dialog.querySelector('[data-diagram-close]');
+      if (close) close.addEventListener('click', closeDiagram);
+      if (state.reset) state.reset.addEventListener('click', function () { setDiagramScale(1); });
+      if (state.zoomOut) state.zoomOut.addEventListener('click', function () { stepDiagramScale(-1); });
+      if (state.zoomIn) state.zoomIn.addEventListener('click', function () { stepDiagramScale(1); });
+      dialog.addEventListener('click', function (event) {
+        if (event.target === dialog) closeDiagram();
+      });
+      if (state.stage) {
+        var lastWheelZoom = 0;
+        state.stage.addEventListener('wheel', function (event) {
+          if (!event.ctrlKey && !event.metaKey) return;
+          event.preventDefault();
+          if (!event.deltaY) return;
+          var now = (typeof performance !== 'undefined' && performance.now)
+            ? performance.now()
+            : Date.now();
+          if (now - lastWheelZoom < 120) return;
+          lastWheelZoom = now;
+          stepDiagramScale(event.deltaY < 0 ? 1 : -1);
+        }, { passive: false });
+      }
+      dialog.addEventListener('cancel', resetDiagramStage);
+      dialog.addEventListener('close', resetDiagramStage);
+
+      content.addEventListener('click', function (event) {
+        var target = event.target;
+        if (!target || !target.closest) return;
+        var button = target.closest('.mermaid-zoom');
+        if (button) {
+          event.preventDefault();
+          var buttonBlock = button.closest('.mermaid');
+          if (buttonBlock) openDiagram(buttonBlock);
+          return;
+        }
+        if (target.closest('a')) return;
+        var block = target.closest('.mermaid');
+        if (!block) return;
+        var selection = window.getSelection ? window.getSelection() : null;
+        if (selection && String(selection).trim()) return;
+        openDiagram(block);
+      });
+    }
+
     function addCodeCopy() {
       content.querySelectorAll('pre').forEach(function (pre) {
         if (pre.closest('.math-display') || pre.closest('.mermaid')) return;
@@ -539,6 +718,7 @@
 
     async function renderMermaid() {
       if (!mermaidBlocks.length) return;
+      closeDiagram();
       if (!window.mermaid) {
         await loadScript(data.root + 'assets/vendor/mermaid.min.js?v=' + data.assetVersion);
       }
@@ -555,6 +735,7 @@
         block.removeAttribute('data-processed');
       });
       await window.mermaid.run({ nodes: mermaidBlocks });
+      decorateMermaidBlocks();
       mermaidReady = true;
     }
 
@@ -619,6 +800,7 @@
       wrapImages();
       addCodeCopy();
       initLightbox();
+      initDiagramDialog();
       initScrollUi();
       initScrollSpy();
 

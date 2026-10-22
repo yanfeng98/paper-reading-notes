@@ -113,6 +113,17 @@
     <p id="lightbox-caption"></p>
   </dialog>
 
+  <dialog class="lightbox lightbox-diagram" id="diagram-dialog" aria-label="图表预览" aria-describedby="diagram-hint">
+    <button class="lightbox-close" type="button" data-diagram-close aria-label="关闭">×</button>
+    <div class="diagram-toolbar" role="toolbar" aria-label="图表缩放">
+      <button type="button" data-diagram-zoom-out aria-label="缩小">−</button>
+      <button type="button" data-diagram-reset aria-label="当前缩放 100%，重置为 100%"><span data-diagram-percent aria-live="polite">100%</span></button>
+      <button type="button" data-diagram-zoom-in aria-label="放大">+</button>
+    </div>
+    <div class="diagram-stage" id="diagram-stage" tabindex="0" role="region" aria-label="可缩放图表内容"></div>
+    <p class="diagram-caption" id="diagram-hint">滚动查看 · 使用 − / + 或 Ctrl/Cmd + 滚轮缩放</p>
+  </dialog>
+
   <script id="doc-data" type="application/json">{{DOC_JSON}}</script>
   <script src="{{ROOT}}assets/vendor/marked.min.js?v={{ASSET_VERSION}}" defer></script>
   <script src="{{ROOT}}assets/site.js?v={{ASSET_VERSION}}" defer></script>

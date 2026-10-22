@@ -11,7 +11,7 @@ python3 -m http.server 8000 --directory _site
 
 - `build.py`：仅 Python 标准库。解析 `README.md` 的 5 列表格，发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md` 与 `docs/*.md`，生成资料库首页、阅读页、manifest、复制笔记图片与汇总 PDF。
 - `templates/home.html`：资料库首页（卡片、筛选、搜索、排序、三态主题）。
-- `templates/doc.html`：独立阅读页（Markdown、MathJax、Mermaid、TOC、进度、lightbox）。
+- `templates/doc.html`：独立阅读页（Markdown、MathJax、Mermaid、TOC、进度、图片/图表 lightbox 与图表缩放）。
 - `assets/site.css`、`assets/site.js`：站点样式与交互；不依赖 CDN/web font。
 - `vendor/`：marked / MathJax / Mermaid 与许可证，构建时复制到 `_site/assets/vendor/`。
 
