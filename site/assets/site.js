@@ -844,6 +844,19 @@
     var mermaidBlocks = [];
     var mermaidReady = false;
 
+    function decodeMermaidText() {
+      content.querySelectorAll('.mermaid svg text').forEach(function (text) {
+        var walker = document.createTreeWalker(text, NodeFilter.SHOW_TEXT, null);
+        var node;
+        while ((node = walker.nextNode())) {
+          if (node.nodeValue.indexOf('&') === -1) continue;
+          var area = document.createElement('textarea');
+          area.innerHTML = node.nodeValue;
+          if (area.value !== node.nodeValue) node.nodeValue = area.value;
+        }
+      });
+    }
+
     async function renderMermaid() {
       if (!mermaidBlocks.length) return;
       closeDiagram();
@@ -851,18 +864,22 @@
         await loadScript(data.root + 'assets/vendor/mermaid.min.js?v=' + data.assetVersion);
       }
       if (!window.mermaid) throw new Error('Mermaid 未加载');
+      // 用 SVG text 而不是 foreignObject + HTML 标签：不同 CJK 字体下 HTML 标签
+      // 的测量宽度可能与实际渲染不一致，单行 nowrap 标签会直接溢出节点框。
       window.mermaid.initialize({
         startOnLoad: false,
         theme: 'base',
         themeVariables: mermaidVariables(),
         securityLevel: 'loose',
-        flowchart: { htmlLabels: true, useMaxWidth: true }
+        htmlLabels: false,
+        flowchart: { htmlLabels: false, useMaxWidth: true }
       });
       mermaidBlocks.forEach(function (block) {
         block.textContent = block.dataset.src || '';
         block.removeAttribute('data-processed');
       });
       await window.mermaid.run({ nodes: mermaidBlocks });
+      decodeMermaidText();
       decorateMermaidBlocks();
       mermaidReady = true;
     }
