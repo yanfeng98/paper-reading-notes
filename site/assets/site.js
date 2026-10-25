@@ -242,6 +242,12 @@
       box.className = 'render-error';
       box.textContent = '正文渲染失败：' + text;
       content.appendChild(box);
+      var toc = document.querySelector('.toc');
+      if (toc) toc.hidden = true;
+      var fab = document.getElementById('toc-toggle');
+      if (fab) fab.hidden = true;
+      var layout = document.querySelector('.doc-layout');
+      if (layout) layout.classList.add('is-single-column');
       window.__renderDone = true;
     }
 
@@ -296,7 +302,8 @@
 
     function buildToc() {
       var desktop = document.getElementById('toc-list');
-      var mobile = document.getElementById('mobile-toc-list');
+      var mobile = document.getElementById('toc-dialog-list');
+      var fab = document.getElementById('toc-toggle');
       if (!desktop && !mobile) return;
       var headings = Array.prototype.slice.call(content.querySelectorAll('h2'));
       headings.forEach(function (heading) {
@@ -308,12 +315,11 @@
           container.appendChild(link);
         });
       });
-      if (!headings.length) {
-        var toc = document.querySelector('.toc');
-        if (toc) toc.style.display = 'none';
-        var mobileToc = document.querySelector('.mobile-toc');
-        if (mobileToc) mobileToc.style.display = 'none';
-      }
+      var toc = document.querySelector('.toc');
+      if (toc) toc.hidden = !headings.length;
+      if (fab) fab.hidden = !headings.length;
+      var layout = document.querySelector('.doc-layout');
+      if (layout) layout.classList.toggle('is-single-column', !headings.length);
     }
 
     function resolveTarget(href, isImage) {
@@ -667,12 +673,21 @@
     }
 
     function initScrollSpy() {
-      var links = Array.prototype.slice.call(document.querySelectorAll('#toc-list a'));
+      var links = Array.prototype.slice.call(
+        document.querySelectorAll('#toc-list a, #toc-dialog-list a')
+      );
       if (!links.length) return;
-      var headings = links.map(function (link) {
+      var headings = [];
+      var seen = Object.create(null);
+      links.forEach(function (link) {
         var id = decodeURIComponent(link.getAttribute('href').slice(1));
-        return document.getElementById(id);
-      }).filter(Boolean);
+        if (seen[id]) return;
+        var heading = document.getElementById(id);
+        if (!heading) return;
+        seen[id] = true;
+        headings.push(heading);
+      });
+      if (!headings.length) return;
       var ticking = false;
       function update() {
         var active = headings[0];
@@ -680,16 +695,129 @@
           if (heading.getBoundingClientRect().top <= 110) active = heading;
         });
         links.forEach(function (link) {
-          link.classList.toggle('is-active', !!active && link.getAttribute('href') === '#' + active.id);
+          var isActive = !!active && link.getAttribute('href') === '#' + active.id;
+          link.classList.toggle('is-active', isActive);
+          if (isActive) link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
         });
         ticking = false;
       }
-      window.addEventListener('scroll', function () {
+      function requestUpdate() {
         if (ticking) return;
         ticking = true;
         window.requestAnimationFrame(update);
-      }, { passive: true });
+      }
+      window.addEventListener('scroll', requestUpdate, { passive: true });
+      window.addEventListener('resize', requestUpdate);
       update();
+    }
+
+    function initTocDialog() {
+      var fab = document.getElementById('toc-toggle');
+      var dialog = document.getElementById('toc-dialog');
+      var list = document.getElementById('toc-dialog-list');
+      if (!fab || !dialog) return;
+      var narrowQuery = window.matchMedia('(max-width: 1080px)');
+      var scrollPadding = null;
+
+      // 锁定页面时预留滚动条宽度，避免正文横向跳动。
+      function lockScroll() {
+        if (document.documentElement.classList.contains('toc-open')) return;
+        var gap = window.innerWidth - document.documentElement.clientWidth;
+        document.documentElement.classList.add('toc-open');
+        if (gap > 0) {
+          scrollPadding = document.body.style.paddingRight || '';
+          document.body.style.paddingRight = gap + 'px';
+        }
+      }
+
+      function unlockScroll() {
+        if (!document.documentElement.classList.contains('toc-open')) return;
+        document.documentElement.classList.remove('toc-open');
+        if (scrollPadding !== null) {
+          document.body.style.paddingRight = scrollPadding;
+          scrollPadding = null;
+        }
+      }
+
+      function setOpen(open) {
+        if (open) {
+          if (!dialog.hasAttribute('open')) {
+            if (dialog.showModal) {
+              try { dialog.showModal(); }
+              catch (error) { dialog.setAttribute('open', ''); }
+            } else {
+              dialog.setAttribute('open', '');
+            }
+          }
+          lockScroll();
+          fab.setAttribute('aria-expanded', 'true');
+          var closeButton = dialog.querySelector('[data-toc-close]');
+          if (closeButton && document.activeElement !== closeButton) {
+            closeButton.focus({ preventScroll: true });
+          }
+          if (list) {
+            var active = list.querySelector('a.is-active') || list.querySelector('a');
+            if (active) {
+              var listRect = list.getBoundingClientRect();
+              var activeRect = active.getBoundingClientRect();
+              if (activeRect.top < listRect.top || activeRect.bottom > listRect.bottom) {
+                list.scrollTop += activeRect.top - listRect.top - (list.clientHeight - activeRect.height) / 2;
+              }
+            }
+          }
+        } else {
+          var wasOpen = dialog.hasAttribute('open');
+          if (wasOpen) {
+            if (dialog.close) {
+              try { dialog.close(); }
+              catch (error) { dialog.removeAttribute('open'); }
+            } else {
+              dialog.removeAttribute('open');
+            }
+          }
+          unlockScroll();
+          fab.setAttribute('aria-expanded', 'false');
+          if (wasOpen && fab.focus) fab.focus({ preventScroll: true });
+        }
+      }
+
+      fab.addEventListener('click', function () { setOpen(true); });
+
+      var close = dialog.querySelector('[data-toc-close]');
+      if (close) close.addEventListener('click', function () { setOpen(false); });
+
+      dialog.addEventListener('click', function (event) {
+        if (event.target === dialog) setOpen(false);
+      });
+
+      dialog.addEventListener('close', function () {
+        unlockScroll();
+        fab.setAttribute('aria-expanded', 'false');
+      });
+
+      if (list) {
+        list.addEventListener('click', function (event) {
+          var link = event.target.closest ? event.target.closest('a[href^="#"]') : null;
+          if (!link) return;
+          var hash = link.getAttribute('href');
+          var current = window.location.hash;
+          // location.hash 是 URL 编码后的值，link.hash 与它一致；href 属性则是原文。
+          var sameHash = current && current === link.hash;
+          setOpen(false);
+          if (sameHash) {
+            event.preventDefault();
+            var target = document.getElementById(decodeURIComponent(hash.slice(1)));
+            if (target) target.scrollIntoView();
+          }
+        });
+      }
+
+      var onViewportChange = function () { if (!narrowQuery.matches) setOpen(false); };
+      if (narrowQuery.addEventListener) narrowQuery.addEventListener('change', onViewportChange);
+      else if (narrowQuery.addListener) narrowQuery.addListener(onViewportChange);
+
+      window.addEventListener('beforeprint', function () { setOpen(false); });
     }
 
     function mermaidVariables() {
@@ -803,16 +931,11 @@
       initDiagramDialog();
       initScrollUi();
       initScrollSpy();
+      initTocDialog();
 
       await Promise.all([renderMath(), renderMermaid()]);
       validateRendered();
 
-      var mobileToc = document.querySelector('.mobile-toc');
-      if (mobileToc) {
-        mobileToc.addEventListener('click', function (event) {
-          if (event.target.tagName === 'A') mobileToc.removeAttribute('open');
-        });
-      }
       window.__renderError = null;
     }
 

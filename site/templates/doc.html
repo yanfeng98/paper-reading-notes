@@ -100,10 +100,18 @@
     </aside>
   </main>
 
-  <details class="mobile-toc">
-    <summary>本页目录</summary>
-    <nav id="mobile-toc-list"></nav>
-  </details>
+  <button class="toc-fab" id="toc-toggle" type="button" hidden
+          aria-haspopup="dialog" aria-controls="toc-dialog" aria-expanded="false">
+    <span aria-hidden="true">☰</span> 目录
+  </button>
+
+  <dialog class="toc-dialog" id="toc-dialog" aria-labelledby="toc-dialog-title">
+    <div class="toc-dialog-head">
+      <p class="toc-dialog-title" id="toc-dialog-title">本页目录</p>
+      <button class="toc-dialog-close" type="button" data-toc-close aria-label="关闭目录">×</button>
+    </div>
+    <nav class="toc-dialog-list" id="toc-dialog-list" aria-label="本页目录"></nav>
+  </dialog>
 
   <button class="to-top" id="to-top" type="button" aria-label="回到顶部" hidden>↑</button>
 
