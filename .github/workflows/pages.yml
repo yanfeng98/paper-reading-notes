@@ -18,6 +18,7 @@ on:
       - "site/**"
       - "README.md"
       - ".github/workflows/pages.yml"
+      # skills/** 不参与站点构建；skill-only push 不触发 Pages，需要时手动 Run workflow。
   workflow_dispatch:
 
 permissions:
