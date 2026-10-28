@@ -346,6 +346,12 @@
 |[00203](https://arxiv.org/abs/2608.20920)|[ForeDreamer: A Self-Evolving Dual-Agent Memory Architecture for Future Event Prediction](https://arxiv.org/abs/2608.20920)|2026|Zhejiang University|—（待生成笔记）|
 |[00211](https://arxiv.org/abs/2609.17653)|[Reflect, Revise, Reuse: Training-Free Skill Evolution for GUI Agents](https://arxiv.org/abs/2609.17653)|2026|Zhejiang University|—（待生成笔记）|
 
+### Anthropic
+
+|编号|论文|年份|论文单位|笔记地址|
+|:-:|:-:|:-:|:-:|:-:|
+|[00219](https://claude.com/resources/articles/building-agents-when-to-fold-subagents-into-your-main-agent-loop)|[Building agents: When to fold subagents into your main agent loop](https://claude.com/resources/articles/building-agents-when-to-fold-subagents-into-your-main-agent-loop)|2026|Anthropic|[笔记](./notes/blogs/claude-when-to-fold-subagents/note.md)|
+
 ### 其他
 
 |编号|论文|年份|论文单位|笔记地址|
