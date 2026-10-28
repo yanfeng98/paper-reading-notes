@@ -12,6 +12,11 @@
   4. 围栏外的裸 HTML 标签（允许 <br>）
   5. $ 只出现在 $$…$$ 块内（围栏外、公式块外出现即报错；货币符号请放进代码段）
   6. 相对链接目标存在（跳过 http/https/#/mailto；代码段内的链接不检查）
+  7. Mermaid 节点/边标签以 `1.`、`2.`、`1)` 这类有序列表标记开头、且同一标签内含 `<br`：
+     站点阅读页用 `htmlLabels:false`，标签**较宽、需要自动换行**时，Mermaid 11.12 会抛
+     `splitLineToFitWidth does not support newlines in the line`，导致整页渲染失败
+     （标签较短时可能侥幸通过）。此项按「提示」输出，不改变退出码；建议改用
+     `①②③`、`第 1 步` 或去掉 `<br>`。
 
 约定：公式块首选 **```math 围栏**（GitHub 上最稳，列表项内也可用；新文档一律用它）；仅为兼容
 旧文档才接受顶格的 $$ 起止（各自单独成行）。**单行 $$…$$ 与带缩进/列表项内的 $$ 在 GitHub 上
@@ -31,15 +36,35 @@ TABLE_CELL_SEP = re.compile(r"(?<!\\)\|")
 HTML_TAG = re.compile(r"<(/?[a-zA-Z][a-zA-Z0-9-]*)")
 MD_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 SKIP_LINK_PREFIXES = ("http://", "https://", "#", "mailto:")
+MERMAID_NODE = re.compile(r"\[([^\]]*)\]|\(([^)]*)\)")
+MERMAID_EDGE = re.compile(r"\|([^|]*)\|")
 
 
-def lint(path: str) -> tuple[list[str], int, int]:
-    """返回 (问题列表, 围栏行数, 公式块数)。"""
+def mermaid_label_warning(lineno: int, line: str) -> str | None:
+    """提示可能让站点阅读页整页渲染失败的 Mermaid 标签组合（与标签宽度有关）。"""
+    candidates = [m.group(1) or m.group(2) or "" for m in MERMAID_NODE.finditer(line)]
+    candidates += [m.group(1) or "" for m in MERMAID_EDGE.finditer(line)]
+    for text in candidates:
+        text = text.strip().strip('"').strip("'").strip()
+        if "<br" in text.lower() and re.match(r"\s*\d+[.)]\s", text):
+            return (
+                f"行 {lineno}: Mermaid 标签以 `1.`/`1)` 这类有序列表标记开头且含 `<br>`；"
+                "标签较宽、需要自动换行时，站点（htmlLabels:false）下 Mermaid 11.12 会抛 "
+                "splitLineToFitWidth 错误、整页渲染失败（较短时可能侥幸通过）。"
+                "建议改用 ①②③、`第 1 步` 或去掉 `<br>`"
+            )
+    return None
+
+
+def lint(path: str) -> tuple[list[str], list[str], int, int]:
+    """返回 (问题列表, 提示列表, 围栏行数, 公式块数)。"""
     with open(path, encoding="utf-8") as fh:
         lines = fh.read().split("\n")
 
     problems: list[str] = []
+    warnings: list[str] = []
     in_fence = False
+    in_mermaid = False
     fence_lines: list[int] = []
     in_math = False
     math_blocks = 0
@@ -58,12 +83,22 @@ def lint(path: str) -> tuple[list[str], int, int]:
     for lineno, line in enumerate(lines, 1):
         if line.lstrip().startswith("```"):
             flush_table()
-            if not in_fence and line.strip().lower().startswith("```math"):
-                math_blocks += 1
-            in_fence = not in_fence
+            opening = not in_fence
+            info = line.strip().lower()
+            if opening:
+                if info.startswith("```math"):
+                    math_blocks += 1
+                in_mermaid = info.startswith("```mermaid")
+            else:
+                in_mermaid = False
+            in_fence = opening
             fence_lines.append(lineno)
             continue
         if in_fence:
+            if in_mermaid:
+                warning = mermaid_label_warning(lineno, line)
+                if warning:
+                    warnings.append(warning)
             continue
 
         stripped = line.strip()
@@ -148,7 +183,7 @@ def lint(path: str) -> tuple[list[str], int, int]:
         problems.append("代码围栏未闭合")
     if in_math:
         problems.append("$$ 公式块未闭合")
-    return problems, len(fence_lines), math_blocks
+    return problems, warnings, len(fence_lines), math_blocks
 
 
 def main(argv: list[str]) -> int:
@@ -159,7 +194,7 @@ def main(argv: list[str]) -> int:
     exit_code = 0
     for path in argv[1:]:
         try:
-            problems, fences, math_blocks = lint(path)
+            problems, warnings, fences, math_blocks = lint(path)
         except OSError as exc:
             print(f"== {path} ==\n无法读取: {exc}")
             exit_code = 1
@@ -174,6 +209,10 @@ def main(argv: list[str]) -> int:
                 print(f"  - {problem}")
         else:
             print("问题：无")
+        if warnings:
+            print("提示（不阻断）：")
+            for warning in warnings:
+                print(f"  - {warning}")
 
     return exit_code
 

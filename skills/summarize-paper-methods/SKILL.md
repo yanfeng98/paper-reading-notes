@@ -156,7 +156,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 **G. 读者理解**：只读文档能回答每篇的四问 + 验收/监督/关键数字/版本；Mermaid 与文字流程一致；伪代码与文字一致；公式块后跟白话读法，且**全篇公式块不超过 3 处**（人工核对，脚本只计数）；没有「见下节」指不到的地方。
 
-**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（源块数与 GitHub 渲染数一致、无 `language-*` 残留）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接/计数校验通过）；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；**表格单元格内用 `**…**` 强调中文时，确认闭合标记后接标点/空格、渲染后无字面 `**`；新增列/宽表后目检 PDF，列数多到过窄时缩短单元格或拆表，保持列序与篇目不丢**；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
+**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（源块数与 GitHub 渲染数一致、无 `language-*` 残留）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接/计数校验通过）；**再用无头 Chromium 实载改动页，确认无 `render-error`、Mermaid 块数等于 `data-expected-mermaid`**（`github_render_check` 只验围栏，不验语法）；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；**表格单元格内用 `**…**` 强调中文时，确认闭合标记后接标点/空格、渲染后无字面 `**`；新增列/宽表后目检 PDF，列数多到过窄时缩短单元格或拆表，保持列序与篇目不丢**；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
 
 ## 修复规则
 
@@ -182,6 +182,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 11. **PDF 高图 / Pages**：Mermaid 图超过一页高时会被跨页裁断；阅读页打印样式已限高 250mm，仍要目检高图完整。Pages 未启用时 workflow 应跳过部署而不是每次 push 红叉；分支部署已退役，完整站点必须用 Actions。
 12. **同版本 PDF 被重发布**：同一 arXiv vN 的 PDF 可能被替换/重编译；hash 与笔记记录不同先逐页比文本与图，别把旧副本的图缺陷当成当前版问题。
 13. **CJK 表格加粗**：`**…**` 的闭合标记后面紧接汉字时可能显示字面 `**`；闭合标记后接标点/空格，渲染后目检。
+14. **Mermaid 标签触发整页失败**：阅读页为 CJK 溢出设了 `htmlLabels:false`；Mermaid 11.12 在标签较宽、需要自动换行时，节点/边标签以 `1.`/`1)` 这类有序列表标记开头**且**含 `<br>` 会抛 `splitLineToFitWidth does not support newlines in the line`，整页变成「正文渲染失败」，而 `build.py`、`github_render_check` 都可能通过（`doc_lint.py` 会提示但不阻断）。标签改用 `①②③`/`第 1 步` 或去掉 `<br>`；交付前仍用浏览器实载确认。
 
 ## 环境与工具
 
@@ -193,6 +194,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
   - 下载：`curl -sSL -m <sec> -A '<UA>' -o <out> <url>`；大文件放后台，别用默认超时。
 - pymupdf 的字体判定（`page.get_text('dict')`）、矢量/图块定位（`get_drawings()`/`get_image_info()`）、局部裁剪（`page.get_pixmap(clip=…)`）与 PIL/numpy 像素测量均可用；换到未装这些包的机器时，把相应核对标注「未做」，不得声称已核。
 - `Read` 工具读 PDF 每次最多 20 页，长文分页读；文本抽取只做检索，公式/表格/上下标以渲染页为准。
+- **无头浏览器可用于页面渲染验证**：本机 `~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome` 已存在（Playwright 缓存），可直接 `--headless=new --dump-dom`；`npx` 安装 mermaid-cli 会超时，不要因此跳过渲染核对。装了 Playwright 时也可用 `render_pdf.mjs` 的 `PLAYWRIGHT_MODULE`。
 - 渲染发布（静态站点 / PDF / Pages）见下一节〈渲染与发布〉。
 - 临时目录 `/tmp/<topic>-docs/<编号>/`；用后清理，不把临时文件提交进仓库。
 
@@ -210,6 +212,14 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 - 汇总相对链接 `../notes/...` 在阅读页由 resolver 改成站内笔记路由；`papers/*.pdf` 等未复制文件跳到 GitHub；笔记的 `assets/...` 用站内复制路径。Python 构建期与 JS 运行期规则一致，构建失败即代表链接不可达。
 - 旧 `docs/index.html`、`docs/assets/reader.css`、`docs/.nojekyll` 已删除；旧 `?doc=rsi-methods.md` 由首页 JS 重定向到 `/docs/rsi-methods/`，根级 `_site/rsi-methods.pdf` 保留旧 PDF 链接兼容别名。
 - 打印 CSS 把 Mermaid 限高 250mm；高图等比缩放避免跨页裁断，宽幅 LR 图在 A4 上会偏小，必要时改成 TD/拆图。
+- **构建成功 ≠ 页面能渲染**：`build.py` 只校验围栏计数；Mermaid 语法错误会让阅读页整页显示「正文渲染失败」。每次构建后实际打开至少一个改动页：
+  ```bash
+  CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome | sort -V | tail -1)
+  "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=20000 \
+    --dump-dom "http://127.0.0.1:8000/<route>/" > /tmp/dom.html
+  ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
+  ```
+  再核对 `.mermaid` 块数等于 `data-expected-mermaid`、TOC 条目数非零（含表格的文档再核对表格数）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。
 
 ### GitHub 原生渲染检查（笔记和汇总都适用）
 
