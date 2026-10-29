@@ -1,11 +1,12 @@
-# RSI（自进化）方法汇总：六篇论文到底改了什么、怎么迭代
+# RSI（自进化）方法汇总：七篇论文到底改了什么、怎么迭代
 
 ## 关于这份文档
 
-本仓库已读的六篇 RSI / 自进化方向论文，方法部分普遍公式与概念密集，读完后往往说不清**它到底改了什么、每个组件干什么、一轮迭代怎么转、轮与轮之间更新了什么**。这份文档把这六篇的方法按同一套问题重写一遍：详细、简洁、准确，概念落到具体载体（文件、代码、状态、门控），不罗列术语。
+本仓库已读的七篇 RSI / 自进化方向论文，方法部分普遍公式与概念密集，读完后往往说不清**它到底改了什么、每个组件干什么、一轮迭代怎么转、轮与轮之间更新了什么**。这份文档把这七篇的方法按同一套问题重写一遍：详细、简洁、准确，概念落到具体载体（文件、代码、状态、门控），不罗列术语。
 
 | 编号 | 论文 | 本文采用的版本 | 对应笔记 |
 | --- | --- | --- | --- |
+| 00220 | Harness²: Recursive Agent Harnessing for an Open World | [arXiv:2610.14224](https://arxiv.org/abs/2610.14224) **v1**（37 页，2026-10-09；唯一版本；README 该行指向 arXiv 官方页） | [note.md](../notes/papers/2610.14224-v1-harness2/note.md) |
 | 00218 | HarnessPro: Recursive Harness Self-Improvement with Pareto Optimization for Performance-Cost Trade-offs | [arXiv:2610.26770](https://arxiv.org/abs/2610.26770) **v2**（41 页，2026-10-20；v1 2026-10-19；README 该行指向 arXiv 官方页） | [note.md](../notes/papers/2610.26770-v2-harnesspro/note.md) |
 | 00214 | Dream-RSI: Recursive Self-Improvement through Evolving Worlds | [arXiv:2609.14858](https://arxiv.org/abs/2609.14858) **v2**（43 页，2026-10-06；README 该行指向 arXiv） | [note.md](../notes/papers/dream-rsi/note.md) |
 | 00212 | RRSI: Regularized Recursive Self-Improvement of Agent Harnesses | [arXiv:2609.24972](https://arxiv.org/abs/2609.24972) **v3**（27 页，2026-10-04） | [note.md](../notes/papers/2609.24972-v3-rrsi/note.md) |
@@ -13,7 +14,7 @@
 | 00199 | HarnessX: A Composable, Adaptive, and Evolvable Agent Harness Foundry | [arXiv:2606.14249](https://arxiv.org/abs/2606.14249) **v3**（43 页，2026-07-23；最新版；README 该行指向 arXiv） | [note.md](../notes/papers/2606.14249-v3-harnessx/note.md) |
 | 00189 | HarnessDev: Can LLMs Create and Evolve Their Own Agent Harness? | [arXiv:2609.01437](https://arxiv.org/abs/2609.01437) **v1**（41 页，2026-09-01；唯一版本；README 编号单元格指向上游归档 PDF，与该 v1 字节一致） | [note.md](../notes/papers/2609.01437-v1-harnessdev/note.md) |
 
-**核对方式**（生成日期 2026-10-15；2026-10-17 增补 HarnessX；2026-10-26 增补 HarnessPro）：本文所有机制描述与数字均按上表版本**回原文核对（核心正文/表格与所引附录关键段逐项；附录 D 完整 listing 未逐行）**；逐篇〈关键数字〉里的每个数字都带出处（页/表/图/节），速览表与坐标系表只给结论，详细出处见对应小节。原文内部自相矛盾之处按「表格/附录值优先于摘要值」处理，并在对应小节写明。个别无法核实的点就地标注。六篇原文的核对手段与限制见文末〈版本与核对说明〉。
+**核对方式**（生成日期 2026-10-15；2026-10-17 增补 HarnessX；2026-10-26 增补 HarnessPro；2026-10-29 增补 Harness²）：本文所有机制描述与数字均按上表版本**回原文核对（核心正文/表格与所引附录关键段逐项；附录 D 完整 listing 未逐行）**；逐篇〈关键数字〉里的每个数字都带出处（页/表/图/节），速览表与坐标系表只给结论，详细出处见对应小节。原文内部自相矛盾之处按「表格/附录值优先于摘要值」处理，并在对应小节写明。个别无法核实的点就地标注。七篇原文的核对手段与限制见文末〈版本与核对说明〉。
 
 **约定**：
 
@@ -21,7 +22,7 @@
 - 伪代码与协议用围栏代码块；迭代闭环用 Mermaid 图（GitHub 原生支持）。
 - 同一个词在不同论文里含义不同的情况，统一放到〈概念对照〉一节消歧；先读那一节也能帮助理解各家方法。
 
-**一句话预告**：这六篇的「自我改进」其实是六种不同的东西——改 **harness 源码**（RRSI）、改 **harness 的持久状态**（Prime Agent）、改 **探索策略代码**（Dream-RSI）、把 **harness 配置做成可组合/可演化的一等对象并接上模型共演化**（HarnessX）、**测量"模型能不能自己造并改 harness"这件事本身**（HarnessDev）、以及 **把执行成本接进 harness 演化的选择器（label-free 固定生成测试 + Pareto 三档）**（HarnessPro）。看清这一点，六篇的方法就不再互相混淆。
+**一句话预告**：这七篇的「自我改进」其实是七种不同的东西——改 **harness 源码**（RRSI）、改 **harness 的持久状态**（Prime Agent）、改 **探索策略代码**（Dream-RSI）、把 **harness 配置做成可组合/可演化的一等对象并接上模型共演化**（HarnessX）、**测量"模型能不能自己造并改 harness"这件事本身**（HarnessDev）、**把执行成本接进 harness 演化的选择器**（HarnessPro）、以及 **在没有标准答案的任务流里同时改执行 harness 和"改进 harness"的经验库**（Harness²）。看清这一点，七篇的方法就不再互相混淆。
 
 ---
 
@@ -29,6 +30,7 @@
 
 | 编号 / 论文 | 被进化的东西 | 一次迭代是什么 | 谁动手 | 产物与载体 | 反馈信号 | 接受规则 / 何时停 |
 | --- | --- | --- | --- | --- | --- | --- |
+| 00220 Harness² | 执行 harness（8 个文件级组件）+ 改进 harness 里的经验库 | k 次参考执行 → INV/DOM 候选各 k 个 → 每个候选探测一次 → k 个合成器各合出一份后继并执行 → 匿名终选（k>1 才有） | executor 冻结；editor 与 selector 明示为 Claude Opus 4.8（合成/反思同款，原文未单独点名） | harness 文件树；库条目 = harness 树 + `EXPERIENCE.md` + 索引 | 参考执行 vs 候选执行的行为对比（改进期不接 verifier、不读分数） | 无分数门槛：合成器按证据合并/取舍/保留原状；任务内预算 k 预先固定；任务间不设停止条件 |
 | 00218 HarnessPro | 完整 harness（instructions / tools / skills / context/memory / hooks / verification policies） | G=3 rollouts → analyzer 诊断 → planner 三份计划（I1/I2/I3）→ editor 每个父候选 3 个（最多 9 个）→ D_val 固定生成测试评估 → Pareto 过滤 + 归一化加权距离选三档 | analyzer / planner / editor（LLM agents）；test synthesizer 只提供评估器；选择是算法 | harness 源码 + Git commit；固定测试 S(x)；lite/medium/heavy 三档 | 固定 LLM 生成测试的 pass rate + token 成本（label-free） | PR_val ≥ PR_val(h0)、Pareto 非支配、每档 J_m 最小；每轮最多 3 个；T=3/4 epochs；最终 held-out test |
 | 00214 Dream-RSI | 探索策略（一份可执行的 Python 代码） | 在线跑出一棵新发现树 → 离线在历史树上回放多个候选策略版本 | policy-development agent（LLM 改写策略代码） | 新的策略代码；记录树**只增不改** | 回放分（基于树里已记录的真实评测分） | 每轮取回放分最高者；外层轮数：Lasso 5、kernel 与 harness 9、数学 10 |
 | 00212 RRSI | harness 源码（9 类组件都可增删改） | 提议 2 个候选 → 泄漏筛查 → 全量 evolve set 评测 → 过三道非补偿准入条件 → 择优替换 | proposer LLM 起草候选，算法选择（policy 全程冻结） | harness 源码 diff；编辑台账 | 有限 evolve set 上的分数与 token 成本 | 泄漏筛查 + 三道准入条件全过才可替换；无合格者原地不动；20 / 20 / 40 轮 |
@@ -37,6 +39,115 @@
 | 00189 HarnessDev | 模型自建的 harness 代码（被测量对象） | 创建者在 git 工作区改代码 → 成对提交 → 双基准全量评测 → 读逐任务反馈 | 创建者模型，在现成开发环境（Claude Code / Codex）里做普通 coding 工作 | harness 源码 + 控制器账本（冻结快照、事件流、预算计数） | 100 个 SWE-Pro + 89 个 Terminal-Bench 任务的全量分数 | 预算 10 对完整评测；探针每轮≤2 次；创建者 `declare-final` 申报；事后 630 留出实例审计 |
 
 ---
+
+## 00220 Harness²：把「改进 harness」本身也做成可递归的对象
+
+> 版本：arXiv **v1**（37 页，2026-10-09；截至 2026-10-30 只有 v1）。页底注明第一作者 Ruiyao Xu 是在 Google Cloud AI Research 实习期间完成本工作；9 位作者中 8 位属 Google Cloud AI Research，清单按团队归属列入 Google 组。
+
+### 一句话
+
+**任务内改执行 harness、任务后改「改进 harness」**：前者用「提议（Propose）–探测（Probe）–合成（Compose）」在没有标准答案的条件下靠**行为对比**改文件；后者把被采纳的 harness 与改进过程中的经验写进一个**库**，让下一次改进有东西可参考。模型权重、改进用的阶段提示词与决策规则全程冻结，变的只有库。
+
+### 它要解决什么
+
+开放世界里的 harness RSI 有两个具体障碍（§1，p2）：
+
+1. **没有可靠 verifier**：任务在 harness 设计阶段没见过、测试时是全新的，没有 ground truth 或验证反馈；已有方法靠代理信号、假定答案或两两输出比较来指导改动。
+2. **改进过程本身不积累**：为一个任务改好的 harness 高度专用，换需求就废；直接把它继承到下一个任务又会引入噪声。作者的说法是——改动的**过程**（怎么诊断、试了什么、执行揭示了什么）其实高度可复用，但没人把它当成学习对象。
+
+论文给的负面证据（Table 1/2、Figure 7 左）：ReasoningBank 在编码任务上最低比 base 低 6.6 分；Harness Scaling 在 12 个 benchmark–配置组合里有 7 个低于 base；而"直接改 harness、既不跑参考执行/探测、也不读库"（Figure 7 左的 "Direct Editing w/o Execution"）会让 WB-code 从 73.4 掉到 63.2。
+
+### 系统由哪些部件组成
+
+| 部件 | 具体是什么 | 作用 | 输入 → 输出 |
+| --- | --- | --- | --- |
+| 执行 harness H | 8 个文件级组件：C1 `systemprompt.md`、C2 `guardrails.md`、C3 `LongTermMEMORY.md`、C4 `tool_guidance.md`、C5 `sub_agents/<n>/AGENT.md`、C6 `skills/<n>/SKILL.md`（可带 `scripts/`）、C7 `scripts/<name>.py`、C8 `plugin/<name>.ts`（Table 5，p22）。沿用 AHE 的分解并**多加插件这一层** | 被改进的对象；每个组件是一个文件，所以一次编辑就是一次 diff | 任务 → 轨迹与交付物 |
+| 改进 harness R | 固定的阶段提示词（编辑者、合成器、终选器、反思器）+ **可变的库** | 指导"怎么改"；其中只有库在任务之间变化 | 当前任务证据 + 库 → 提议/合成/选择 |
+| 库（每个 benchmark 域一个） | 条目 = 一份完整被采纳的 harness 树 + 一份 `EXPERIENCE.md`（适用情境、经验、支撑证据）+ 索引 | 跨任务复用的载体：组件可被复制/改写，经验指导怎么用 | 采纳的 harness + 改进记录 → 条目 |
+| Harness Editor（两个 scope） | INV：怎么干活（流程、工具、上下文、委派）；DOM：这一行的从业者知识（交付物、口径、检查项） | 各提 k 个候选；两个方向**分开提**（Prompt 1/2 要求各自只改自己那一类、不要越界） | 任务、当前 harness、参考执行、历史、库 → 候选 harness |
+| Harness Composer | 并行：k 个独立会话拿同一个候选池各自合成；顺序：链式 checkpoint | 选择性合并/修订/采纳/保留；每条决策要绑到轨迹里的具体片段 | 参考执行 + 候选及其 diff → 后继 harness |
+| Selector | 对**匿名**交付物做终选（看不到输出来自哪个 harness，也不能改写） | 选出提交哪个输出；被采纳的记作 H*（"被采纳"，不是"最优"） | n 份交付物 → 一份 |
+| Experience Reflector | 逐组件写 edits 表（helped / hurt / no observed effect / confounded），最多写一条经验 | 把"改动 → 行为差异"落成可审计的记录 | 完整改进记录 → 库更新 |
+| 一道 guard | 拒绝把含 grader verdict、rubric 或 score 的工作目录交给任何会话 | 保证"无标签"不是口号 | 工作目录 → 放行/拒绝 |
+
+### 一次迭代怎么走
+
+```mermaid
+flowchart LR
+  A[任务 q_t] --> B[k 次参考执行]
+  B --> C[INV 与 DOM 各提 k 个候选]
+  C --> D[每个候选探测一次]
+  D --> E[k 个合成器各出一份]
+  E --> F[执行后继 harness]
+  F --> G[匿名终选]
+  G --> H[交付]
+  H --> I[反思并写库]
+  I --> A
+```
+
+1. **参考执行**：当前任务先用 H 跑 k 次（主表 k=1 时是 1 次），得到"这套 harness 现在怎么行为"的基线（§2.2.1，p4）。
+2. **提议**：编辑者按 INV / DOM 两个 scope 各提 k 个候选（k=1 时各 1 个），每个候选都是**直接改好的可执行文件树**，不是文字建议。提议会参考库里的组件，但工作区事实必须回到当前任务证据去核实（p21、Prompt 1）。
+3. **探测**：每个候选在同一任务、同一模型与环境配置下各跑一次，与参考执行做**行为对比**——是缓解了目标缺陷、没变化，还是引入回退。作者强调这不是在验证正确性。
+4. **合成**：k 个合成会话各自读全池（参考执行、2k 个候选及其 diff），独立合成一份后继 harness 并执行；也可以 KEEP_BASE。**并行递归下 k 控制宽度**（只做一次种群更新），而顺序递归里 k 就是深度：H⁽⁰⁾=H₀，每次把一个对比步的产物当作下一步的输入，链式做 k 步（§2.2.2，p6）。
+5. **终选**：k>1 时由选择器在匿名交付物里挑一份，不改写。
+6. **反思与更新**：任务结束后回看完整记录 D_t，把采纳的 harness 与经验写进库；下一个任务**仍从 H_0 出发**，只是提议阶段能读库。
+
+### 轮与轮之间更新了什么
+
+| 更新什么 | 载体 | 谁写 | 何时写 | 可否回滚 |
+| --- | --- | --- | --- | --- |
+| 被采纳的 harness + 经验 | 库条目（harness 树 + `EXPERIENCE.md` + 索引），按 benchmark 域分开 | Experience Reflector | 每个任务结束后 | **没有删除/修订机制**：证据不足时只是不新增条目（"NO_ENTRY"），§G 把合并/修订列为未来工作 |
+| 执行 harness | 每任务内部：H_0 → 候选 → 后继 | Composer | 任务内 | 任务结束即弃用；不跨任务继承 |
+| **不更新**：模型权重、阶段提示词、决策规则 | — | — | — | p7 原文："Model weights, stage instructions, and the decision rule remain fixed, while the library evolves." |
+
+这也是它和 RRSI / HarnessPro 最容易被混淆的地方：**第二级"学习"不是学会更好地改，而是记住"哪些改法和经验可复用"**。
+
+### 什么时候停、什么算「更好」
+
+- **任务内**：预算 k 在实验开始前固定（主表 k=1，`+ Recursion` 用并行 k=5）；**没有分数阈值，也没有非补偿的准入条件**——合成器按证据支持多少改多少，证据不足就保留原 harness。唯一的硬门是 harness 的合法性校验：skill 必须有触发句、always-on 文本不能有 Jinja 花括号、被引用的脚本必须随附（p21 的 validator 重试机制、Prompt 1，pp.32–33；三条规则原文用 "THREE RULES THAT DISCARD THE WHOLE PROPOSAL" 标出）。
+- **终选**：只挑不改，H* 表示"被采纳"而非"被验证最优"（§2.2.2，p6）。
+- **任务间**：没有停止条件，任务流结束即止；也没有"回放已完成任务"（§5、Appendix A.1，p18）。
+- **算不算更好**：靠 benchmark 自己的评分器事后判定；运行期没有任何"分数上升"的信号可用。
+
+### 监督信号从哪来
+
+- **行为对比**（contrast）：同一任务上，参考执行与候选执行的轨迹/交付物差异。它不是正确性信号，只是一种"改动有没有改变行为、改变了什么"的证据（§2.2.1，p5）。
+- **模型判断**：editor 与 selector 明示为 Claude Opus 4.8（p20–21）；Appendix C 说 "Revision and reflection use Claude Opus 4.8, matching our editor"，即合成/反思也用同款（**合成阶段是否点名 Opus 4.8，原文没有单独写**）。反思器把每条改动标成 helped / hurt / no observed effect / **confounded**：只有 confounded 支撑的经验要么收窄、要么不写，整份记录没有具体可复用的执行对比时才写 NO_ENTRY（Prompt 6，pp.36–37）。
+- **防泄漏**：编辑者/合成器/选择器的上下文里没有 rubric、答案或分数；工作目录由 guard 过滤；benchmark 分只用于评测（Appendix A.1、D.2）。
+- 作者明确承认：单条轨迹（Prompt 3 明说 "Each candidate was rolled out ONCE"）、执行随机性与模型共同偏差都会削弱证据强度（§2.2.1 p5、Prompt 3 p33、§F p29）。
+
+### 关键数字
+
+全部为 **v1**（Table 1 p8、Table 2 p9；三次乱序任务流的均值，括号内 SD）：
+
+| 配置 | WorkBuddy Avg. | JobBench | LAB Partial |
+| --- | --- | --- | --- |
+| Gemini 3.5 Flash / OpenCode | 72.4 → 77.5（+5.1） | 31.5 → 36.0（+4.5） | 79.9 → 81.9（+2.0） |
+| Gemini 3.5 Flash / Codex | 74.5 → 77.5（+3.0） | 33.9 → 35.3（+1.4） | 71.6 → 75.6（+4.0） |
+| GLM-5 / OpenCode | 64.2 → 75.7（+11.5） | 20.6 → 24.2（+3.6） | 59.6 → 71.4（+11.8） |
+| GLM-5 / Codex | 64.4 → 75.3（+10.9） | 23.6 → 24.8（+1.2） | 58.1 → 65.9（+7.8） |
+
+（差值为本文复算，与摘要的 "up to 11.5 / 4.5 / 11.8" 一致。）
+
+- **任务级递归再加**：并行 k=5 相对 k=1 再涨 2.9–3.9（WorkBuddy 的 Avg 口径；分域最大 +5.3）、3.0–4.2（JobBench）、2.6–6.7（LAB Partial）（Table 1/2 的 `+ Recursion` 行）。
+- **消融**（Table 3，p10，Gemini 3.5 Flash/OpenCode，k=1）：去掉库 −3.1（WorkBuddy）/−1.8（JobBench），去掉 INV/DOM 分工 −2.9/−3.7，去掉合成 −1.6/−1.9。
+- **组件消融**（Table 6，p23，从已改好的 k=5 harness 里拆、不重跑改进）：Avg 上 prompt 组 −1.5、skills −5.3、scripts −3.7；Office 对 scripts 最敏感（−7.4）。
+- **库的作用**（Figure 7 左，p11）：这一栏是 "Direct Editing w/o Execution"——直接改 harness，**既不做参考执行/探测，也不读库**（与 Table 3 的 "w/o library" 不是同一实验，后者只去掉库、仍做对比式改进）：Code 73.4→63.2、Web 69.9→65.0（Office 反而 74.0→77.1）；k=1 库回到 73.8/72.6/77.5，k=5 库带来 +0.9/+4.4/+5.1。
+- **库的迁移**（Figure 7 右、Figure 11，p11/p24）：JobBench 库迁到 WorkBuddy 再 +0.6/+0.5/+2.9；留一法重跑 77.5→79.4、36.0→37.7（作者注明是离线复用分析）。
+- **同模型自改**（Figure 8，p11，k=2）：5 个模型在 3 个 benchmark 上全部上涨；Opus 5 +3.3/+5.5/+3.0，GLM-5 在 LAB 上 +13.7。
+- **与生产 harness 比**（Figure 13，p25）：从 OpenCode 出发的 k=5 比每域最强的固定 harness 再高 4.6/5.8/4.9，比自己出发时高 7.4/8.4/9.4。
+- **工具可靠性**（Table 7，p25，k=1）：错误率 0.8%→0.5%、14.4%→9.1%、2.0%→1.6%；调用次数在 WB 降（20.0→17.8），在 JobBench/LAB 升（27.4→32.8、20.8→25.2）。
+- **成本**：k=1 是 1 次参考 + 2 次探测 + 1 次合成后执行；k=5 是 5 + 10 + 5（**按 §2.2.2 的机制推算，原文没有给这条成本公式**）；Figure 6（p10）画的是每任务总 token（含改进）与增益，对数横轴，两种 k 都在经验 Pareto 前沿上；**没有墙钟数据**。
+
+### 陷阱与边界
+
+- **没有任何自动准入/回滚机制**：与 RRSI 的三道非补偿条件、HarnessX 的确定性门不同，这里**采纳什么 harness 由 composer 的合成决策决定，selector 只决定哪份交付物对应 H\***；失败案例（Figure 14，p26）的 9 个回退里有 6 个属于"选错候选"或"改动写错了前提"两栏（例如 96→55、100→70、54→26）。
+- **第二级递归的"学习"很窄**：更新对象只是库，提示词与决策规则冻结（p7）。
+- **统计强度弱**：只报均值与 SD（三次运行），没有置信区间或显著性检验；JobBench 上 36.0 对 35.8（SD 2.3 vs 1.0）只是均值意义上的领先。
+- **judge 与 editor 同源**：JobBench 的评分模型就是默认编辑器 Claude Opus 4.8（Appendix B，p19）；LAB 用 Claude Sonnet 4.6，只取 1,251 题里的 100 题。
+- **顺序依赖**：任务在域内顺序执行、库随流增长，作者用三次乱序流取均值缓解，但没有报告顺序方差分解。
+- **单条轨迹当证据**：每个候选只跑一次；提示词里专门写了"一次好或坏都是弱证据"。
+- **库只增不减**：长流下会膨胀（§G 把管理列为未来工作）。
 
 ## 00218 HarnessPro：把「执行成本」接进 harness 演化的选择器
 
@@ -714,17 +825,17 @@ flowchart TD
 
 同一名词在不同论文里意思不同，先看这张表可以少走弯路：
 
-| 名词 | 00218 HarnessPro | 00214 Dream-RSI | 00212 RRSI | 00205 Prime Agent | 00199 HarnessX | 00189 HarnessDev |
-| --- | --- | --- | --- | --- | --- | --- |
-| **policy** | 普通搭配（verification policies / policy.json 等）；被演化的是 harness，执行模型（GPT-5.5 / GLM-5.2）冻结，不是策略参数 | **被进化的探索策略**（一份 Python 代码），决定"从哪搜、并行多少、何时停" | **被冻结的 LLM**（Opus 4.8），全程不训练——是"执行任务的模型" | 偶用该词但含义不同（"不可改写的基础策略"、配置项里的 policies），**没有**"可优化策略"的意思；被固定的对应概念是"模型权重（L0）不动" | 两层含义：RL 镜像里的**搜索过程**（π_evo，不训练）与 GRPO 训练的**模型策略**（π_θ）；只有后者是参数化策略 | 该词只作普通搭配出现（tool policy / solution policy / policy-free）；角色分工用 creator（造/改 harness 的模型）与 executor（跑任务的模型） |
-| **harness** | 完整 harness：instructions、tools/skills、context/memory、hooks、verification policies；演化成 lite/medium/heavy 三档 | 主要指其 §4.4 实验里的"围绕固定 LLM 的程序外壳"；被进化的策略本身是策略代码，不是 harness | 权重之外的**一切**（prompt、控制流、工具接口、记忆等 9 类组件），以源码形式被编辑 | **整个系统**（REPL + 子 agent + daemon + L3 状态）；"harness state" 特指 Continual Harness 的持久条目 | **一等对象** H =（模型角色配置 M，行为配置 C）；C 是按 8 个生命周期 hook 组织的 processor 列表 + 共享 slot | 生成物代码本身（agent 循环、工具、上下文、状态、生命周期、验证），代码统计/责任范围只算 `harness/` 目录 |
-| **L0 / L1 / L2** | 未使用 | 未使用 | **正则化的功能类比名**（退火预算 ≈ L0、剪枝 ≈ L1、成本准入 ≈ L2）——作者反复强调不是真的在优化带范数惩罚的目标 | **状态层级**（L0 权重 / L1 活动上下文 / L2 REPL 与子 agent / L3 磁盘态），每层有唯一写机制 | 未使用 | 未使用 |
-| **β** | 选择权重 β_m（成本权重；lite=2、medium=1、heavy=1），与 α_m 配对；不是预算旋钮 | **预算偏好旋钮**（策略内部单一标量，扫描取 0 / 0.25 / 0.5 / 0.75 / 1） | 成本规则系数 β0（基础容忍）、β1（每分增益的额度） | 未使用 | GRPO 目标里的 **KL 系数**（共演化实验取 0）；与 RRSI 的 β0/β1 无关 | 未使用 |
-| **evolve set / held-out / OOD** | D_train=10-task DPP coreset；D_val 用于候选评估/选择；D_test 为 held-out，演化结束后才评测；无 OOD | 无 evolve set / OOD 概念（"被反复评分的世界"这一角色由记录树承担）；但**用了 held-out**（Lasso 另有 6 个留出下游数据集） | evolve set = 唯一被反复测量的任务集（只在一个 suite 上演化）；held-out = 同分布留出（Harvey LAB 40 题）；OOD = 从未见过的其他 benchmark | 无 evolve / held-out / OOD 等划分（三词均未出现）；概念是"任务本身" | **无留出评测**：所有增益都在演化用的同一任务集上测，held-out 泛化明确未评估（作者自认） | 反馈集 = 100 SWE-Pro + 89 Terminal-Bench；held-out = 630 个不相交 SWE-Pro（事后审计，分数不回传） |
-| **probe** | 普通词义（tools/quick-probe、tools/probe.py、smallest discriminating probe）；不是固定诊断集 | 论文用 reveal；代码 API 中每揭示一格算一次 probe | 未用作机制名（只在定性描述里出现：RRSI 接受的编辑含三个"标准库探针"） | 未用作机制名（只在 §3.3 提到模型自建的 probe function） | 未使用 | **每个基准前 5 个任务（共 10 个）的诊断评测**，永不算官方分 |
-| **refinement / evolve** | evolution / epoch：逐 epoch 改 harness；无 "refinement" 机制名 | dreaming = 离线"提候选策略 → 回放评测 → 反馈改进" | 演化（evolve）= 对 harness 源码的搜索循环 | **refinement** = 把轨迹证据变成版本化 L3 条目的机制（含 `/refine` 命令） | §4 的 **adaptation** 环就是 harness-only 演化；§5 的 **co-evolution** 再把模型 GRPO 接进同一个 buffer（论文未给严格二分） | Evolution（RQ2）= 创建者用下游反馈持续改 harness 的评测阶段 |
-| **generation** | 普通词义（candidate generation、LLM-generated tests）；没有 "generation" 作为迭代单位 | 一次尝试 = 一个子节点 = **一次 discovery-agent 调用**（成本统一单位） | 未用作机制名（普通词义） | 未用作机制名（普通词义：kernel generation、model generations 等） | 未用作机制名（edit generation / code generation 等普通词义） | 未用作机制名（普通词义） |
-| **replay simulator** | 未使用；评估靠固定生成测试，不是回放模拟器 | **冻结的记录树**（不是学出来的动力学模型；不学模型，用记录当模型） | 未使用 | 未使用 | 未使用（只有 GRPO 的 replay buffer，不是模拟器） | 未使用 |
+| 名词 | 00220 Harness² | 00218 HarnessPro | 00214 Dream-RSI | 00212 RRSI | 00205 Prime Agent | 00199 HarnessX | 00189 HarnessDev |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **policy** | 只作普通搭配出现（`on-policy evidence`，指上一轮 checkpoint 自己的 rollout）；被改进的是 harness，执行模型冻结 | 普通搭配（verification policies / policy.json 等）；被演化的是 harness，执行模型（GPT-5.5 / GLM-5.2）冻结，不是策略参数 | **被进化的探索策略**（一份 Python 代码），决定"从哪搜、并行多少、何时停" | **被冻结的 LLM**（Opus 4.8），全程不训练——是"执行任务的模型" | 偶用该词但含义不同（"不可改写的基础策略"、配置项里的 policies），**没有**"可优化策略"的意思；被固定的对应概念是"模型权重（L0）不动" | 两层含义：RL 镜像里的**搜索过程**（π_evo，不训练）与 GRPO 训练的**模型策略**（π_θ）；只有后者是参数化策略 | 该词只作普通搭配出现（tool policy / solution policy / policy-free）；角色分工用 creator（造/改 harness 的模型）与 executor（跑任务的模型） |
+| **harness** | 两级：**执行 harness** = 8 个文件级组件（Table 5，p22）；**改进 harness** = 固定的阶段提示词 + 可变的库——它不是被训练的策略 | 完整 harness：instructions、tools/skills、context/memory、hooks、verification policies；演化成 lite/medium/heavy 三档 | 主要指其 §4.4 实验里的"围绕固定 LLM 的程序外壳"；被进化的策略本身是策略代码，不是 harness | 权重之外的**一切**（prompt、控制流、工具接口、记忆等 9 类组件），以源码形式被编辑 | **整个系统**（REPL + 子 agent + daemon + L3 状态）；"harness state" 特指 Continual Harness 的持久条目 | **一等对象** H =（模型角色配置 M，行为配置 C）；C 是按 8 个生命周期 hook 组织的 processor 列表 + 共享 slot | 生成物代码本身（agent 循环、工具、上下文、状态、生命周期、验证），代码统计/责任范围只算 `harness/` 目录 |
+| **L0 / L1 / L2** | 未使用 | 未使用 | 未使用 | **正则化的功能类比名**（退火预算 ≈ L0、剪枝 ≈ L1、成本准入 ≈ L2）——作者反复强调不是真的在优化带范数惩罚的目标 | **状态层级**（L0 权重 / L1 活动上下文 / L2 REPL 与子 agent / L3 磁盘态），每层有唯一写机制 | 未使用 | 未使用 |
+| **β** | 未使用 | 选择权重 β_m（成本权重；lite=2、medium=1、heavy=1），与 α_m 配对；不是预算旋钮 | **预算偏好旋钮**（策略内部单一标量，扫描取 0 / 0.25 / 0.5 / 0.75 / 1） | 成本规则系数 β0（基础容忍）、β1（每分增益的额度） | 未使用 | GRPO 目标里的 **KL 系数**（共演化实验取 0）；与 RRSI 的 β0/β1 无关 | 未使用 |
+| **evolve set / held-out / OOD** | **无 evolve set / OOD**（`evolve set` 与 `OOD` 均未出现）；LAB 本体 1,251 题，所用 100 题 held-out（+24 题 dev）沿用 Niklaus (2026) 的冻结划分，不是本文设计的留出协议；Harness² 全程只用测试流，不用训练半区 | D_train=10-task DPP coreset；D_val 用于候选评估/选择；D_test 为 held-out，演化结束后才评测；无 OOD | 无 evolve set / OOD 概念（"被反复评分的世界"这一角色由记录树承担）；但**用了 held-out**（Lasso 另有 6 个留出下游数据集） | evolve set = 唯一被反复测量的任务集（只在一个 suite 上演化）；held-out = 同分布留出（Harvey LAB 40 题）；OOD = 从未见过的其他 benchmark | 无 evolve / held-out / OOD 等划分（三词均未出现）；概念是"任务本身" | **无留出评测**：所有增益都在演化用的同一任务集上测，held-out 泛化明确未评估（作者自认） | 反馈集 = 100 SWE-Pro + 89 Terminal-Bench；held-out = 630 个不相交 SWE-Pro（事后审计，分数不回传） |
+| **probe** | **机制名**：对比式改进的第二步——每个候选在同任务上执行一次，与参考执行比较行为（§2.2.1） | 普通词义（tools/quick-probe、tools/probe.py、smallest discriminating probe）；不是固定诊断集 | 论文用 reveal；代码 API 中每揭示一格算一次 probe | 未用作机制名（只在定性描述里出现：RRSI 接受的编辑含三个"标准库探针"） | 未用作机制名（只在 §3.3 提到模型自建的 probe function） | 未使用 | **每个基准前 5 个任务（共 10 个）的诊断评测**，永不算官方分 |
+| **refinement / evolve** | **refinement** = 对执行 harness 的逐任务改进；"evolve" 只作普通动词；两个循环叫 task-level recursion 与 harnessing-level recursion | evolution / epoch：逐 epoch 改 harness；无 "refinement" 机制名 | dreaming = 离线"提候选策略 → 回放评测 → 反馈改进" | 演化（evolve）= 对 harness 源码的搜索循环 | **refinement** = 把轨迹证据变成版本化 L3 条目的机制（含 `/refine` 命令） | §4 的 **adaptation** 环就是 harness-only 演化；§5 的 **co-evolution** 再把模型 GRPO 接进同一个 buffer（论文未给严格二分） | Evolution（RQ2）= 创建者用下游反馈持续改 harness 的评测阶段 |
+| **generation** | 只作普通词义出现（参考文献标题里的 code generation / workflow generation） | 普通词义（candidate generation、LLM-generated tests）；没有 "generation" 作为迭代单位 | 一次尝试 = 一个子节点 = **一次 discovery-agent 调用**（成本统一单位） | 未用作机制名（普通词义） | 未用作机制名（普通词义：kernel generation、model generations 等） | 未用作机制名（edit generation / code generation 等普通词义） | 未用作机制名（普通词义） |
+| **replay simulator** | 未使用；`replay` 只作普通词义出现（"不回放已完成的任务"），没有模拟器 | 未使用；评估靠固定生成测试，不是回放模拟器 | **冻结的记录树**（不是学出来的动力学模型；不学模型，用记录当模型） | 未使用 | 未使用 | 未使用（只有 GRPO 的 replay buffer，不是模拟器） | 未使用 |
 
 HarnessPro 另有三个本文会用到的词：**label-free** = 演化期不用 ground truth、官方测试或 grader；**test synthesizer** = 每个任务生成 10 个固定测试的 agent；**lite/medium/heavy** = Pareto 前沿上的三个代表点（不是三个独立方法）。
 
@@ -735,10 +846,11 @@ HarnessPro 另有三个本文会用到的词：**label-free** = 演化期不用 
 
 ---
 
-## 六篇放在一张坐标系里
+## 七篇放在一张坐标系里
 
-本仓库 00192 笔记（[Awesome RSI 导读](../notes/blogs/awesome-rsi-understanding-rsi/note.md)）给自进化工作建了一套坐标系（四个主维度：进化什么 / 进化结构 / 谁来更新 / 更新时机；五个次级维度含验收标准、反馈来源等）。下面借这套坐标系把六篇放进去，各自的位置与差异一目了然（表述以本文各节为准）。表里没有单列「进化结构」一维——这里的「结构」指**版本谱系**，六篇分别是：
+本仓库 00192 笔记（[Awesome RSI 导读](../notes/blogs/awesome-rsi-understanding-rsi/note.md)）给自进化工作建了一套坐标系（四个主维度：进化什么 / 进化结构 / 谁来更新 / 更新时机；五个次级维度含验收标准、反馈来源等）。下面借这套坐标系把七篇放进去，各自的位置与差异一目了然（表述以本文各节为准）。表里没有单列「进化结构」一维——这里的「结构」指**版本谱系**，七篇分别是：
 
+- **Harness²**：「无跨任务版本谱系 + 只增不减的经验库」——每任务从 H_0 起、一次并行种群更新、结束即弃；跨任务积累的是库条目，而不是一条被继承的 harness 版本链。
 - **HarnessPro**：单次演化过程 + 每轮保留（至多）lite/medium/heavy 三个代表（A_t 最多 3 个；三个代表可来自不同父候选，是带选择的分支/多谱系，不是单链）；Git commit 可追踪/回退，但论文没有把它写成正式的回滚机制。
 - **Dream-RSI**：单链；旧版本留存可查阅，每轮候选集含当前版本，只保证回放分不降（它的**搜索**本身是一棵带并行批次的发现树，但那是单次 rollout 的结构，不是版本谱系）。
 - **RRSI**：单链，未定义显式回滚。
@@ -746,18 +858,19 @@ HarnessPro 另有三个本文会用到的词：**label-free** = 演化期不用 
 - **HarnessX**：「单链＋按任务簇隔离的变体池」。
 - **HarnessDev**：不提出演化方法。
 
-| | 00218 HarnessPro | 00214 Dream-RSI | 00212 RRSI | 00205 Prime Agent | 00199 HarnessX | 00189 HarnessDev |
-| --- | --- | --- | --- | --- | --- | --- |
-| **进化什么** | 完整 harness（instructions、tools/skills、context/memory、hooks、verification policies）；输出 lite/medium/heavy 三档，不是单一 harness | 探索策略代码（元层面） | harness 源码（组件级增删改） | harness 的持久状态（四类条目） | harness 配置/代码（模型角色、processor、prompt、工具、控制流）；共演化时还包括**模型权重** | 不提出进化方法——测量"模型能否自建/自改 harness"（harness 的变化是**被测现象**） |
-| **谁来改** | trajectory analyzer / planner / editor（LLM agents）；test synthesizer 只提供评估器；选择是算法（Pareto + 归一化加权距离） | policy-development agent 改写代码 | LLM proposer 起草 + **算法**选择 | agent 自己（或 `/refine` 的后台调用） | AEGIS 四阶段 meta-agent（Opus 4.6）；**确定性门拥有最终否决权** | 创建者模型（现成 coding agent 工作流） |
-| **何时改（更新时机）** | 离线批次：每 epoch 在 D_train 上 rollout → 诊断 → 计划/编辑 → D_val 评估 → 选择；T=3/4 epochs；最终 D_test | 分两层：**发现树**在线累积；**策略代码**只在每轮离线阶段更新（在线阶段策略当轮固定） | 离线批次：每轮只在 evolve set 上评测后改 | 在线：任务进行中、轮次边界 | 离线批次：每轮在适应批次上 rollout 后改；共演化时**同一轮内**依次执行 AEGIS 与 GRPO，互不条件于对方输出 | 离线批次：每对完整评测之间 |
-| **验收标准** | PR_val ≥ PR_val(h0)；Pareto 非支配；每档 J_m 最小；每轮最多 3 个；最终 held-out test | 回放分最高者胜（当前策略始终在候选集里 ⇒ 只保证代理分不降） | 泄漏筛查 + 三道非补偿准入条件（噪声地板 / 成本规则 / DomainGuard）——全过才准入 | 无量化门槛；条目可增删改、可回滚；不改写不可变的基础 prompt | Critic + 确定性门（manifest 完整性 → 配置规范化 → build/冒烟 → **seesaw：不回归任何已解任务**）；变体隔离时按变体作用域检查 | 协议本身（成对提交、预算、探针、申报）+ 事后留出审计 |
-| **反馈来源** | 固定 LLM 生成测试的 pass rate + token 成本（label-free；无 ground truth/官方测试/grader） | 记录树里**已发生**的真实评测分 | 有限 evolve set 的分数与 token 成本 | 执行轨迹证据本身（无 verifier 模型） | 完整 trace + 固定 verifier 打分（按 pass@2 聚合） | 双基准全量评测的逐任务反馈 |
-| **主要代价** | 演化循环的 rollout/analyzer/planner/editor/test synth 未报告；每任务成本按 token 价格计 | 回放算力 + 开发 agent 调用（成本口径未含） | 评测开销（Harvey LAB 一次完整评测约 14,000 条 rubric 判定，RRSI §B.3，p.17） | 测试时算力与长时程运行成本 | 每轮全任务集 rollout（最多 15 轮；meta-agent 100–175M token）；部署后不再需要 meta-agent | 宿主评测资源（一对完整评测两腿全量） |
-| **论文自证的效果强度** | heavy vs RHO 六组均 pass 更高、成本更低；GPT 平均 +2.0 pp / −26.1%（逐项均值）；GLM 平均 +2.3 / −34.5%（复算）；有 held-out test，但 3/2 runs 语义不清、演化成本未报告 | 分域参差：数学 3 项里 1 项改进、1 项并列、1 项差于自己的固定基线；Lasso 的均值改善由 RCV1 单集驱动；harness 域 +8.4 分（相对种子，无固定策略对照） | 六个留出 split 无一退步（含整体复跑），OOD 最多 +4.7 个百分点 | 多数比较是"接近/噪声级"，ARC 的对比是外部参照 | 15 格中 14 格改善、均值 +14.5 个百分点（**峰值口径、无留出**）；变体隔离 GAIA +13.6 个百分点；共演化峰值再 +4.7 个百分点 | Evolution 涨分部分迁移（53.1% 同向），四条固定执行器设定里三条留出为负 |
+|  | 00220 Harness² | 00218 HarnessPro | 00214 Dream-RSI | 00212 RRSI | 00205 Prime Agent | 00199 HarnessX | 00189 HarnessDev |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **进化什么** | 执行 harness（8 个文件级组件）+ 改进 harness 里的经验库；跨任务的载体是**库条目**，不是被继承的 harness | 完整 harness（instructions、tools/skills、context/memory、hooks、verification policies）；输出 lite/medium/heavy 三档，不是单一 harness | 探索策略代码（元层面） | harness 源码（组件级增删改） | harness 的持久状态（四类条目） | harness 配置/代码（模型角色、processor、prompt、工具、控制流）；共演化时还包括**模型权重** | 不提出进化方法——测量"模型能否自建/自改 harness"（harness 的变化是**被测现象**） |
+| **谁来改** | editor（INV/DOM 两 scope）、composer、selector 都是 Claude Opus 4.8；执行模型冻结；没有算法选择 | trajectory analyzer / planner / editor（LLM agents）；test synthesizer 只提供评估器；选择是算法（Pareto + 归一化加权距离） | policy-development agent 改写代码 | LLM proposer 起草 + **算法**选择 | agent 自己（或 `/refine` 的后台调用） | AEGIS 四阶段 meta-agent（Opus 4.6）；**确定性门拥有最终否决权** | 创建者模型（现成 coding agent 工作流） |
+| **何时改（更新时机）** | 任务内在线：参考执行 → 候选 → 探测 → 合成 → 终选；跨任务：任务结束后把采纳的 harness 与经验写进库 | 离线批次：每 epoch 在 D_train 上 rollout → 诊断 → 计划/编辑 → D_val 评估 → 选择；T=3/4 epochs；最终 D_test | 分两层：**发现树**在线累积；**策略代码**只在每轮离线阶段更新（在线阶段策略当轮固定） | 离线批次：每轮只在 evolve set 上评测后改 | 在线：任务进行中、轮次边界 | 离线批次：每轮在适应批次上 rollout 后改；共演化时**同一轮内**依次执行 AEGIS 与 GRPO，互不条件于对方输出 | 离线批次：每对完整评测之间 |
+| **验收标准** | **无分数门槛、无非补偿门**：合成器按证据合并/取舍/保留原状，终选只挑不改；唯一硬门是 harness 合法性校验（skill 触发句 / 无 Jinja 花括号 / 脚本随附） | PR_val ≥ PR_val(h0)；Pareto 非支配；每档 J_m 最小；每轮最多 3 个；最终 held-out test | 回放分最高者胜（当前策略始终在候选集里 ⇒ 只保证代理分不降） | 泄漏筛查 + 三道非补偿准入条件（噪声地板 / 成本规则 / DomainGuard）——全过才准入 | 无量化门槛；条目可增删改、可回滚；不改写不可变的基础 prompt | Critic + 确定性门（manifest 完整性 → 配置规范化 → build/冒烟 → **seesaw：不回归任何已解任务**）；变体隔离时按变体作用域检查 | 协议本身（成对提交、预算、探针、申报）+ 事后留出审计 |
+| **反馈来源** | 参考执行 vs 候选执行的**行为对比**（改进期不接 verifier、不读分数；benchmark 判分只用于事后评测） | 固定 LLM 生成测试的 pass rate + token 成本（label-free；无 ground truth/官方测试/grader） | 记录树里**已发生**的真实评测分 | 有限 evolve set 的分数与 token 成本 | 执行轨迹证据本身（无 verifier 模型） | 完整 trace + 固定 verifier 打分（按 pass@2 聚合） | 双基准全量评测的逐任务反馈 |
+| **主要代价** | k=5 是 5 次参考 + 10 次探测 + 5 次合成后执行；无墙钟数据；库只增不减 | 演化循环的 rollout/analyzer/planner/editor/test synth 未报告；每任务成本按 token 价格计 | 回放算力 + 开发 agent 调用（成本口径未含） | 评测开销（Harvey LAB 一次完整评测约 14,000 条 rubric 判定，RRSI §B.3，p.17） | 测试时算力与长时程运行成本 | 每轮全任务集 rollout（最多 15 轮；meta-agent 100–175M token）；部署后不再需要 meta-agent | 宿主评测资源（一对完整评测两腿全量） |
+| **论文自证的效果强度** | 12/12 组合全为正（+11.5 / +4.5 / +11.8）；但 JobBench 只以 36.0 对 35.8 领先（SD 2.3），单 judge、无显著性检验 | heavy vs RHO 六组均 pass 更高、成本更低；GPT 平均 +2.0 pp / −26.1%（逐项均值）；GLM 平均 +2.3 / −34.5%（复算）；有 held-out test，但 3/2 runs 语义不清、演化成本未报告 | 分域参差：数学 3 项里 1 项改进、1 项并列、1 项差于自己的固定基线；Lasso 的均值改善由 RCV1 单集驱动；harness 域 +8.4 分（相对种子，无固定策略对照） | 六个留出 split 无一退步（含整体复跑），OOD 最多 +4.7 个百分点 | 多数比较是"接近/噪声级"，ARC 的对比是外部参照 | 15 格中 14 格改善、均值 +14.5 个百分点（**峰值口径、无留出**）；变体隔离 GAIA +13.6 个百分点；共演化峰值再 +4.7 个百分点 | Evolution 涨分部分迁移（53.1% 同向），四条固定执行器设定里三条留出为负 |
 
 读下来的总体印象（本文归纳，非任一篇的结论）：
 
+- **Harness² 的贡献在"把改进过程本身留成资产"**：任务内用行为对比替代 verifier（没有分数也能改），任务间把采纳的 harness 与经验写进库，让下一次提议有先例可循；它和 RRSI / HarnessPro 的分工很清楚——RRSI 约束"别过拟合"，HarnessPro 约束"别太贵"，Harness² 约束"别从头再来"。代价是第二级递归只更新库（提示词与决策规则冻结），且没有任何自动准入/回滚机制，正确性最终压在 composer / selector / reflector 的模型判断上。
 - **RRSI 的核心贡献是"泛化/正则"**：它用提议侧（退火预算 / 证据化信用分配 / 探索槽）与选择侧（泄漏筛查 + 噪声地板/成本规则/DomainGuard + 结构剪枝，剪枝作为删除目标交给 proposer）两组正则约束搜索轨迹，并用六个留出 split 给出系统性正向证据（HarnessPro 也做 held-out test，但它的核心贡献是成本-性能 Pareto 选择，不是泛化机制；HarnessDev 是评测方，不提出演化方法）；代价是评测开销大、且"省 token"部分是成本规则直接筛选出来的。
 - **HarnessPro 的贡献在把"成本"接进 harness 演化的选择器**：label-free 固定生成测试替代 LLM judge，Pareto 过滤 + 归一化加权距离选 lite/medium/heavy，递归多轮；相对 RHO 的 heavy 平均 +2.0 pp / −26.1%（GPT，逐项均值），但演化成本未报告，且"低成本"是相对 RHO 而非 Vanilla 的每一项。
 - **Prime Agent 的贡献在"状态工程"**：把"什么该被持久化、以什么形式、怎么回滚"定义清楚；它不提供改进的度量，改进质量依赖模型与后续任务。
@@ -769,12 +882,14 @@ HarnessPro 另有三个本文会用到的词：**label-free** = 演化期不用 
 
 ## 版本与核对说明
 
-**本文的核对手段**：六篇原文均按上表版本重新获取，核心正文/表格与将写入本文的附录关键段逐项核对（前四篇 2026-10-15；HarnessX 2026-10-17，其 PDF sha256 与笔记记录逐字节一致；HarnessPro 2026-10-26，按当前 v2 sha `c633082a…`，其笔记经三轮复核）；附录 D 的完整 listing 未逐行核对（只核结构与关键段）。前四篇在生成阶段做了多轮核对，其中另派独立 agent 做了三轮复核——第一轮覆盖全部表格、关键公式符号、图内标签与「论文未给」类否定断言；第二轮复查修正项与内部一致性；第三轮做读者视角连贯性检查与数字抽查；HarnessX 由独立核对逐节复核后写入。核对以 PDF 文本层（含逐字符坐标与字体信息）为主，表格数字逐格核对；**图内读数**（如 Dream-RSI 图 6 的四条终值、图 7 的逐轮数值、HarnessX Figure 4 的逐轮读数）沿用原笔记的像素测量并经复核，未对全部曲线中段重新渲染测量；本文引用的数字一律以正文与表格值为准，图内读数与复算值的判断在正文里已就地标明。各篇更细的未核清单见对应笔记的「复核记录」与本文各节标注。
+**本文的核对手段**：七篇原文均按上表版本重新获取，核心正文/表格与将写入本文的附录关键段逐项核对（前四篇 2026-10-15；HarnessX 2026-10-17，其 PDF sha256 与笔记记录逐字节一致；HarnessPro 2026-10-26，按当前 v2 sha `c633082a…`，其笔记经三轮复核；Harness² 2026-10-29，v1 sha `440be1f6…`，Table 1–7 与式 (1)–(4) 在渲染页逐格/逐符号核对，并经独立 agent 复核后修正）；附录 D 的完整 listing 未逐行核对（只核结构与关键段）。前四篇在生成阶段做了多轮核对，其中另派独立 agent 做了三轮复核——第一轮覆盖全部表格、关键公式符号、图内标签与「论文未给」类否定断言；第二轮复查修正项与内部一致性；第三轮做读者视角连贯性检查与数字抽查；HarnessX 由独立核对逐节复核后写入。核对以 PDF 文本层（含逐字符坐标与字体信息）为主，表格数字逐格核对；**图内读数**（如 Dream-RSI 图 6 的四条终值、图 7 的逐轮数值、HarnessX Figure 4 的逐轮读数、Harness² Figure 5 的 Best-of-k 灰柱）沿用原笔记的像素测量并经复核，未对全部曲线中段重新渲染测量；本文引用的数字一律以正文与表格值为准，图内读数与复算值的判断在正文里已就地标明。各篇更细的未核清单见对应笔记的「复核记录」与本文各节标注。
 
 **Dream-RSI 的版本选择**：README 该行指向 arXiv，故本文以 **arXiv v2** 为准；仓库归档的 36 页项目页版（≈ arXiv v1：页数、数字一致，措辞有修订）仅用于版本比对。两版**共享的数字完全一致**，但**式 (1) 被重写过**（v1 = 三分项"最好分 − β1 × 工作量 + β2 × 并行奖励"；v2 = "归一化前沿面积 − λ × 并行惩罚"，与实现一致），且 v2 收紧了三处口径、新增 harness 域与 PACEvolve 基线。引用方法时请按 v2；读旧笔记时注意这一差异。
 
 **HarnessPro 的版本选择**：README 该行指向 arXiv 官方页，故本文以 **arXiv v2**（41 页，2026-10-20）为准；v1（2026-10-19）与 v2 的差异是第 2 单位 `Z.AI Co., Ltd.`→`Z.AI`、第 5 单位 `Kuaishou–Kuaishou Technology`→`Kling AI`、补共同一作/通讯作者标记；正文/Table 2 数字不变。v2 PDF 在 2026-10-25 与 2026-10-26 两次抓取得到不同副本：旧副本（sha `ce88e54a…`）p4 Figure 1 不完整，当前副本（sha `c633082a…`）完整；两版除 p4 外逐页文本一致。本文按当前 v2 写；旧副本的 Figure 1 缺陷不算当前原文的问题。
 
+**Harness² 的版本选择**：README 该行指向 arXiv 官方页，故本文以 **v1**（37 页，2026-10-09）为准；abs 页与按标题检索均确认截至 2026-10-29 只有 v1（sha `440be1f6…`）。它与 RRSI（00212）**没有引用关系**（全文检索 `RRSI` / `Regularized` 均为 0 次）；"同一团队"是按 00212 笔记的作者重合推断的，**未回 00212 原文复核**。两条路线的差别是：RRSI 约束改动的**范围**，Harness² 把改动的**过程**写成库。
+
 **摘要与表格冲突时的处理**：本文一律采用表格/附录值，冲突处已就地注明（RRSI 的 30% vs 36%、+4.3 vs +4.7；HarnessDev 的 77.8% 无口径；Dream-RSI 的 v1 口径已在 v2 修正；HarnessPro 的 +2.0 pp / −26.1% 是逐项变化的算术平均，按等权总成本 23.4%、按任务数加权 22.7%（复算），不是池化值）。
 
-**六篇笔记与本文的关系**：笔记是逐篇精读产物（含逐条表述张力、配图、复算记录），本文是跨篇的方法重写——同一事实在两边若有出入，以本文标注的版本与出处**回原文核对**，并可在笔记中找到更细的核对记录（如 RRSI 笔记列了 5 条原文张力、Dream-RSI 笔记列了 9 条（其中 7 条附 v2 现状）、HarnessX 笔记列了 6 条；HarnessPro 笔记经三轮复核，列了 4 条原文张力与 v2 PDF 替换记录）。
+**七篇笔记与本文的关系**：笔记是逐篇精读产物（含逐条表述张力、配图、复算记录），本文是跨篇的方法重写——同一事实在两边若有出入，以本文标注的版本与出处**回原文核对**，并可在笔记中找到更细的核对记录（如 RRSI 笔记列了 5 条原文张力、Dream-RSI 笔记列了 9 条（其中 7 条附 v2 现状）、HarnessX 笔记列了 6 条；HarnessPro 笔记经三轮复核，列了 4 条原文张力与 v2 PDF 替换记录；Harness² 笔记经独立审计与多轮复核（修正明细见该笔记的「复核记录」），列了 5 条原文张力）。

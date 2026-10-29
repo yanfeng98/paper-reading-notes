@@ -4,7 +4,7 @@
 
 > 「编号」是原文归档编号：来源非 arXiv 的论文，其 PDF 归档在本仓库 [`papers/`](./papers)；其余论文的原文 PDF 在归档仓库 [paper-is-all-you-need](https://github.com/yanfeng98/paper-is-all-you-need)。**非论文条目（如博客导读、系统）同样占用编号列**，但它们没有可归档的 PDF，编号单元格直接指向原文在线地址（例：00192 指向 Awesome RSI 站点的博客页，00215 指向 GitHub 仓库）；**上游归档里还没有的 arXiv 论文也暂指 arXiv 官方页**，归档到上游后再改指 PDF。「笔记地址」指向 `notes/` 下由 read-paper-blog skill 生成的笔记。
 
-> 主题汇总：[RSI（自进化）方法汇总](./docs/rsi-methods.md)（[在线笔记库](https://luyf-lemon-love.space/paper-reading-notes/) / [PDF](./docs/rsi-methods.pdf)）——收录 00189 / 00199 / 00205 / 00212 / 00214 / 00218 六篇已读论文的方法拆解与横向对比。
+> 主题汇总：[RSI（自进化）方法汇总](./docs/rsi-methods.md)（[在线笔记库](https://luyf-lemon-love.space/paper-reading-notes/) / [PDF](./docs/rsi-methods.pdf)）——收录 00189 / 00199 / 00205 / 00212 / 00214 / 00218 / 00220 七篇已读论文的方法拆解与横向对比。
 
 ## 论文
 
@@ -92,6 +92,7 @@
 |[00081](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00081-Gemma-3.pdf)|[Gemma 3 Technical Report](https://arxiv.org/abs/2503.19786)|2025|Google|—（待生成笔记）|
 |[00214](https://arxiv.org/abs/2609.14858)|[Dream-RSI: Recursive Self-Improvement through Evolving Worlds](https://dream-rsi.com/)|2026|Google|[笔记](./notes/papers/dream-rsi/note.md)|
 |[00212](https://arxiv.org/abs/2609.24972)|[RRSI: Regularized Recursive Self-Improvement of Agent Harnesses](https://arxiv.org/abs/2609.24972)|2026|Google Cloud AI Research|[笔记](./notes/papers/2609.24972-v3-rrsi/note.md)|
+|[00220](https://arxiv.org/abs/2610.14224)|[Harness^2: Recursive Agent Harnessing for an Open World](https://arxiv.org/abs/2610.14224)|2026|Google Cloud AI Research|[笔记](./notes/papers/2610.14224-v1-harness2/note.md)|
 
 ### Meta
 
