@@ -15,7 +15,7 @@
 | 阅读日期 | 2026-10-29 |
 | 仓库编号 | 00220（本次新增；编号单元格指向 arXiv 官方页，上游归档后再改指 PDF） |
 | 归档说明 | arXiv 来源，按仓库策略不归档 PDF；本笔记只记官方链接 |
-| 复核记录 | 2026-10-29 依 check-paper-note 复核（基准：重新下载 arXiv v1，sha256 `440be1f694f3b0fdfb8e612e9b2288ff0d8ab38641cfd1064fd77052ba360282`、8,101,889 B、37 页，与首读一致；abs 页与按标题检索均确认**仍只有 v1**，无更新版本）。手段：Table 1–7 与式 (1)–(4) 在渲染页重核；Table 1/2 的 24 个数字做按序子序列机器比对；Figure 5 与 Figure 10 用矢量矩形复算（Figure 5 定标 5.167 / 4.933 pt 每分），Figure 6/7/8/11/12/13/14 在渲染页逐值对照；两张配图同坐标重渲染（diff=0、边缘 6 px 全白）；元数据用 `doc.metadata` 与 `get_xml_metadata()`；否定性检索词 `RRSI`/`Regularized`/`HarnessDev`/`HarnessPro`/`Prime Agent`/`Dream`/`2609.24972`/`confidence interval`/`significance`；另派独立子 agent 只读审计，其报告逐条复验后采纳。**修正 10 项**：①"PDF 元数据 creationDate 为 2026-09-11"是首读时读到**未下载完整**的副本所得，实际该 PDF 无 creationDate（XMP `MetadataDate` 2026-10-14），已删该论据；②延迟句页码 p9→p10；③"不回放已完成任务"归因 §2.1→§5/Appendix A.1（p18）；④Figure 9 改为"正文 p11、图 p12"、Figure 14 改为"§E.6 p25、图 p26"；⑤失败案例补第 9 个（WB-web 100→70）；⑥Meta-Harness 计算量措辞（原文"at k=5"修饰的是 Harness2）；⑦"判断质量由编辑器兜底"标注为本笔记判断；⑧RRSI 作者重合、HarnessDev 迁移结论改为转述/推断并注明来源；⑨配图尺寸改为宽×高、补 Figure 3 的 Initial Harness 与 Traj/Output；⑩"没有库的对照曲线"改为"Figure 7 左只有三个点的横向对照"。**补充 5 项**：Best-of-k 基线（含 Figure 5 灰柱读数）、Table 6 组件消融、#Steps 趋势、WorkBuddy 超时例外、每次 rollout 用全新容器。**未修**：顺序递归的"单调"照原文保留（测量确认单调，仅补"k=2–4 接近平台"）；"WB-code 上 k=2 与 best-of-4 基本持平"属本笔记读数，原文未给该比较。**二次核对（2026-10-29，并入 RSI 汇总时的交叉检查）另修正 2 处**：①Figure 7 左的口径由"不进库"改为"不做参考执行/探测、也不读库"（图内标题 "Direct Editing w/o Execution"），并注明与 Table 3 的 w/o library 不是同一实验；②"判断质量由编辑器兜底"改为 improver 一侧的模型判断（editor / composer / selector / reflector）。**2026-10-30 三度核对另收紧 6 处措辞**（均回原文确认，无数字改动）：成本式 5+10+5 标注为按 §2.2.2 机制推算；"编辑器提示词"改为原文用词"阶段指令"；局限一节 Figure 7 的标签同步为"直接改（不做参考执行/探测、也不读库）"；实验规模由"34–100 个任务"改为"每条流 25–100 个测试任务"；HarnessX 对比句的"无验证器"改为"改进期不接验证器"（评测仍用 benchmark verifier）；张力第 2 条的"不进库"同步为精确表述。 |
+| 复核记录 | 见下方「复核记录」小节（三轮，按日期分条） |
 | 配图 | `assets/figure2-components.png`、`assets/figure3-pipeline.png`（p3、p5 渲染页裁剪，300 dpi）；许可 CC BY 4.0，引用请注明出处 |
 
 **阅读范围与核对凭据**（供下次复核复用）
@@ -29,6 +29,13 @@
 - **仅按正文/图注引用，未从图中读数**：Figure 1、4、6、9、15–19 的数值一律引用正文或表格（Figure 6 的横轴为对数刻度，未取点）。
 - **否定性断言检索词**（PDF 全文，已把折行折叠）：`RRSI`、`Regularized`、`HarnessDev`、`HarnessPro`、`Prime Agent`、`Dream`、`2609.24972` 均 0 次命中（用于「与本仓库其他条目的关系」一节）。
 - **未做**：未运行任何代码、未复现实验；未逐一验证附录 H 六段提示词之外的实现文件。
+
+### 复核记录
+
+- **2026-10-29 第一轮**（check-paper-note，基准：重新下载 arXiv v1，sha256 `440be1f6…`、8,101,889 B、37 页，与首读一致；abs 页与按标题检索均确认只有 v1）。手段：Table 1–7 与式 (1)–(4) 在渲染页重核；Table 1/2 的 24 个数字做按序子序列机器比对；Figure 5 与 Figure 10 用矢量矩形复算（Figure 5 定标 5.167 / 4.933 pt 每分）；Figure 6/7/8/11/12/13/14 在渲染页逐值对照；两张配图同坐标重渲染（diff=0、边缘 6 px 全白）；元数据用 `doc.metadata` 与 `get_xml_metadata()`；否定性检索词见文末；另派独立子 agent 只读审计，其报告逐条复验后采纳。**修正 10 项**：①"PDF 元数据 creationDate 为 2026-09-11"是首读时读到**未下载完整**的副本所得（完整文件没有该字段，XMP `MetadataDate` 为 2026-10-14），已删该论据；②延迟句页码 p9→p10；③"不回放已完成任务"归因 §2.1→§5/Appendix A.1（p18）；④Figure 9 改为"正文 p11、图 p12"、Figure 14 改为"§E.6 p25、图 p26"；⑤失败案例补第 9 个（WB-web 100→70）；⑥Meta-Harness 计算量措辞（原文"at k=5"修饰的是 Harness2）；⑦"判断质量由编辑器兜底"标注为本笔记判断；⑧RRSI 作者重合、HarnessDev 迁移结论改为转述/推断并注明来源；⑨配图尺寸改为宽×高、补 Figure 3 的 Initial Harness 与 Traj/Output；⑩"没有库的对照曲线"改为"Figure 7 左只有三个点的横向对照"。**补充 5 项**：Best-of-k 基线（含 Figure 5 灰柱读数）、Table 6 组件消融、#Steps 趋势、WorkBuddy 超时例外、每次 rollout 用全新容器。
+- **2026-10-29 第二轮**（并入 RSI 汇总时的交叉检查）：另修正 2 处——① Figure 7 左的口径由"不进库"改为"不做参考执行/探测、也不读库"（图内标题 "Direct Editing w/o Execution"），并注明与 Table 3 的 w/o library 不是同一实验；②"判断质量由编辑器兜底"改为 improver 一侧的模型判断（editor / composer / selector / reflector）。
+- **2026-10-30 第三轮**：复查 abs 页仍为 v1；收紧 6 处措辞（均回原文确认，无数字改动）——成本式 5+10+5 标注为按 §2.2.2 机制推算；"编辑器提示词"改为原文用词"阶段指令"；局限一节 Figure 7 的标签同步为"直接改（不做参考执行/探测、也不读库）"；实验规模由"34–100 个任务"改为"每条流 25–100 个测试任务"；HarnessX 对比句的"无验证器"改为"改进期不接验证器"（评测仍用 benchmark verifier）；张力第 2 条的"不进库"同步为精确表述。
+- **未修**：顺序递归的"单调"照原文保留（测量确认单调，仅补"k=2–4 接近平台"）；"WB-code 上 k=2 与 best-of-4 基本持平"属本笔记读数，原文未给该比较。
 
 ---
 
