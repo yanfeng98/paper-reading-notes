@@ -232,6 +232,12 @@ def first_paragraph(lines: list[str]) -> str:
             if started:
                 break
             continue
+        if stripped.startswith("#"):
+            # A heading is not a paragraph: skip it instead of using the title
+            # as the card excerpt when the document has no 核心结论 section.
+            if started:
+                break
+            continue
         if stripped.startswith("|"):
             if started:
                 break
