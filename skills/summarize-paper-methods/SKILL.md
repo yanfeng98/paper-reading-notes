@@ -7,7 +7,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 默认产物是一份 `docs/<slug>.md`，把同一主题的多篇**已读论文**按同一套问题重写，并在篇间做横向对比与术语消歧。**权威是原文**——按文档声明的版本重新获取的原文，不是记忆，也不是各篇笔记（笔记是索引与二次材料；两者冲突时回原文，并在文档里标明版本）。
 
-本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）与 `<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
+本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）、`<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数）与 `<该目录>/scripts/check_render.mjs`（用 Playwright 真实时间加载站点页面，核对公式/图数、TOC、表格与残留标记），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
 
 ## 这份 skill 管什么、不管什么
 
@@ -158,7 +158,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 **G. 读者理解**：只读文档能回答每篇的四问 + 验收/监督/关键数字/版本；Mermaid 与文字流程一致；伪代码与文字一致；公式块后跟白话读法，且**全篇公式块不超过 3 处**（人工核对，脚本只计数）；没有「见下节」指不到的地方。
 
-**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（源块数与 GitHub 渲染数一致、无 `language-*` 残留）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接/计数校验通过）；**再用无头 Chromium 实载改动页，确认无 `render-error`；图数按「渲染与发布」一节的 CDP + `__ensureMermaid()` 方式核对，应等于 `data-expected-mermaid`**（`github_render_check` 只验围栏，不验语法；延迟加载下 `--dump-dom` 数不到图）；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；**表格单元格内用 `**…**` 强调中文时，确认闭合标记后接标点/空格、渲染后无字面 `**`；新增列/宽表后目检 PDF，列数多到过窄时缩短单元格或拆表，保持列序与篇目不丢**；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
+**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（源块数与 GitHub 渲染数一致、无 `language-*` 残留）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接/计数校验通过）；**再用无头 Chromium 实载改动页，确认无 `render-error`；图数按「渲染与发布」一节的 CDP + `__ensureMermaid()` 方式核对，应等于 `data-expected-mermaid`**（`github_render_check` 只验围栏，不验语法；延迟加载下 `--dump-dom` 数不到图）；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；**表格单元格内用 `**…**` 强调中文时，确认加粗内侧边界没紧贴标点/`&nbsp;`（`**连续：**用户` 会输出字面 `**`，改为 `**连续**：用户`）、渲染后无字面 `**`；新增列/宽表后目检 PDF，列数多到过窄时缩短单元格或拆表，保持列序与篇目不丢**；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
 
 ## 修复规则
 
@@ -213,7 +213,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 - 新汇总：放到 `docs/<slug>.md` 即自动进入资料库；多篇汇总都会作为首页 featured 卡片，各自有独立 `/docs/<slug>/` 阅读页。同名 `docs/<slug>.pdf` 会复制到 `/docs/<slug>/<slug>.pdf` 并在阅读页显示 PDF 按钮。新笔记：写入 `notes/.../note.md` 并回写 README 后自动进入；不需要手改站点。
 - 汇总相对链接 `../notes/...` 在阅读页由 resolver 改成站内笔记路由；`papers/*.pdf` 等未复制文件跳到 GitHub；笔记的 `assets/...` 用站内复制路径。Python 构建期与 JS 运行期规则一致，构建失败即代表链接不可达。
 - 旧 `docs/index.html`、`docs/assets/reader.css`、`docs/.nojekyll` 已删除；旧 `?doc=rsi-methods.md` 由首页 JS 重定向到 `/docs/rsi-methods/`，根级 `_site/rsi-methods.pdf` 保留旧 PDF 链接兼容别名。
-- `site/assets/vendor/*` 的 URL 带 `?v=<vendorVersion>`（按 vendor 文件内容哈希），与 `site.css`/`site.js` 的 `assetVersion` 分开：改站点样式不会再让 2.7 MB 的 Mermaid 缓存失效。
+- `_site/assets/vendor/*`（源 `site/vendor/`）的 URL 带 `?v=<vendorVersion>`（按 vendor 文件的相对路径 + 内容哈希），与 `site.css`/`site.js` 的 `assetVersion` 分开：改站点样式不会再让 2.7 MB 的 Mermaid 缓存失效。
 - 打印 CSS 把 Mermaid 限高 250mm；高图等比缩放避免跨页裁断，宽幅 LR 图在 A4 上会偏小，必要时改成 TD/拆图。
 - **构建成功 ≠ 页面能渲染**：`build.py` 只校验围栏计数；Mermaid 语法错误会让阅读页整页显示「正文渲染失败」。每次构建后实际打开至少一个改动页：
   ```bash
@@ -222,7 +222,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
     --dump-dom "http://127.0.0.1:8000/<route>/" > /tmp/dom.html
   ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
   ```
-  再核对 TOC 条目数非零（含表格的文档再核对表格数）；**图数**要在真实时间的 CDP 里、等 `__renderDone` 后 `await window.__ensureMermaid()`，再数 `.mermaid svg` 是否等于 `data-expected-mermaid`（`--dump-dom` 只够查 `render-error`；延迟加载下首图若在 2.5 屏以外，它数到的图是 0）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），所以图数只能按上面的 CDP 方式核对；`render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 会冻结 `Date.now()`，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，正常浏览器下通常不会出现（Mermaid 逐张渲染，真实时间精度足够）（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
+  再核对 TOC 条目数非零（含表格的文档再核对表格数）；**图数**用 `check_render.mjs` 核对：`node <skill 目录>/scripts/check_render.mjs --page docs/<slug>/index.html`（真实时间加载、等 `__renderDone`、调 `__ensureMermaid()` 后数 `.mermaid svg`，应等于 `data-expected-mermaid`；`--dump-dom` 对图数不够，但仍可查 `render-error`、TOC 与表格）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），所以图数按上面的 `check_render.mjs` 方式核对；生成 PDF 时 `render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 可能让 `Date.now()` 不前进，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，正常浏览器下通常不会出现（Mermaid 逐张渲染，真实时间精度足够）（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
 
 ### GitHub 原生渲染检查（笔记和汇总都适用）
 
