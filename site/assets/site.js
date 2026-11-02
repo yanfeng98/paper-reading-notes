@@ -863,7 +863,12 @@
     function ensureMermaid() {
       if (!mermaidBlocks.length) return Promise.resolve();
       if (mermaidReady) return Promise.resolve();
-      if (!mermaidPromise) mermaidPromise = renderMermaidNow();
+      if (!mermaidPromise) {
+        mermaidPromise = renderMermaidNow().catch(function (error) {
+          mermaidPromise = null;
+          throw error;
+        });
+      }
       return mermaidPromise;
     }
 
@@ -879,7 +884,7 @@
       if (!mermaidBlocks.length) return;
       // Long notes: keep the text interactive and fetch the 2.7 MB vendor
       // bundle only when a diagram comes near the viewport.
-      if ('IntersectionObserver' in window && !mermaidNearViewport()) {
+      if (!mermaidReady && 'IntersectionObserver' in window && !mermaidNearViewport()) {
         mermaidDeferred = true;
         mermaidBlocks.forEach(function (block) { block.classList.add('mermaid-pending'); });
         var target = mermaidBlocks[0];
@@ -923,6 +928,7 @@
         decorateMermaidBlocks();
         mermaidReady = true;
       } finally {
+        mermaidDeferred = false;
         mermaidBlocks.forEach(function (block) { block.classList.remove('mermaid-pending'); });
       }
     }
