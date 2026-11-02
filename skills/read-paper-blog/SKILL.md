@@ -133,7 +133,7 @@ CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome | sort -V
 ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
 ```
 
-再核对 TOC 条目数非零（含表格的笔记再核对表格数）；**图数**要在真实时间的 CDP 里先 `await window.__ensureMermaid()`、再数 `.mermaid svg` 是否等于 `data-expected-mermaid`（`--dump-dom` 只够查 `render-error`；延迟加载下首图若在 2.5 屏以外，它数到的图是 0）。发布后对线上 URL 用同样方式复查一次（部署完成前 `data-source-hash` 不会变）。**页面 Mermaid 较多时先单独跑**（不要与后台下载/其他渲染并行），并给命令本身留 ≥180 秒；预算从 20000 起，`--dump-dom` 不完整或超时再上调（如 60000）。实际发生过：一边后台下 8 MB PDF 一边检查 7 张图的汇总页，35 秒预算 + 外层 120 秒仍被打断；空闲时同一页面 2–3 秒完成。本机 Playwright 缓存里已有 Chromium，`npx` 装 mermaid-cli 会超时，不要因此跳过。
+再核对 TOC 条目数非零（含表格的笔记再核对表格数）；**图数**要在真实时间的 CDP 里、等 `__renderDone` 后 `await window.__ensureMermaid()`，再数 `.mermaid svg` 是否等于 `data-expected-mermaid`（`--dump-dom` 只够查 `render-error`；延迟加载下首图若在 2.5 屏以外，它数到的图是 0）。发布后对线上 URL 用同样方式复查一次（部署完成前 `data-source-hash` 不会变）。**页面 Mermaid 较多时先单独跑**（不要与后台下载/其他渲染并行），并给命令本身留 ≥180 秒；预算从 20000 起，`--dump-dom` 不完整或超时再上调（如 60000）。实际发生过：一边后台下 8 MB PDF 一边检查 7 张图的汇总页，35 秒预算 + 外层 120 秒仍被打断；空闲时同一页面 2–3 秒完成。本机 Playwright 缓存里已有 Chromium，`npx` 装 mermaid-cli 会超时，不要因此跳过。
 
 **Mermaid 是延迟加载的**：首图距视口超过 2.5 屏时，`window.__renderDone` 为真但图还没渲染（占位显示「图表加载中…」），所以上面必须用 `__ensureMermaid()` 或滚动触发后再数图。另外 `--virtual-time-budget` 会冻结 `Date.now()`，而 Mermaid 用它生成图表 id——同页多图可能拿到相同 id、第 2 张起渲染成空图；这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查时两图都正常）。多图异常时改用真实时间的 CDP（`--remote-debugging-port` + `Runtime.evaluate`）复查，不要据此改图或改标题。
 

@@ -222,7 +222,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
     --dump-dom "http://127.0.0.1:8000/<route>/" > /tmp/dom.html
   ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
   ```
-  再核对 TOC 条目数非零（含表格的文档再核对表格数）；**图数**要在真实时间的 CDP 里先 `await window.__ensureMermaid()`、再数 `.mermaid svg` 是否等于 `data-expected-mermaid`（`--dump-dom` 只够查 `render-error`；延迟加载下首图若在 2.5 屏以外，它数到的图是 0）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），所以图数只能按上面的 CDP 方式核对；`render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 会冻结 `Date.now()`，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
+  再核对 TOC 条目数非零（含表格的文档再核对表格数）；**图数**要在真实时间的 CDP 里、等 `__renderDone` 后 `await window.__ensureMermaid()`，再数 `.mermaid svg` 是否等于 `data-expected-mermaid`（`--dump-dom` 只够查 `render-error`；延迟加载下首图若在 2.5 屏以外，它数到的图是 0）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），所以图数只能按上面的 CDP 方式核对；`render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 会冻结 `Date.now()`，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
 
 ### GitHub 原生渲染检查（笔记和汇总都适用）
 
