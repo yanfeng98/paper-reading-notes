@@ -81,6 +81,7 @@ description: 阅读和深度解读 arXiv 论文、其他论文 PDF、英文技�
 | arXiv 链接或编号 | 笔记 `notes/papers/<arxiv-id>-<version>-<短标题>/note.md`（不归档 PDF，note 中记录官方 arXiv 链接） |
 | 其他来源的论文 | 笔记 `notes/papers/<短标题>/note.md`，原文归档 `papers/<编号>-<短标题>.pdf` |
 | 英文博客 | `notes/blogs/<站点>-<短标题>/note.md` |
+| 原文照录（用户明确要求） | `notes/blogs/<站点>-<短标题>-original/note.md`，配图放同目录 `assets/` |
 
 arXiv 论文仍会获取完整原文用于阅读和核对，只是不把 PDF 归档进仓库。
 
