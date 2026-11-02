@@ -1,6 +1,6 @@
 ---
 name: read-paper-blog
-description: 阅读和深度解读 arXiv 论文、其他论文 PDF 与英文技术博客，面向有机器学习基础且关注工程实践的读者生成中文 Markdown 笔记，笔记落在本仓库 notes 目录；非 arXiv 来源的论文把对应版本的原文 PDF 归档到本仓库 papers 目录，arXiv 论文只记录官方链接、不归档 PDF。用于用户提供链接、arXiv 编号、本地 PDF 或正文并请求阅读、精读、讲解或整理技术笔记时。
+description: 阅读和深度解读 arXiv 论文、其他论文 PDF、英文技术博客与微信公众号文章，面向有机器学习基础且关注工程实践的读者生成中文 Markdown 笔记，笔记落在本仓库 notes 目录；非 arXiv 来源的论文把对应版本的原文 PDF 归档到本仓库 papers 目录，arXiv 论文只记录官方链接、不归档 PDF。用户明确要求「原文照录 / 逐字转载」时，另建一个占编号的转载条目并做逐字符校验。用于用户提供链接、arXiv 编号、本地 PDF 或正文并请求阅读、精读、讲解、整理技术笔记，或要求完整转载某篇文章时。
 ---
 
 # 论文与英文博客阅读
@@ -15,6 +15,7 @@ description: 阅读和深度解读 arXiv 论文、其他论文 PDF 与英文技�
 - 对在线来源实际获取原文，不能用搜索摘要代替全文。优先使用环境已有的网页、PDF 和文件读取能力，不假定某个专用工具存在，也不默认安装依赖。**本机环境（2026-10 实测）**：poppler 系命令行工具（`pdftotext`/`pdfinfo`/`pdftoppm`）缺失；系统 `python3`（`/usr/bin/python3`）也缺 `pymupdf`/`PIL`/`numpy` 与 `pip`。已安装 Miniconda（`~/miniconda3`，base 环境），其中 `pymupdf`/`Pillow`/`numpy` 可用。**本文中所有 `python3 -I` 在本机指 `~/miniconda3/bin/python3 -I`**——agent 的非交互 shell 不会自动激活 conda；交互终端经 `conda init bash` 后 `python3` 已指向 conda。文本抽取/页数/渲染也可用 ghostscript 后备：`gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite -dTextFormat=3 -sOutputFile=<out.txt> <in.pdf>`（输出会折行，检索前先把换行折叠为空格）；`gs -q -dNODISPLAY -dNOSAFER -c "(<pdf>) (r) file runpdfbegin pdfpagecount = quit"`（`file` 报的页数不可靠这一点不变）；`gs -q -dNOPAUSE -dBATCH -sDEVICE=png16m -r<N> -dFirstPage=<a> -dLastPage=<b> -sOutputFile=<prefix>-%03d.png <pdf>`。**pymupdf 专有操作**（`page.get_text('dict')` 的字体判定、`get_drawings()`/`get_image_info()` 的图形定位、`page.get_pixmap(clip=…)` 的局部裁剪）与基于 `PIL`/`numpy` 的像素测量用 conda 解释器执行；若换到未装这些包的机器，按 gs 替代并把无法执行的核对标注「未做」，不得声称已核。
 - **博客正文抓不到时先去源码仓库**：JS 构建的单页应用（Vite/Next 等）在 HTML 里只留一个 `#root` 壳与打包产物，正文是内嵌在 JS bundle 里的 markdown 字符串。到站点源码仓库取源文件（如 `site/src/data/blog/*.md`），**把 commit 与文件 sha256 记为版本锚点**；`raw.githubusercontent.com` 不可达时用 GitHub API 的 blob 接口兜底（`/repos/<owner>/<repo>/git/blobs/<sha>` 返回 base64）。双语站点两个语言版本都取回交叉核对——常见只更新一侧。
 - **服务端渲染的博客页面（没有源码仓）**：先探测 markdown 直链（`…/article.md`、`…/raw` 等），404 就按页面本身锁版本：取正文区块（如 `<article>`），用固定口径——**标签替换为空格、解 HTML 实体、连续空白折叠为单空格**——记录**字符数与 sha256**，并写清口径与抓取日期；复核时按同一口径重算，一致才可放心回引原文片段。不要只记"抓取日期"（页面可能静默更新）。另注意页面导语（standfirst / meta description）与正文常是两套措辞、强度也可能不同（实际发生过导语 "can improve"、正文 "frequently outperformed"）：引用以正文为准。
+- **微信公众号文章（`mp.weixin.qq.com`）**：正文在 `#js_content` 内，标题取 `h1.rich_media_title` / `var msg_title`，发布时间取 `var createTime`。**完整性要用浏览器渲染后的 `innerText` 复核**（标签剥离只能证明文本没丢，证明不了段落与空格）：实际发生过正文段落被写成 `<h1>/<h2>`（靠 15px 字号区分）、章节标题是 18px 加粗 `<span>`——按标签转换会把 20 个正文段落当成标题（`h1/h2` 共 45 个，真实标题只有 25 个），且有一节标题写成 `<p>`。图片在 `data-src` 上，`/640` 是缩放版，把路径换成 `/0` 取原图（实测 PNG 从 1080 宽变 1170 宽），下载时带上 `Referer: https://mp.weixin.qq.com/`（本次实测不带也能取到，但带上更稳）。两个渲染陷阱：① 部分 `<em>` 被内层 `font-style: normal` 抵消（实际 25 个 `<em>` 里 9 个是直立体，多为图注），按标签一律转斜体会与原文不符；② 中文标点或 `&nbsp;` 紧邻 `**` 时，CommonMark 的 flanking 规则会输出字面 `**`，需把边界标点移到加粗范围外（文字不动），并确认括注仍成对。文末常附公众号二维码、招聘海报等非正文物料，用户要求时可整段不收录，并在来源信息里写明。
 - 对 arXiv 链接或编号，指定版本时使用该版本；未指定时先从官方元信息确认最新版本，再获取该版本。若只能获取较旧版本，明确说明，不称其为最新版。正文、PDF、图表和补充材料应来自同一版本，不能混用不同版本的实验数字。
 - **同一 arXiv 版本可能被重新发布/重编译成不同 PDF**：记录本次抓取 PDF 的 sha256 与抓取日期（arXiv 不归档，但核对凭据要留）；再次核对时先比 sha。若同一 vN 的 hash 不同，逐页比文本与图，记录旧/新副本的差异，**不把旧副本的图缺陷写成论文或当前版的问题**（实际发生过：同一 v2 的旧副本 p4 Figure 1 不完整、当前副本完整，其余 40 页文本一致）；若正文/数字也有实质差异，按版本变化处理，先请用户确认是否重读，不静默用新副本替换旧解读。
 - **同一工作常有多个发布渠道**（项目页/预印本、arXiv、OpenReview、期刊）。**材料自述的状态不是核验结果**：仓库 README、项目页、CITATION 里写的发布渠道、许可、版本、star 都要独立核验并注明核验方式与日期（实际发生过：仓库 README 写 "arXiv posting 🔜 / in progress"，而 arXiv 上该文早已有 v1、其后又更新到 v2）。发现其他渠道的版本后，**用多组关键句检索**比对关键数字与关键表述，不能只看标题与摘要就断定是同一版本；各版页数也要分别记录（同一工作可能是 36 页与 43 页两个不同版本）。**比对的关键句里必须包括「发布/开源/许可声明」类句子**——这类句子是版本间最易变动、对读者又最有用的（实际发生过：站点 tech report 与 arXiv v3 全文 43 页、关键数字出现次数逐一相同，**唯一实质差异就是这一句**：站点版写「will be open-sourced in a future release」，v3 改写为项目主页链接）。**论文自己没写代码仓库时，去看正文给的项目主页**：主页常链着仓库，用 GitHub API 核对存在性、许可、创建/最后 push 时间与顶层目录结构，只核到结构层面并声明「未验证其与实验的可复现性对应」——**「论文未声明」不等于「没有公开」**，两件事要分开写。
@@ -55,6 +56,8 @@ description: 阅读和深度解读 arXiv 论文、其他论文 PDF 与英文技�
 **导读、综述、awesome list 这类转引型材料**（自己不给数据，只转述 N 篇论文）：笔记里按条目标注每条数字的核对层级（元信息／摘要／全文／复算／未核），并单列材料自身的省略之处（未引的更强结果、被省略的限定词，如子集口径）；材料没说的内容标成「补充背景」并注明取自哪篇论文。逐篇核到什么程度以及核对的目标（转引忠实 ≠ 结论成立），见 check-paper-note 的「转引型材料的核对」。
 
 转引同站自家材料（例如厂商的另一篇 best-practice、或本文引用的自家内部对比）时，**核对措辞强度**：同一组对比可能在不同文章里分别写成 "consistently has outperformed" 与 "frequently outperformed"（实际发生过），引用时保留各自原文并注明差异，不要替作者加强或减弱；被引文章若只给结论不给任务数、模型和成本口径，也一并写明。
+
+**用户明确要求「原文照录 / 逐字转载」时**（此时「不归档整篇正文」的默认让位于该要求）：正文与配图按原序照录，页首只加一段明确标注「编者添加」的来源信息；**用浏览器 `innerText` 与转载页正文做含空格的逐字符比对**（只比去空白后的结果会漏掉空格错误），并记录字符数与 sha256 作为版本锚点。字号、颜色、居中、加粗边界、`<em>` 直立体等排版差异逐项写进「排版处理」，不静默处理。转载页与阅读笔记各占一个 README 条目（转载页同样占编号，编号单元格指向原文地址），两边互相链接。
 
 代码示例应解释关键行为、依赖及上下文。文章中的历史版本和当下行为需要区分；用户需要当前可用方案且允许联网时，查询对应官方文档并标注补充来源。无法核验时，只说明文章所述版本的行为，不宣称当前仍然适用。
 
@@ -130,6 +133,8 @@ CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome | sort -V
 ```
 
 再核对 `.mermaid` 块数等于页面上的 `data-expected-mermaid`、TOC 条目数非零（含表格的笔记再核对表格数）；发布后对线上 URL 用同样方式复查一次（部署完成前 `data-source-hash` 不会变）。**页面 Mermaid 较多时先单独跑**（不要与后台下载/其他渲染并行），并给命令本身留 ≥180 秒；预算从 20000 起，`--dump-dom` 不完整或超时再上调（如 60000）。实际发生过：一边后台下 8 MB PDF 一边检查 7 张图的汇总页，35 秒预算 + 外层 120 秒仍被打断；空闲时同一页面 2–3 秒完成。本机 Playwright 缓存里已有 Chromium，`npx` 装 mermaid-cli 会超时，不要因此跳过。
+
+**Mermaid 是延迟加载的**：首图距视口超过 2.5 屏时，`window.__renderDone` 为真但图还没渲染（占位显示「图表加载中…」）。数图之前先 `await window.__ensureMermaid()` 或滚动到图，否则会把「还没加载」误判成「渲染失败」。另外 `--virtual-time-budget` 会冻结 `Date.now()`，而 Mermaid 用它生成图表 id——同页多图可能拿到相同 id、第 2 张起渲染成空图；这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查时两图都正常）。多图异常时改用真实时间的 CDP（`--remote-debugging-port` + `Runtime.evaluate`）复查，不要据此改图或改标题。
 
 笔记会自动进入静态笔记库：`python3 site/build.py --out _site` 扫描 `notes/papers/*/note.md` 与 `notes/blogs/*/note.md`；每个 note.md 必须有 README 行（构建会双向校验并检查图片/链接），所以生成笔记后仍要按上文回写 README（清单里还没有这一行时，先按上一节确认收录与编号）。本地链接一律用相对 note.md 的路径，不要写 `/...` 根绝对路径（构建会拒绝）；图片放在本篇 `assets/` 下，其余仓库文件链接会转到 GitHub。构建后用 `python3 -m http.server 8000 --directory _site` 预览；构建只写本地 `_site`，**要上线必须 commit/push**——Actions 在 `notes/**` 或 `README.md` 变化时自动构建并部署。不生成单篇 PDF（PDF 只为汇总生成，流程见 summarize-paper-methods）。旧笔记里单行/缩进 `$$` 的批量改写需用户明确要求。缺失内容如实标注，不为填满章节而推测。
 

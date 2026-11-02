@@ -213,6 +213,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 - 新汇总：放到 `docs/<slug>.md` 即自动进入资料库；多篇汇总都会作为首页 featured 卡片，各自有独立 `/docs/<slug>/` 阅读页。同名 `docs/<slug>.pdf` 会复制到 `/docs/<slug>/<slug>.pdf` 并在阅读页显示 PDF 按钮。新笔记：写入 `notes/.../note.md` 并回写 README 后自动进入；不需要手改站点。
 - 汇总相对链接 `../notes/...` 在阅读页由 resolver 改成站内笔记路由；`papers/*.pdf` 等未复制文件跳到 GitHub；笔记的 `assets/...` 用站内复制路径。Python 构建期与 JS 运行期规则一致，构建失败即代表链接不可达。
 - 旧 `docs/index.html`、`docs/assets/reader.css`、`docs/.nojekyll` 已删除；旧 `?doc=rsi-methods.md` 由首页 JS 重定向到 `/docs/rsi-methods/`，根级 `_site/rsi-methods.pdf` 保留旧 PDF 链接兼容别名。
+- `site/assets/vendor/*` 的 URL 带 `?v=<vendorVersion>`（按 vendor 文件内容哈希），与 `site.css`/`site.js` 的 `assetVersion` 分开：改站点样式不会再让 2.7 MB 的 Mermaid 缓存失效。
 - 打印 CSS 把 Mermaid 限高 250mm；高图等比缩放避免跨页裁断，宽幅 LR 图在 A4 上会偏小，必要时改成 TD/拆图。
 - **构建成功 ≠ 页面能渲染**：`build.py` 只校验围栏计数；Mermaid 语法错误会让阅读页整页显示「正文渲染失败」。每次构建后实际打开至少一个改动页：
   ```bash
@@ -221,7 +222,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
     --dump-dom "http://127.0.0.1:8000/<route>/" > /tmp/dom.html
   ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
   ```
-  再核对 `.mermaid` 块数等于 `data-expected-mermaid`、TOC 条目数非零（含表格的文档再核对表格数）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。
+  再核对 `.mermaid` 块数等于 `data-expected-mermaid`、TOC 条目数非零（含表格的文档再核对表格数）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），数图前先 `await window.__ensureMermaid()` 或滚动到图；`render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 会冻结 `Date.now()`，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
 
 ### GitHub 原生渲染检查（笔记和汇总都适用）
 
@@ -241,7 +242,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
     --site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf
   python3 site/build.py --out _site   # 把新 PDF 复制进 _site
   ```
-- 脚本服务 `_site`，强制浅色 + print media，等待 `window.__renderDone`；检查 `.render-error`、公式/Mermaid 计数、`leftover`、打印溢出，失败**非零退出且不写 PDF**。多篇汇总时把 `docs/rsi-methods/...` 和 `docs/rsi-methods.pdf` 换成目标 slug 即可。
+- 脚本服务 `_site`，强制浅色 + print media，等待 `window.__renderDone`，再调用 `window.__ensureMermaid()` 强制渲染延迟加载的图；检查 `.render-error`、公式/Mermaid 计数、`leftover`、打印溢出，失败**非零退出且不写 PDF**。多篇汇总时把 `docs/rsi-methods/...` 和 `docs/rsi-methods.pdf` 换成目标 slug 即可。
 - **文字定稿后生成最终 PDF**；中间轮次若要目检高图/宽表可临时生成，不作为每次改动的必做项。用 pymupdf/`gs` 抽查页数、公式页和含图页，重点看高图完整、宽图可读。构建发现 PDF 比 Markdown/样式旧会警告，不失败；提交前必须重新生成到不再警告。
 - PDF 文件名必须与汇总 Markdown 同名；阅读页 PDF 按钮和根级别名都依赖这个约定。CI 不安装 Playwright，不生成 PDF。
 
