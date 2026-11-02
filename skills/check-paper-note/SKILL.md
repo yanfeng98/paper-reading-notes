@@ -48,7 +48,7 @@ CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome | sort -V
 ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
 ```
 
-页面 Mermaid 较多时**先单独跑**（不要与后台下载/其他渲染并行），外层命令留 ≥180 秒；预算从 20000 起，`--dump-dom` 不完整或超时再上调（如 60000）。实际发生过：一边后台下 8 MB PDF 一边检查 7 张图的汇总页，35 秒预算 + 外层 120 秒仍被打断；空闲时同一页面 2–3 秒完成。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图未渲染（占位「图表加载中…」），所以图数只能按上面的 CDP 方式核对；`--virtual-time-budget` 会冻结 `Date.now()`，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，真实浏览器不会出现，用真实时间的 CDP 复查即可。
+页面 Mermaid 较多时**先单独跑**（不要与后台下载/其他渲染并行），外层命令留 ≥180 秒；预算从 20000 起，`--dump-dom` 不完整或超时再上调（如 60000）。实际发生过：一边后台下 8 MB PDF 一边检查 7 张图的汇总页，35 秒预算 + 外层 120 秒仍被打断；空闲时同一页面 2–3 秒完成。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图未渲染（占位「图表加载中…」），所以图数只能按上面的 CDP 方式核对；`--virtual-time-budget` 会冻结 `Date.now()`，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，正常浏览器下通常不会出现（Mermaid 逐张渲染，真实时间精度足够），用真实时间的 CDP 复查即可。
 
 笔记会自动进入静态笔记库：改完 note.md/README 后跑 `python3 site/build.py --out _site`（校验 README 双向映射、图片/链接、公式/图计数），用 `python3 -m http.server 8000 --directory _site` 预览。本地链接用相对 note.md 的路径，不要根绝对路径；图片放在本篇 `assets/` 下，其余仓库文件会转到 GitHub。构建只写本地 `_site`，**要上线必须 commit/push**，Actions 会在 notes/README 变化时构建部署。当前只为汇总生成 PDF，不生成单篇笔记 PDF；用户明确要求时再说明需另行扩展。
 
