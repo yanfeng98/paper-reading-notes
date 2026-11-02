@@ -133,6 +133,7 @@ try {
     const text = content.innerText;
     return {
       title: document.title,
+      pageKind: document.body.dataset.page || 'unknown',
       renderError: window.__renderError || (document.querySelector('.render-error')?.textContent || ''),
       done: window.__renderDone === true,
       math: content.querySelectorAll('.math-display mjx-container').length,
@@ -146,6 +147,14 @@ try {
       literalStars: (text.match(/\*\*/g) || []).length
     };
   });
+
+  if (report.pageKind !== 'doc') {
+    console.log(JSON.stringify({
+      url, title: report.title, page: report.pageKind,
+      note: '非阅读页（没有 __renderDone / .prose），跳过渲染计数', jsErrors: pageErrors
+    }, null, 2));
+    process.exit(pageErrors.length ? 1 : 0);
+  }
 
   const problems = [];
   if (!report.done) problems.push('页面未完成渲染（__renderDone 未置真）');

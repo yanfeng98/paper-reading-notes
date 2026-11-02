@@ -7,7 +7,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 默认产物是一份 `docs/<slug>.md`，把同一主题的多篇**已读论文**按同一套问题重写，并在篇间做横向对比与术语消歧。**权威是原文**——按文档声明的版本重新获取的原文，不是记忆，也不是各篇笔记（笔记是索引与二次材料；两者冲突时回原文，并在文档里标明版本）。
 
-本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）、`<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数）与 `<该目录>/scripts/check_render.mjs`（用 Playwright 真实时间加载站点页面，核对公式/图数、TOC、表格与残留标记），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
+本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）、`<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数）与 `<该目录>/scripts/check_render.mjs`（用 Playwright 真实时间加载**阅读页**，核对公式/图数、TOC、表格与残留标记；首页等非阅读页只做加载与 JS 错误检查），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
 
 ## 这份 skill 管什么、不管什么
 
