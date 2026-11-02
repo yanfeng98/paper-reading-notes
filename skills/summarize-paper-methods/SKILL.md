@@ -158,7 +158,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 **G. 读者理解**：只读文档能回答每篇的四问 + 验收/监督/关键数字/版本；Mermaid 与文字流程一致；伪代码与文字一致；公式块后跟白话读法，且**全篇公式块不超过 3 处**（人工核对，脚本只计数）；没有「见下节」指不到的地方。
 
-**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（源块数与 GitHub 渲染数一致、无 `language-*` 残留）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接/计数校验通过）；**再用无头 Chromium 实载改动页，确认无 `render-error`、Mermaid 块数等于 `data-expected-mermaid`**（`github_render_check` 只验围栏，不验语法）；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；**表格单元格内用 `**…**` 强调中文时，确认闭合标记后接标点/空格、渲染后无字面 `**`；新增列/宽表后目检 PDF，列数多到过窄时缩短单元格或拆表，保持列序与篇目不丢**；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
+**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（源块数与 GitHub 渲染数一致、无 `language-*` 残留）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接/计数校验通过）；**再用无头 Chromium 实载改动页，确认无 `render-error`；图数按「渲染与发布」一节的 CDP + `__ensureMermaid()` 方式核对，应等于 `data-expected-mermaid`**（`github_render_check` 只验围栏，不验语法；延迟加载下 `--dump-dom` 数不到图）；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；**表格单元格内用 `**…**` 强调中文时，确认闭合标记后接标点/空格、渲染后无字面 `**`；新增列/宽表后目检 PDF，列数多到过窄时缩短单元格或拆表，保持列序与篇目不丢**；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
 
 ## 修复规则
 
