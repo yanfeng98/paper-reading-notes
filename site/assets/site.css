@@ -912,6 +912,23 @@ mjx-container[jax="SVG"][display="true"] > svg { max-width: 100%; height: auto; 
   text-align: center;
 }
 .mermaid svg { max-width: 100%; height: auto; }
+/* 延迟加载阶段先隐藏 Mermaid 源码，避免读者看到原始 graph 文本。 */
+.mermaid.mermaid-pending {
+  min-height: 84px;
+  color: transparent;
+  background: var(--surface-2);
+  border-radius: 12px;
+}
+.mermaid.mermaid-pending::before {
+  content: "图表加载中…";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 13px;
+}
 .mermaid > svg { cursor: zoom-in; }
 /* Firefox clips Mermaid HTML-label glyphs at the foreignObject box; let the ink paint out. */
 .mermaid foreignObject,

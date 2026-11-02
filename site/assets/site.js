@@ -881,6 +881,7 @@
       // bundle only when a diagram comes near the viewport.
       if ('IntersectionObserver' in window && !mermaidNearViewport()) {
         mermaidDeferred = true;
+        mermaidBlocks.forEach(function (block) { block.classList.add('mermaid-pending'); });
         var target = mermaidBlocks[0];
         var observer = new IntersectionObserver(function (entries) {
           if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
@@ -916,10 +917,14 @@
         block.textContent = block.dataset.src || '';
         block.removeAttribute('data-processed');
       });
-      await window.mermaid.run({ nodes: mermaidBlocks });
-      decodeMermaidText();
-      decorateMermaidBlocks();
-      mermaidReady = true;
+      try {
+        await window.mermaid.run({ nodes: mermaidBlocks });
+        decodeMermaidText();
+        decorateMermaidBlocks();
+        mermaidReady = true;
+      } finally {
+        mermaidBlocks.forEach(function (block) { block.classList.remove('mermaid-pending'); });
+      }
     }
 
     window.__rerenderMermaid = function () {
