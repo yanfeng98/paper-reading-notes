@@ -671,6 +671,14 @@ def build_site(out_dir: Path) -> None:
     asset_version = hashlib.sha256(
         site_css.read_bytes() + site_js.read_bytes()
     ).hexdigest()[:10]
+    # Vendor bundles are large (mermaid 2.7 MB); version them by their own
+    # content so a site.css/site.js edit does not invalidate their cache.
+    vendor_digest = hashlib.sha256()
+    for path in sorted((SITE / "vendor").rglob("*")):
+        if path.is_file():
+            vendor_digest.update(path.relative_to(SITE / "vendor").as_posix().encode())
+            vendor_digest.update(path.read_bytes())
+    vendor_version = vendor_digest.hexdigest()[:10]
 
     home_template = (SITE / "templates" / "home.html").read_text(encoding="utf-8")
     doc_template = (SITE / "templates" / "doc.html").read_text(encoding="utf-8")
@@ -694,6 +702,7 @@ def build_site(out_dir: Path) -> None:
             "PAGE_DESCRIPTION": html.escape(SITE_DESCRIPTION),
             "ROOT": "./",
             "ASSET_VERSION": asset_version,
+            "VENDOR_VERSION": vendor_version,
             "REPO_URL": REPO_URL,
             "STATS_HTML": readme_stats_html(stats),
             "FEATURED_HTML": render_featured(summaries),
@@ -737,6 +746,7 @@ def build_site(out_dir: Path) -> None:
                 )
             },
             "assetVersion": asset_version,
+            "vendorVersion": vendor_version,
             "expectedMath": entry.math_count,
             "expectedMermaid": entry.mermaid_count,
         }
@@ -747,6 +757,7 @@ def build_site(out_dir: Path) -> None:
                 "PAGE_DESCRIPTION": html.escape(entry.excerpt or SITE_DESCRIPTION),
                 "ROOT": entry.root,
                 "ASSET_VERSION": asset_version,
+                "VENDOR_VERSION": vendor_version,
                 "REPO_URL": REPO_URL,
                 "KIND": entry.kind,
                 "KIND_LABEL": entry.kind_label,

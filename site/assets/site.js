@@ -857,11 +857,49 @@
       });
     }
 
+    var mermaidDeferred = false;
+    var mermaidPromise = null;
+
+    function ensureMermaid() {
+      if (!mermaidBlocks.length) return Promise.resolve();
+      if (mermaidReady) return Promise.resolve();
+      if (!mermaidPromise) mermaidPromise = renderMermaidNow();
+      return mermaidPromise;
+    }
+
+    window.__ensureMermaid = ensureMermaid;
+
+    function mermaidNearViewport() {
+      if (!mermaidBlocks.length) return false;
+      var rect = mermaidBlocks[0].getBoundingClientRect();
+      return rect.top < window.innerHeight * 2.5;
+    }
+
     async function renderMermaid() {
       if (!mermaidBlocks.length) return;
+      // Long notes: keep the text interactive and fetch the 2.7 MB vendor
+      // bundle only when a diagram comes near the viewport.
+      if ('IntersectionObserver' in window && !mermaidNearViewport()) {
+        mermaidDeferred = true;
+        var target = mermaidBlocks[0];
+        var observer = new IntersectionObserver(function (entries) {
+          if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+          observer.disconnect();
+          mermaidDeferred = false;
+          ensureMermaid().then(function () {
+            try { validateRendered(); } catch (error) { console.warn('Mermaid 校验失败：', error); }
+          }).catch(function (error) { console.warn('Mermaid 渲染失败：', error); });
+        }, { rootMargin: '800px 0px' });
+        observer.observe(target);
+        return;
+      }
+      return renderMermaidNow();
+    }
+
+    async function renderMermaidNow() {
       closeDiagram();
       if (!window.mermaid) {
-        await loadScript(data.root + 'assets/vendor/mermaid.min.js?v=' + data.assetVersion);
+        await loadScript(data.root + 'assets/vendor/mermaid.min.js?v=' + (data.vendorVersion || data.assetVersion));
       }
       if (!window.mermaid) throw new Error('Mermaid 未加载');
       // 用 SVG text 而不是 foreignObject + HTML 标签：不同 CJK 字体下 HTML 标签
@@ -891,7 +929,7 @@
 
     async function renderMath() {
       if (!expectedMath) return;
-      await loadScript(data.root + 'assets/vendor/mathjax/tex-svg.js?v=' + data.assetVersion);
+      await loadScript(data.root + 'assets/vendor/mathjax/tex-svg.js?v=' + (data.vendorVersion || data.assetVersion));
       await waitForMathJax();
       if (!window.MathJax || !window.MathJax.typesetPromise) {
         throw new Error('MathJax 未就绪');
@@ -905,6 +943,7 @@
       if (expectedMath !== mathRendered || mathLeft) {
         throw new Error('公式渲染数量不符：期望 ' + expectedMath + '，实际 ' + mathRendered + '，残留 ' + mathLeft);
       }
+      if (mermaidDeferred) return;
       var mermaidRendered = content.querySelectorAll('.mermaid svg').length;
       var mermaidLeft = content.querySelectorAll('pre > code.language-mermaid').length;
       var mermaidErrors = content.querySelectorAll('.mermaid svg[aria-roledescription="error"]').length;

@@ -135,6 +135,10 @@ try {
     null,
     { timeout: 120000 }
   );
+  // 阅读页会延迟加载 Mermaid（图接近视口才渲染）；打印前显式渲染，否则 PDF 缺图。
+  await page.evaluate(async () => {
+    if (typeof window.__ensureMermaid === 'function') await window.__ensureMermaid();
+  });
 
   const renderError = await page.evaluate(
     () => window.__renderError ||
