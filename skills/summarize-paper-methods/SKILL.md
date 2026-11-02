@@ -208,7 +208,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 - 构建：
   - `python3 site/build.py --out _site`
   - 本地预览：`python3 -m http.server 8000 --directory _site`
-- `build.py` 自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；从 README 5 列表取编号/标题/年份/单位/原文链接；每个 note.md 必须有 README 行，否则构建失败（双向校验）。它同时校验 31 张笔记图片、全部本地链接、公式/Mermaid 围栏计数。
+- `build.py` 自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；从 README 5 列表取编号/标题/年份/单位/原文链接；每个 note.md 必须有 README 行，否则构建失败（双向校验）。它同时校验全部笔记图片、本地链接、公式/Mermaid 围栏计数。
 - 路由按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库（卡片、筛选、搜索、排序），阅读页是独立文章页。笔记图片按原 `assets/` 目录复制，不扁平化。
 - 新汇总：放到 `docs/<slug>.md` 即自动进入资料库；多篇汇总都会作为首页 featured 卡片，各自有独立 `/docs/<slug>/` 阅读页。同名 `docs/<slug>.pdf` 会复制到 `/docs/<slug>/<slug>.pdf` 并在阅读页显示 PDF 按钮。新笔记：写入 `notes/.../note.md` 并回写 README 后自动进入；不需要手改站点。
 - 汇总相对链接 `../notes/...` 在阅读页由 resolver 改成站内笔记路由；`papers/*.pdf` 等未复制文件跳到 GitHub；笔记的 `assets/...` 用站内复制路径。Python 构建期与 JS 运行期规则一致，构建失败即代表链接不可达。
@@ -222,7 +222,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
     --dump-dom "http://127.0.0.1:8000/<route>/" > /tmp/dom.html
   ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
   ```
-  再核对 `.mermaid` 块数等于 `data-expected-mermaid`、TOC 条目数非零（含表格的文档再核对表格数）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），数图前先 `await window.__ensureMermaid()` 或滚动到图；`render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 会冻结 `Date.now()`，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
+  再核对 TOC 条目数非零（含表格的文档再核对表格数）；**图数**要在真实时间的 CDP 里先 `await window.__ensureMermaid()`、再数 `.mermaid svg` 是否等于 `data-expected-mermaid`（`--dump-dom` 只够查 `render-error`；延迟加载下首图若在 2.5 屏以外，它数到的图是 0）；`render_pdf.mjs` 内部也会检查 `.render-error`、图数与打印溢出，失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），所以图数只能按上面的 CDP 方式核对；`render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 会冻结 `Date.now()`，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
 
 ### GitHub 原生渲染检查（笔记和汇总都适用）
 

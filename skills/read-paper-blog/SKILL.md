@@ -70,7 +70,7 @@ description: 阅读和深度解读 arXiv 论文、其他论文 PDF、英文技�
 - **复现原文的排版强调（加粗/斜体）时，「强调的是不是原文强调的那几处」也要核**：渲染页目测区分常规与粗体容易混（同一张表里数值列与差值列尤其如此），用 PDF 的字体信息判定最稳——`page.get_text('dict')` 的 span `font`（加粗体通常是 `Xxx-Bold`）可以精确列出哪些格是粗体（实际发生过：笔记 Table 4 的加粗与原文差 6 格——**2 格误加**（把 Δ 列当成原文加粗）＋**4 格漏加**（Evolved 列后四个值）；复核时才用字体判定纠正）。**若加粗其实是本笔记自己的强调，就不要写成「加粗为原文所加」**——归属句写错就是事实错误。
 - 明确标记“作者结论”“补充背景”“解读/推断”等证据层次，尤其不要把工程建议或自拟伪代码归于作者。
 - 仅在理解原文所需时补充查阅外部资料，优先论文、官方文档或作者材料，单独注明来源；不自动扩展为大范围文献综述。
-- 博客以自己的表述总结，少量必要引用附来源，不默认复制或翻译归档整篇第三方文章。
+- 博客以自己的表述总结，少量必要引用附来源，不默认复制或翻译归档整篇第三方文章（用户明确要求逐字转载时，按「博客笔记」一节的例外处理）。
 
 ## 保存笔记和原文
 
@@ -133,9 +133,9 @@ CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome | sort -V
 ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
 ```
 
-再核对 `.mermaid` 块数等于页面上的 `data-expected-mermaid`、TOC 条目数非零（含表格的笔记再核对表格数）；发布后对线上 URL 用同样方式复查一次（部署完成前 `data-source-hash` 不会变）。**页面 Mermaid 较多时先单独跑**（不要与后台下载/其他渲染并行），并给命令本身留 ≥180 秒；预算从 20000 起，`--dump-dom` 不完整或超时再上调（如 60000）。实际发生过：一边后台下 8 MB PDF 一边检查 7 张图的汇总页，35 秒预算 + 外层 120 秒仍被打断；空闲时同一页面 2–3 秒完成。本机 Playwright 缓存里已有 Chromium，`npx` 装 mermaid-cli 会超时，不要因此跳过。
+再核对 TOC 条目数非零（含表格的笔记再核对表格数）；**图数**要在真实时间的 CDP 里先 `await window.__ensureMermaid()`、再数 `.mermaid svg` 是否等于 `data-expected-mermaid`（`--dump-dom` 只够查 `render-error`；延迟加载下首图若在 2.5 屏以外，它数到的图是 0）。发布后对线上 URL 用同样方式复查一次（部署完成前 `data-source-hash` 不会变）。**页面 Mermaid 较多时先单独跑**（不要与后台下载/其他渲染并行），并给命令本身留 ≥180 秒；预算从 20000 起，`--dump-dom` 不完整或超时再上调（如 60000）。实际发生过：一边后台下 8 MB PDF 一边检查 7 张图的汇总页，35 秒预算 + 外层 120 秒仍被打断；空闲时同一页面 2–3 秒完成。本机 Playwright 缓存里已有 Chromium，`npx` 装 mermaid-cli 会超时，不要因此跳过。
 
-**Mermaid 是延迟加载的**：首图距视口超过 2.5 屏时，`window.__renderDone` 为真但图还没渲染（占位显示「图表加载中…」）。数图之前先 `await window.__ensureMermaid()` 或滚动到图，否则会把「还没加载」误判成「渲染失败」。另外 `--virtual-time-budget` 会冻结 `Date.now()`，而 Mermaid 用它生成图表 id——同页多图可能拿到相同 id、第 2 张起渲染成空图；这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查时两图都正常）。多图异常时改用真实时间的 CDP（`--remote-debugging-port` + `Runtime.evaluate`）复查，不要据此改图或改标题。
+**Mermaid 是延迟加载的**：首图距视口超过 2.5 屏时，`window.__renderDone` 为真但图还没渲染（占位显示「图表加载中…」），所以上面必须用 `__ensureMermaid()` 或滚动触发后再数图。另外 `--virtual-time-budget` 会冻结 `Date.now()`，而 Mermaid 用它生成图表 id——同页多图可能拿到相同 id、第 2 张起渲染成空图；这是虚拟时钟的假象，真实浏览器不会出现（实测同一页用 CDP 真实时间复查时两图都正常）。多图异常时改用真实时间的 CDP（`--remote-debugging-port` + `Runtime.evaluate`）复查，不要据此改图或改标题。
 
 笔记会自动进入静态笔记库：`python3 site/build.py --out _site` 扫描 `notes/papers/*/note.md` 与 `notes/blogs/*/note.md`；每个 note.md 必须有 README 行（构建会双向校验并检查图片/链接），所以生成笔记后仍要按上文回写 README（清单里还没有这一行时，先按上一节确认收录与编号）。本地链接一律用相对 note.md 的路径，不要写 `/...` 根绝对路径（构建会拒绝）；图片放在本篇 `assets/` 下，其余仓库文件链接会转到 GitHub。构建后用 `python3 -m http.server 8000 --directory _site` 预览；构建只写本地 `_site`，**要上线必须 commit/push**——Actions 在 `notes/**` 或 `README.md` 变化时自动构建并部署。不生成单篇 PDF（PDF 只为汇总生成，流程见 summarize-paper-methods）。旧笔记里单行/缩进 `$$` 的批量改写需用户明确要求。缺失内容如实标注，不为填满章节而推测。
 
