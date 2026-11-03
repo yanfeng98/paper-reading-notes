@@ -10,7 +10,7 @@
      行内代码里的裸 | 也会拆列，按错误报出
   3. 围栏外的行内反引号成对（奇数报错）
   4. 围栏外的裸 HTML 标签（允许 <br>）
-  5. $ 只出现在 $$…$$ 块内（围栏外、公式块外出现即报错；货币符号请放进代码段）
+  5. $ 只允许出现在代码块（含 ```math / $$…$$）或行内代码中；正文裸 $（含 \\$）报错，货币符号请放进行内代码或改写为「美元」
   6. 相对链接目标存在（跳过 http/https/#/mailto；代码段内的链接不检查）
   7. Mermaid 节点/边标签以 `1.`、`2.`、`1)` 这类有序列表标记开头、且同一标签内含 `<br`：
      站点阅读页用 `htmlLabels:false`，标签**较宽、需要自动换行**时，Mermaid 11.12 会抛
@@ -158,8 +158,12 @@ def lint(path: str) -> tuple[list[str], list[str], int, int]:
             if tag != "br":
                 problems.append(f"行 {lineno}: 疑似裸 HTML 标签 <{tag}>")
 
+        # 站点的 MathJax 配置把 $…$ 当行内公式：正文里出现两个 $ 会被当成公式，
+        # 因此对任何不在代码/公式块、也未放进行内代码的 $ 报错（代码与行内代码已在上文跳过/剥掉）。
         if "$" in prose:
-            problems.append(f"行 {lineno}: 公式块外出现 '$'（行内公式？）")
+            problems.append(
+                f"行 {lineno}: 公式块外出现 '$'（行内公式？若是货币符号，请放进行内代码或改写为「美元」）"
+            )
 
         for match in MD_LINK.finditer(prose):
             target = match.group(1).strip()
