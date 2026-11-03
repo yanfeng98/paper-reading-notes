@@ -130,7 +130,28 @@ try {
     }
     if (typeof window.__ensureMermaid === 'function') await window.__ensureMermaid();
     const content = document.querySelector('.prose') || document.body;
-    const text = content.innerText;
+    // 只统计正文文本节点里的 `**`：行内代码、代码块、公式与 Mermaid 里的 `**`
+    // 是正常内容（例如文档在讲 Markdown 语法），不应算作未渲染的加粗标记。
+    const countLiteralStars = () => {
+      const skipTags = new Set(['CODE', 'PRE', 'MJX-CONTAINER']);
+      let count = 0;
+      const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        let skip = false;
+        for (let el = node.parentElement; el; el = el.parentElement) {
+          if (
+            skipTags.has(el.tagName) ||
+            el.classList.contains('math-display') ||
+            el.classList.contains('mermaid')
+          ) {
+            skip = true;
+            break;
+          }
+        }
+        if (!skip) count += (node.nodeValue.match(/\*\*/g) || []).length;
+      }
+      return count;
+    };
     return {
       title: document.title,
       pageKind: document.body.dataset.page || 'unknown',
@@ -144,7 +165,7 @@ try {
       toc: document.querySelectorAll('#toc-list a').length,
       headings: content.querySelectorAll('h2, h3').length,
       tables: content.querySelectorAll('table').length,
-      literalStars: (text.match(/\*\*/g) || []).length
+      literalStars: countLiteralStars()
     };
   });
 
