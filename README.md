@@ -240,7 +240,7 @@
 |[00038](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00038-LongWriter.pdf)|[LongWriter: Unleashing 10,000+ Word Generation from Long Context LLMs](https://arxiv.org/abs/2408.07055)|2024|Tsinghua University|—（待生成笔记）|
 |[00043](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00043-ReST-MCTS.pdf)|[ReST-MCTS*: LLM Self-Training via Process Reward Guided Tree Search](https://arxiv.org/abs/2406.03816)|2024|Tsinghua University|—（待生成笔记）|
 |[00113](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00113-GLM-4.5.pdf)|[GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models](https://arxiv.org/abs/2508.06471)|2025|Tsinghua University|—（待生成笔记）|
-|[00157](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00157-GLM-5.pdf)|[GLM-5: from Vibe Coding to Agentic Engineering](https://arxiv.org/abs/2602.15763)|2026|Tsinghua University|—（待生成笔记）|
+|[00157](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00157-GLM-5.pdf)|[GLM-5: from Vibe Coding to Agentic Engineering](https://arxiv.org/abs/2602.15763)|2026|Tsinghua University|[笔记](./notes/papers/2602.15763-v2-glm-5/note.md)|
 |[00160](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00160-AReaL.pdf)|[AReaL: A Large-Scale Asynchronous Reinforcement Learning System for Language Reasoning](https://arxiv.org/abs/2505.24298)|2025|Tsinghua University|—（待生成笔记）|
 |[00218](https://arxiv.org/abs/2610.26770)|[HarnessPro: Recursive Harness Self-Improvement with Pareto Optimization for Performance-Cost Trade-offs](https://arxiv.org/abs/2610.26770)|2026|Tsinghua University|[笔记](./notes/papers/2610.26770-v2-harnesspro/note.md)|
 
