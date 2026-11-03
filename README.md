@@ -262,6 +262,7 @@
 |[00115](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00115-grokking.pdf)|[RL Grokking Recipe: How Does RL Unlock and Transfer New Algorithms in LLMs?](https://arxiv.org/abs/2509.21016)|2025|University of California, Berkeley|—（待生成笔记）|
 |[00145](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00145-SimpleMem.pdf)|[SimpleMem: Efficient Lifelong Memory for LLM Agents](https://arxiv.org/abs/2601.02553)|2026|University of California, Berkeley|—（待生成笔记）|
 |[00182](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00182-CheetahClaws.pdf)|[From Model Scaling to System Scaling: Scaling the Harness in Agentic AI](https://arxiv.org/abs/2605.26112)|2026|University of California, Berkeley|—（待生成笔记）|
+|[00223](https://arxiv.org/abs/2610.36848)|[Evolving Agent Teams](https://arxiv.org/abs/2610.36848)|2026|University of California, Berkeley|[笔记](./notes/papers/2610.36848-v1-evolving-agent-teams/note.md)|
 
 ### Princeton University
 
