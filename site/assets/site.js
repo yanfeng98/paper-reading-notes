@@ -154,7 +154,9 @@
     window.addEventListener('scroll', hideTip, { passive: true });
 
     // Fill the card with square cells: derive the largest quarter-pixel size
-    // that still fits the visible range, with an 8px floor for horizontal scroll.
+    // that fits the visible range, clamped to 8–20px. The 8px floor keeps
+    // horizontal scrolling usable on narrow screens; the 20px ceiling avoids
+    // oversized cells when the current-year view is short.
     function sizeContribution() {
       var view = null;
       for (var i = 0; i < views.length; i += 1) {
@@ -172,7 +174,7 @@
       var gap = parseFloat(getComputedStyle(section).getPropertyValue('--contrib-gap')) || 3;
       var pad = parseFloat(getComputedStyle(months).paddingRight) || 0;
       var cell = (width - pad + gap) / weeks - gap;
-      cell = Math.max(8, Math.min(16, Math.floor(cell * 4) / 4));
+      cell = Math.max(8, Math.min(20, Math.floor(cell * 4) / 4));
       if (weeks * (cell + gap) - gap + pad > width) {
         cell = Math.max(8, cell - 0.25);
       }

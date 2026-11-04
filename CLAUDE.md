@@ -41,7 +41,7 @@
 
 - 源码在 `site/`：`build.py`（仅 Python 标准库）、`templates/home.html`、`templates/doc.html`、`assets/site.css`、`assets/site.js`、`vendor/`（marked/MathJax/Mermaid 与许可证）。构建输出 `_site/`，已加入 `.gitignore`，不提交。
 - `python3 site/build.py --out _site` 会自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；每个 `note.md` 必须有 README 对应行，构建会做双向校验、图片/链接校验和公式/Mermaid 计数校验。`docs/` 支持多篇汇总，都会作为首页 featured 卡片。
-- 首页贡献热力图由构建时的 `git log` 生成，按 UTC+8 归日、统计当前分支提交数，默认展示最近 12 个月并可切换到有提交的自然年。它是构建快照，每次推送 `main` 和每日定时构建时刷新；Actions 的 checkout 必须 `fetch-depth: 0`，浅克隆或没有 `.git` 时构建会隐藏面板并在 stderr 警告。
+- 首页贡献热力图由构建时的 `git log` 生成，按 UTC+8 归日、统计当前分支提交数，默认展示最近 12 个月并可切换到有提交的自然年（当前年份截至今天，标签「YYYY 年（至今）」）。它是构建快照，每次推送 `main` 和每日定时构建时刷新；Actions 的 checkout 必须 `fetch-depth: 0`，浅克隆或没有 `.git` 时构建会隐藏面板并在 stderr 警告。
 - 阅读页按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库。
 - 阅读页对 Mermaid 延迟加载（首图距视口 >2.5 屏时先用「图表加载中…」占位，接近视口才拉 vendor）：核对图数前调用 `window.__ensureMermaid()`（或滚动到首图，观察器只盯第一张）；`_site/assets/vendor/*`（源 `site/vendor/`）的 `?v=` 按 vendor 文件的相对路径 + 内容哈希，与站点资源的 `assetVersion` 分开。汇总同名 PDF 复制到 `_site/docs/<slug>/<slug>.pdf`，并为每篇汇总保留根级 `<slug>.pdf` 兼容别名。
 - 本地构建与 PDF 只写 `_site`/`docs`，**不会自动上线**；要更新网站必须 commit/push，由 Actions 构建部署。

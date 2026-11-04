@@ -704,12 +704,13 @@ def build_heat_ranges(counts: dict[date, int], today: date) -> list[HeatRange]:
         start = date(year, 1, 1)
         if start > today:
             continue
+        is_current = year == today.year
         ranges.append(
             build_heat_range(
                 str(year),
-                f"{year} 年",
+                f"{year} 年（至今）" if is_current else f"{year} 年",
                 start,
-                date(year, 12, 31),
+                today if is_current else date(year, 12, 31),
                 today,
                 counts,
             )

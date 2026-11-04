@@ -482,6 +482,7 @@ main { width: 100%; }
 .contrib-view {
   display: block;
   width: max-content;
+  margin-inline: auto;
 }
 .contrib-months {
   display: grid;
