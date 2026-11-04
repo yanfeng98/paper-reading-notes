@@ -152,7 +152,48 @@
     section.addEventListener('pointerdown', hideTip);
     scroll.addEventListener('scroll', hideTip, { passive: true });
     window.addEventListener('scroll', hideTip, { passive: true });
-    window.addEventListener('resize', hideTip);
+
+    // Fill the card with square cells: derive the largest quarter-pixel size
+    // that still fits the visible range, with an 8px floor for horizontal scroll.
+    function sizeContribution() {
+      var view = null;
+      for (var i = 0; i < views.length; i += 1) {
+        if (!views[i].hidden) {
+          view = views[i];
+          break;
+        }
+      }
+      if (!view) return;
+      var weeks = view.querySelectorAll('.contrib-week').length;
+      var width = scroll.clientWidth;
+      if (!weeks || !width) return;
+      var months = view.querySelector('.contrib-months');
+      if (!months) return;
+      var gap = parseFloat(getComputedStyle(section).getPropertyValue('--contrib-gap')) || 3;
+      var pad = parseFloat(getComputedStyle(months).paddingRight) || 0;
+      var cell = (width - pad + gap) / weeks - gap;
+      cell = Math.max(8, Math.min(16, Math.floor(cell * 4) / 4));
+      if (weeks * (cell + gap) - gap + pad > width) {
+        cell = Math.max(8, cell - 0.25);
+      }
+      section.style.setProperty('--contrib-cell', cell + 'px');
+    }
+
+    // Mobile URL-bar show/hide fires resize without changing the width. Only
+    // re-layout on width changes so a manually scrolled graph is not snapped
+    // back to the latest week while the page is being scrolled vertically.
+    var resizeWidth = document.documentElement.clientWidth;
+    var onResize = debounce(function () {
+      hideTip();
+      if (document.documentElement.clientWidth === resizeWidth) return;
+      resizeWidth = document.documentElement.clientWidth;
+      sizeContribution();
+      requestAnimationFrame(function () {
+        var key = select ? select.value : 'last-12';
+        scroll.scrollLeft = key === 'last-12' ? scroll.scrollWidth : 0;
+      });
+    }, 120);
+    window.addEventListener('resize', onResize);
 
     function activate(key) {
       hideTip();
@@ -167,6 +208,7 @@
       if (totalEl) totalEl.textContent = target.dataset.total || '0';
       if (activeEl) activeEl.textContent = target.dataset.active || '0';
       if (select) select.value = key;
+      sizeContribution();
       requestAnimationFrame(function () {
         scroll.scrollLeft = key === 'last-12' ? scroll.scrollWidth : 0;
       });
@@ -179,11 +221,13 @@
       if (initial !== views[0].dataset.range) {
         activate(initial);
       } else {
+        sizeContribution();
         requestAnimationFrame(function () {
           scroll.scrollLeft = scroll.scrollWidth;
         });
       }
     } else {
+      sizeContribution();
       requestAnimationFrame(function () { scroll.scrollLeft = scroll.scrollWidth; });
     }
   }

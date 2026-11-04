@@ -22,6 +22,7 @@
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 30px rgba(15, 23, 42, 0.05);
   --shadow-lg: 0 18px 60px rgba(79, 70, 229, 0.14);
   --ring: 0 0 0 3px rgba(79, 70, 229, 0.22);
+  --ring-soft: 0 0 0 4px rgba(79, 70, 229, 0.16);
   --heat-0: #EEF1F6;
   --heat-1: #DDE5FF;
   --heat-2: #B9C6FE;
@@ -59,6 +60,7 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 14px 40px rgba(0, 0, 0, 0.22);
   --shadow-lg: 0 22px 70px rgba(0, 0, 0, 0.4);
   --ring: 0 0 0 3px rgba(129, 140, 248, 0.3);
+  --ring-soft: 0 0 0 4px rgba(129, 140, 248, 0.2);
   --heat-0: #1B2436;
   --heat-1: #272C5C;
   --heat-2: #3B3FA8;
@@ -293,7 +295,8 @@ main { width: 100%; }
 }
 .search-box:focus-within {
   border-color: var(--primary);
-  box-shadow: var(--shadow), var(--ring);
+  border-color: color-mix(in srgb, var(--primary) 72%, var(--border));
+  box-shadow: var(--shadow), var(--ring-soft);
 }
 .search-icon {
   position: absolute;
@@ -311,7 +314,15 @@ main { width: 100%; }
   outline: 0;
   background: transparent;
   color: var(--text);
+  caret-color: var(--primary);
   font-size: 14px;
+}
+/* The wrapper owns the focus ring; suppress the global :focus-visible ring on
+   the bare input so the search box shows one clean halo instead of two frames. */
+.search-box input:focus-visible {
+  outline: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 .search-box input::placeholder { color: var(--faint); }
 .search-box input::-webkit-search-cancel-button { filter: grayscale(1); }
@@ -606,10 +617,23 @@ main { width: 100%; }
   .contrib-summary { font-size: 12px; }
 }
 
+@media (min-width: 1180px) {
+  .contrib { --contrib-cell: 15px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .contrib-cell { transition: none; }
   .contrib-cell:not(.is-out):hover { transform: none; }
   .contrib-tip { transition: none; }
+}
+
+/* Box-shadow focus rings disappear in forced-colors mode. */
+@media (forced-colors: active) {
+  .search-box:focus-within,
+  .contrib-scroll:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: 2px;
+  }
 }
 
 /* ---------- library ---------- */
