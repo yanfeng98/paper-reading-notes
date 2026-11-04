@@ -53,7 +53,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 ### 第 4 步：设计统一框架与横向表
 
-先定框架再写正文：章节顺序（默认按编号降序，或按用户指定）、每篇统一的子节模板、速览表列、概念对照的术语表、横向对比的维度。**非迭代类论文**（基准、评测、分析）做**槽位映射**——同一节回答「它测量什么/协议是什么」，不强行套「一轮迭代」的演化闭环；在格子里注明它的定位（如「不提出演化方法」）。
+先定框架再写正文：章节顺序（默认按编号降序，或按用户指定）、每篇统一的子节模板、速览表列、概念对照的术语表、横向对比的维度。**非迭代类论文**（基准、评测、分析）做**槽位映射**——同一节回答「它测量什么/协议是什么」，不强行套「一轮迭代」的演化闭环；在格子里注明它的定位（如「不提出演化方法」）。另一个易混槽位是**「被改对象」**：有的 RSI 论文改的是 **harness/脚手架**，有的用 agent 去驱动**另一个模型的后训练**（被改的是模型权重，harness 固定）；速览的「被改对象」列必须写清（如「模型权重（控制器与 harness 固定）」），不要把两者并成同一个「自进化」结论。
 
 ### 第 5 步：按模板成文
 
@@ -186,17 +186,18 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 13. **CJK 表格加粗**：`**…**` 的闭合标记后面紧接汉字时可能显示字面 `**`；闭合标记后接标点/空格，渲染后目检。
 14. **Mermaid 标签触发整页失败**：阅读页为 CJK 溢出设了 `htmlLabels:false`；Mermaid 11.12 在标签较宽、需要自动换行时，节点/边标签以 `1.`/`1)` 这类有序列表标记开头**且**含 `<br>` 会抛 `splitLineToFitWidth does not support newlines in the line`，整页变成「正文渲染失败」，而 `build.py`、`github_render_check` 都可能通过（`doc_lint.py` 会提示但不阻断）。标签改用 `①②③`/`第 1 步` 或去掉 `<br>`；交付前仍用浏览器实载确认。
 15. **总览图混用设置**：摘要级柱图可能把「有/无上下文管理」「不同 agent 框架」的数字放在同一面板，或混入其他指标的数值；在这类图上直接做跨模型比较容易得出错误结论。跨模型比较以主表为准（无法判断时并列两值并注明冲突），图仍可用于展示与记录原文矛盾（实际发生过：BrowseComp 面板 Claude 标 67.8、表里该档 57.8；Terminal-Bench 面板 DeepSeek 46.4 是另一框架的分数）。
+16. **RSI 类型混同**：把「agent 驱动另一个模型做后训练」与「harness 自进化」都叫 RSI 而不区分被改对象，横向结论会被混为一类——速览的「被改对象」列写清是**模型权重**还是**脚手架**，控制器用哪个模型、训练的是哪个模型也要分开写。
 
 ## 环境与工具
 
-- 本机（2026-10 实测）：poppler 系命令行工具（`pdftotext`/`pdfinfo`/`pdftoppm`）缺失；系统 `python3` 也缺 `pymupdf`/`PIL`/`numpy` 与 `pip`。已装 Miniconda（`~/miniconda3`，base），`pymupdf`/`Pillow`/`numpy` 可用。**本文中的 `python3 -I` 在本机指 `~/miniconda3/bin/python3 -I`**——agent 的非交互 shell 不会自动激活 conda；交互终端经 `conda init bash` 后已指向 conda。ghostscript（`gs`）可作后备：
+- 本机（2026-10/11 实测）：poppler 系命令行工具（`pdftotext`/`pdfinfo`/`pdftoppm`）缺失；系统 `python3` 也缺 `pymupdf`/`PIL`/`numpy` 与 `pip`。已装 Miniconda（`~/miniconda3`，base），`pymupdf`/`Pillow`/`numpy` 可用。**本机 `python3` 现已解析到 `~/miniconda3/bin/python3`（2026-11 复核，`python3 -I` 同样可用）；若某次环境解析到 `/usr/bin/python3`（缺 `pymupdf`），改用 `~/miniconda3/bin/python3 -I` 显式调用。** ghostscript（`gs`）可作后备：
   - 抽文本：`gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite -dTextFormat=3 -sOutputFile=<out.txt> <in.pdf>`；
   - 页数：`gs -q -dNODISPLAY -dNOSAFER -c "(<pdf>) (r) file runpdfbegin pdfpagecount = quit"`；
   - 渲染页面：`gs -q -dNOPAUSE -dBATCH -sDEVICE=png16m -r<N> -dFirstPage=<a> -dLastPage=<b> -sOutputFile=<prefix>-%03d.png <pdf>`；
   - 校验：`sha256sum`、`tail -c 40 <pdf> | strings`（找 `%%EOF`）；
   - 下载：`curl -sSL -m <sec> -A '<UA>' -o <out> <url>`；大文件放后台，别用默认超时。
 - pymupdf 的字体判定（`page.get_text('dict')`）、矢量/图块定位（`get_drawings()`/`get_image_info()`）、局部裁剪（`page.get_pixmap(clip=…)`）与 PIL/numpy 像素测量均可用；换到未装这些包的机器时，把相应核对标注「未做」，不得声称已核。
-- `Read` 工具读 PDF 每次最多 20 页，长文分页读；文本抽取只做检索，公式/表格/上下标以渲染页为准。
+- `Read` 工具可读 PDF（按页呈现，长文分批读，注意单次输出可能被截断）；文本抽取只做检索，公式/表格/上下标以渲染页为准。
 - **无头浏览器可用于页面渲染验证**：本机 `~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome` 已存在（Playwright 缓存），可直接 `--headless=new --dump-dom`；`npx` 安装 mermaid-cli 会超时，不要因此跳过渲染核对。装了 Playwright 时也可用 `render_pdf.mjs` 的 `PLAYWRIGHT_MODULE`。
 - 渲染发布（静态站点 / PDF / Pages）见下一节〈渲染与发布〉。
 - 临时目录 `/tmp/<topic>-docs/<编号>/`；用后清理，不把临时文件提交进仓库。
