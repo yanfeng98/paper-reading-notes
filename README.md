@@ -317,6 +317,7 @@
 |[00178](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00178-Arbor.pdf)|[Toward Generalist Autonomous Research via Hypothesis-Tree Refinement](https://arxiv.org/abs/2606.11926)|2026|Renmin University of China|—（待生成笔记）|
 |[00209](https://arxiv.org/abs/2609.08944)|[SkillAdam: Stable and Efficient Skill Evolution for Agents](https://arxiv.org/abs/2609.08944)|2026|Renmin University of China|—（待生成笔记）|
 |[00210](https://arxiv.org/abs/2609.15779)|[EvoOntology: A Self-Evolving Ontology Layer for Data Agents](https://arxiv.org/abs/2609.15779)|2026|Renmin University of China|—（待生成笔记）|
+|[00224](https://arxiv.org/abs/2611.03178v1)|[CoworkOS: Scaling Agent Coworkers for Real-world Automation](https://arxiv.org/abs/2611.03178v1)|2026|Renmin University of China|[笔记](./notes/papers/2611.03178-v1-coworkos/note.md)|
 
 ### University of Illinois Urbana-Champaign
 
