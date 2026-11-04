@@ -83,6 +83,111 @@
     };
   }
 
+  /* ---------------- contribution graph ---------------- */
+
+  function initContribution() {
+    var section = document.querySelector('[data-contribution]');
+    if (!section) return;
+    var scroll = section.querySelector('[data-contrib-scroll]');
+    var select = section.querySelector('[data-contrib-select]');
+    var range = section.querySelector('[data-contrib-range]');
+    var views = Array.prototype.slice.call(section.querySelectorAll('.contrib-view'));
+    var labelEl = section.querySelector('[data-contrib-label]');
+    var totalEl = section.querySelector('[data-contrib-total]');
+    var activeEl = section.querySelector('[data-contrib-active]');
+    if (!scroll || !views.length) return;
+
+    var tip = document.createElement('div');
+    tip.className = 'contrib-tip';
+    tip.setAttribute('aria-hidden', 'true');
+    var tipDate = document.createElement('span');
+    var tipCount = document.createElement('span');
+    tipCount.className = 'contrib-tip-count';
+    tip.appendChild(tipDate);
+    tip.appendChild(tipCount);
+    section.appendChild(tip);
+
+    function hideTip() {
+      tip.classList.remove('is-visible');
+    }
+
+    function placeTip(cell) {
+      var rect = cell.getBoundingClientRect();
+      var tipRect = tip.getBoundingClientRect();
+      var left = rect.left + rect.width / 2 - tipRect.width / 2;
+      left = Math.max(8, Math.min(left, window.innerWidth - tipRect.width - 8));
+      var top = rect.top - tipRect.height - 8;
+      if (top < 8) top = rect.bottom + 8;
+      tip.style.left = left + 'px';
+      tip.style.top = top + 'px';
+    }
+
+    function showTip(cell) {
+      var parts = (cell.dataset.date || '').split('-');
+      var count = Number(cell.dataset.count || 0);
+      tipDate.textContent = parts.length === 3
+        ? parts[0] + '年' + Number(parts[1]) + '月' + Number(parts[2]) + '日'
+        : '';
+      tipCount.textContent = count > 0 ? count + ' 次提交' : '无提交';
+      tip.classList.add('is-visible');
+      placeTip(cell);
+    }
+
+    section.addEventListener('pointerover', function (event) {
+      if (event.pointerType === 'touch') return;
+      var cell = event.target.closest('.contrib-cell[data-date]');
+      if (!cell || !section.contains(cell)) return;
+      // Keep native title for touch/no-JS; remove it on mouse hover so the
+      // custom tooltip does not stack with the browser's delayed tooltip.
+      if (cell.hasAttribute('title')) cell.removeAttribute('title');
+      showTip(cell);
+    });
+    section.addEventListener('pointerout', function (event) {
+      var cell = event.target.closest('.contrib-cell[data-date]');
+      if (!cell) return;
+      var next = event.relatedTarget;
+      if (next && cell.contains(next)) return;
+      hideTip();
+    });
+    section.addEventListener('pointerdown', hideTip);
+    scroll.addEventListener('scroll', hideTip, { passive: true });
+    window.addEventListener('scroll', hideTip, { passive: true });
+    window.addEventListener('resize', hideTip);
+
+    function activate(key) {
+      hideTip();
+      var target = null;
+      views.forEach(function (view) {
+        var match = view.dataset.range === key;
+        view.hidden = !match;
+        if (match) target = view;
+      });
+      if (!target) return;
+      if (labelEl) labelEl.textContent = target.dataset.label || '';
+      if (totalEl) totalEl.textContent = target.dataset.total || '0';
+      if (activeEl) activeEl.textContent = target.dataset.active || '0';
+      if (select) select.value = key;
+      requestAnimationFrame(function () {
+        scroll.scrollLeft = key === 'last-12' ? scroll.scrollWidth : 0;
+      });
+    }
+
+    if (select && range) {
+      range.hidden = false;
+      select.addEventListener('change', function () { activate(select.value); });
+      var initial = select.value || views[0].dataset.range;
+      if (initial !== views[0].dataset.range) {
+        activate(initial);
+      } else {
+        requestAnimationFrame(function () {
+          scroll.scrollLeft = scroll.scrollWidth;
+        });
+      }
+    } else {
+      requestAnimationFrame(function () { scroll.scrollLeft = scroll.scrollWidth; });
+    }
+  }
+
   /* ---------------- home library ---------------- */
 
   function initHome() {
@@ -1011,6 +1116,9 @@
   }
 
   initTheme();
-  if (page === 'home') initHome();
+  if (page === 'home') {
+    initContribution();
+    initHome();
+  }
   if (page === 'doc') initDoc();
 })();

@@ -6,19 +6,17 @@ name: Build and deploy reading notes
 # were removed when the library reader moved to site/.
 #
 # First-time setup (required once): Settings → Pages → Source = "GitHub Actions".
-# The workflow builds and validates on every relevant push even when Pages is
-# not enabled; deployment steps are skipped with a notice in that case.
+# The workflow builds on every push to main and once a day, so the home-page
+# contribution graph includes every commit and its rolling 12-month window stays
+# fresh even during quiet periods. It validates even when Pages is not enabled;
+# deployment steps are skipped with a notice in that case.
 
 on:
   push:
     branches: [main]
-    paths:
-      - "notes/**"
-      - "docs/**"
-      - "site/**"
-      - "README.md"
-      - ".github/workflows/pages.yml"
-      # skills/** 不参与站点构建；skill-only push 不触发 Pages，需要时手动 Run workflow。
+  schedule:
+    # 00:17 UTC = 08:17 UTC+8; scheduled runs can be delayed by GitHub.
+    - cron: "17 0 * * *"
   workflow_dispatch:
 
 permissions:
@@ -40,6 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The home page contribution graph reads the full commit history.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:

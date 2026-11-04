@@ -10,8 +10,8 @@ copies the note-local assets, and writes a static site to _site/ (ignored by
 git). The workflow uploads that directory to GitHub Pages.
 
 The Markdown body is rendered in the browser by the vendored marked bundle;
-this builder emits the library home, per-document reader shells, manifests, and
-the copied source files.
+this builder emits the library home (including a git-derived contribution
+graph), per-document reader shells, manifests, and the copied source files.
 """
 
 from __future__ import annotations
@@ -24,9 +24,11 @@ import math
 import posixpath
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
 from urllib.parse import urlsplit
@@ -41,6 +43,11 @@ REPO_URL = "https://github.com/yanfeng98/paper-reading-notes"
 SITE_TITLE = "Paper Reading Notes"
 SITE_DESCRIPTION = "论文阅读笔记：精读、方法拆解与横向对比。"
 DEFAULT_OUT = ROOT / "_site"
+
+# The contribution graph buckets commits by the day in UTC+8. GitHub uses each
+# commit's own offset, so a commit just before/after midnight may land one day
+# apart; the site keeps a single schedule so the graph is stable.
+CONTRIB_TZ = timezone(timedelta(hours=8))
 
 FENCE_OPEN = re.compile(r"^\s*(`{3,}|~{3,})(.*)$")
 FENCE_CLOSE = re.compile(r"^\s*(`{3,}|~{3,})\s*$")
@@ -103,6 +110,24 @@ class Entry:
     @property
     def root(self) -> str:
         return "../" * self.depth
+
+
+@dataclass
+class HeatCell:
+    day: date | None
+    count: int
+    level: int
+    out: bool = False
+
+
+@dataclass
+class HeatRange:
+    key: str
+    label: str
+    weeks: list[list[HeatCell]]
+    months: list[tuple[int, int, str]]
+    total: int
+    active_days: int
 
 
 def iter_outside_fences(text: str) -> Iterable[tuple[int, str]]:
@@ -548,6 +573,242 @@ def readme_stats_html(stats: dict[str, int]) -> str:
     )
 
 
+def warn_contribution(message: str) -> None:
+    print(f"WARNING: 贡献热力图未生成：{message}", file=sys.stderr)
+
+
+def collect_commit_days() -> dict[date, int] | None:
+    """Count commits per UTC+8 day for the current branch.
+
+    Returns None when git history is unavailable or shallow; the home page then
+    omits the panel instead of showing a misleading graph.
+    """
+    if not (ROOT / ".git").exists():
+        warn_contribution("仓库没有 .git，无法读取提交历史")
+        return None
+    try:
+        shallow = subprocess.run(
+            ["git", "-C", str(ROOT), "rev-parse", "--is-shallow-repository"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if shallow.returncode == 0 and shallow.stdout.strip() == "true":
+            warn_contribution("浅克隆只有最近提交；请用 fetch-depth: 0 完整克隆")
+            return None
+        log = subprocess.run(
+            ["git", "-C", str(ROOT), "log", "--pretty=format:%aI"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if log.returncode != 0:
+            message = log.stderr.strip() or "未知错误"
+            warn_contribution(f"git log 失败：{message}")
+            return None
+    except OSError as exc:
+        warn_contribution(f"无法运行 git：{exc}")
+        return None
+
+    counts: dict[date, int] = {}
+    for line in log.stdout.splitlines():
+        raw = line.strip()
+        if not raw:
+            continue
+        try:
+            stamp = datetime.fromisoformat(raw)
+        except ValueError:
+            continue
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=timezone.utc)
+        day = stamp.astimezone(CONTRIB_TZ).date()
+        counts[day] = counts.get(day, 0) + 1
+    return counts
+
+
+def heat_level(count: int) -> int:
+    if count <= 0:
+        return 0
+    if count == 1:
+        return 1
+    if count <= 3:
+        return 2
+    if count <= 6:
+        return 3
+    return 4
+
+
+def heat_month_labels(weeks: list[list[HeatCell]]) -> list[tuple[int, int, str]]:
+    starts: list[tuple[int, str]] = []
+    last_month = None
+    last_col = -99
+    for col, week in enumerate(weeks):
+        first = next((cell.day for cell in week if cell.day is not None), None)
+        if first is None or first.month == last_month:
+            continue
+        # Keep at least three columns between labels so month names never collide.
+        if last_month is None or col - last_col >= 3:
+            starts.append((col, f"{first.month}月"))
+            last_month = first.month
+            last_col = col
+    labels: list[tuple[int, int, str]] = []
+    for index, (col, label) in enumerate(starts):
+        end = starts[index + 1][0] if index + 1 < len(starts) else len(weeks)
+        labels.append((col, max(1, end - col), label))
+    return labels
+
+
+def build_heat_range(
+    key: str,
+    label: str,
+    start: date,
+    end: date,
+    today: date,
+    counts: dict[date, int],
+) -> HeatRange:
+    # Sunday-first columns, matching GitHub's contribution graph.
+    grid_start = start - timedelta(days=(start.weekday() + 1) % 7)
+    grid_end = end + timedelta(days=6 - ((end.weekday() + 1) % 7))
+    weeks: list[list[HeatCell]] = []
+    cursor = grid_start
+    while cursor <= grid_end:
+        week: list[HeatCell] = []
+        for offset in range(7):
+            day = cursor + timedelta(days=offset)
+            if day < start or day > end or day > today:
+                week.append(HeatCell(None, 0, 0, out=True))
+            else:
+                count = counts.get(day, 0)
+                week.append(HeatCell(day, count, heat_level(count)))
+        weeks.append(week)
+        cursor += timedelta(days=7)
+    total = sum(cell.count for week in weeks for cell in week if not cell.out)
+    active = sum(
+        1 for week in weeks for cell in week if not cell.out and cell.count > 0
+    )
+    return HeatRange(key, label, weeks, heat_month_labels(weeks), total, active)
+
+
+def build_heat_ranges(counts: dict[date, int], today: date) -> list[HeatRange]:
+    ranges = [
+        build_heat_range(
+            "last-12",
+            "最近 12 个月",
+            today - timedelta(days=364),
+            today,
+            today,
+            counts,
+        )
+    ]
+    for year in sorted({day.year for day in counts}, reverse=True):
+        start = date(year, 1, 1)
+        if start > today:
+            continue
+        ranges.append(
+            build_heat_range(
+                str(year),
+                f"{year} 年",
+                start,
+                date(year, 12, 31),
+                today,
+                counts,
+            )
+        )
+    return ranges
+
+
+def render_heat_view(item: HeatRange, hidden: bool) -> str:
+    months = "".join(
+        f'<span style="grid-column:{col + 1} / span {span}">{html.escape(label)}</span>'
+        for col, span, label in item.months
+    )
+    weeks: list[str] = []
+    for week in item.weeks:
+        cells: list[str] = []
+        for cell in week:
+            if cell.out or cell.day is None:
+                cells.append('<span class="contrib-cell is-out" aria-hidden="true"></span>')
+                continue
+            detail = f"{cell.count} 次提交" if cell.count else "无提交"
+            title = f"{cell.day.year}年{cell.day.month}月{cell.day.day}日 · {detail}"
+            cells.append(
+                f'<span class="contrib-cell" data-level="{cell.level}" '
+                f'data-date="{cell.day.isoformat()}" data-count="{cell.count}" '
+                f'title="{html.escape(title, quote=True)}" aria-hidden="true"></span>'
+            )
+        weeks.append(f'<div class="contrib-week">{"".join(cells)}</div>')
+    aria = f"{item.label}：共 {item.total} 次提交，{item.active_days} 天有提交"
+    hidden_attr = " hidden" if hidden else ""
+    return (
+        f'<div class="contrib-view" data-range="{html.escape(item.key)}" '
+        f'data-label="{html.escape(item.label)}" data-total="{item.total}" '
+        f'data-active="{item.active_days}" role="img" '
+        f'aria-label="{html.escape(aria, quote=True)}"{hidden_attr}>'
+        f'<div class="contrib-months" aria-hidden="true" '
+        f'style="--contrib-weeks:{len(item.weeks)}">{months}</div>'
+        f'<div class="contrib-weeks">{"".join(weeks)}</div>'
+        f"</div>"
+    )
+
+
+def render_contribution_panel() -> str:
+    counts = collect_commit_days()
+    if counts is None:
+        return ""
+    today = datetime.now(CONTRIB_TZ).date()
+    ranges = build_heat_ranges(counts, today)
+    primary = ranges[0]
+    select = ""
+    if len(ranges) > 1:
+        options = "".join(
+            f'<option value="{html.escape(item.key)}">{html.escape(item.label)}</option>'
+            for item in ranges
+        )
+        select = (
+            '<label class="contrib-range" data-contrib-range hidden>'
+            "<span>范围</span>"
+            '<select data-contrib-select autocomplete="off" aria-label="选择贡献统计范围">'
+            f"{options}</select></label>"
+        )
+    views = "".join(
+        render_heat_view(item, hidden=index > 0)
+        for index, item in enumerate(ranges)
+    )
+    return (
+        '<section class="contrib" data-contribution aria-labelledby="contrib-title">'
+        '<div class="contrib-card">'
+        '<div class="contrib-head">'
+        '<div class="contrib-heading">'
+        '<p class="contrib-eyebrow">ACTIVITY</p>'
+        '<h2 class="contrib-title" id="contrib-title">提交热力图</h2>'
+        '<p class="contrib-summary" aria-live="polite" aria-atomic="true">'
+        f'<span data-contrib-label>{html.escape(primary.label)}</span> · 共 '
+        f'<strong data-contrib-total>{primary.total}</strong> 次提交 · '
+        f'<strong data-contrib-active>{primary.active_days}</strong> 天有提交'
+        "</p></div>"
+        f"{select}</div>"
+        '<div class="contrib-body">'
+        '<div class="contrib-weekdays" aria-hidden="true">'
+        "<span>日</span><span>一</span><span>二</span><span>三</span>"
+        "<span>四</span><span>五</span><span>六</span></div>"
+        '<div class="contrib-scroll" data-contrib-scroll tabindex="0" '
+        'role="region" aria-label="提交热力图，可横向滚动">'
+        f"{views}</div></div>"
+        '<div class="contrib-foot">'
+        f'<a class="contrib-link" href="{REPO_URL}/commits/main" '
+        'target="_blank" rel="noopener noreferrer">在 GitHub 查看提交历史 '
+        '<span aria-hidden="true">↗</span></a>'
+        '<div class="contrib-legend" aria-hidden="true">'
+        "<span>少</span>"
+        '<span class="contrib-cell" data-level="0"></span>'
+        '<span class="contrib-cell" data-level="1"></span>'
+        '<span class="contrib-cell" data-level="2"></span>'
+        '<span class="contrib-cell" data-level="3"></span>'
+        '<span class="contrib-cell" data-level="4"></span>'
+        "<span>多</span></div></div></div></section>"
+    )
+
+
 def card_search_text(entry: Entry) -> str:
     return " ".join(
         [
@@ -705,6 +966,7 @@ def build_site(out_dir: Path) -> None:
             "VENDOR_VERSION": vendor_version,
             "REPO_URL": REPO_URL,
             "STATS_HTML": readme_stats_html(stats),
+            "CONTRIB_HTML": render_contribution_panel(),
             "FEATURED_HTML": render_featured(summaries),
             "CARDS_HTML": cards,
             "FILTER_COUNTS_JSON": json_for_script(filter_counts),
