@@ -24,6 +24,9 @@ desktop.ini
 __pycache__/
 *.py[cod]
 
+# Node dependencies (local Playwright install for render checks)
+node_modules/
+
 # Temporary files
 *.tmp
 

@@ -14,19 +14,20 @@
  *   # 已部署的线上页面：
  *   node .../check_render.mjs --url https://example.com/notes/blogs/<slug>/
  *
+ * Playwright 默认自动查找（本地 node_modules 与 npx 缓存）；
+ * 找不到时用 PLAYWRIGHT_MODULE=/path/to/node_modules/playwright 指定。
+ *
  * 退出码：0 = 全部通过；1 = 有未通过项。
  */
-import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { loadPlaywright } from './load-playwright.mjs';
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '..', '..', '..');
-const PLAYWRIGHT =
-  process.env.PLAYWRIGHT_MODULE ||
-  '/home/luyanfeng/luyanfeng/nano-dnf/node_modules/playwright';
 
 const argv = process.argv.slice(2);
 function take(flag, fallback) {
@@ -95,13 +96,7 @@ function startServer() {
 
 if (!URL_ARG && !PAGE) throw new Error('需要 --page（本地 _site 相对路径）或 --url（已部署地址）');
 
-const require = createRequire(import.meta.url);
-let playwright;
-try {
-  playwright = require(PLAYWRIGHT);
-} catch {
-  playwright = require('playwright');
-}
+const playwright = loadPlaywright();
 
 let server = null;
 let url = URL_ARG;

@@ -7,7 +7,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 默认产物是一份 `docs/<slug>.md`，把同一主题的多篇**已读论文**按同一套问题重写，并在篇间做横向对比与术语消歧。**权威是原文**——按文档声明的版本重新获取的原文，不是记忆，也不是各篇笔记（笔记是索引与二次材料；两者冲突时回原文，并在文档里标明版本）。
 
-本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）、`<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数）与 `<该目录>/scripts/check_render.mjs`（用 Playwright 真实时间加载**阅读页**，核对公式/图数、TOC、表格与残留标记；首页等非阅读页只做加载与 JS 错误检查），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
+本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）、`<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数）与 `<该目录>/scripts/check_render.mjs`（用 Playwright 真实时间加载**阅读页**，核对公式/图数、TOC、表格与残留标记；首页等非阅读页只做加载与 JS 错误检查），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`；两个脚本共用 `scripts/load-playwright.mjs` 自动定位 Playwright。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
 
 ## 这份 skill 管什么、不管什么
 
@@ -198,7 +198,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
   - 下载：`curl -sSL -m <sec> -A '<UA>' -o <out> <url>`；大文件放后台，别用默认超时。
 - pymupdf 的字体判定（`page.get_text('dict')`）、矢量/图块定位（`get_drawings()`/`get_image_info()`）、局部裁剪（`page.get_pixmap(clip=…)`）与 PIL/numpy 像素测量均可用；换到未装这些包的机器时，把相应核对标注「未做」，不得声称已核。
 - `Read` 工具可读 PDF（按页呈现，长文分批读，注意单次输出可能被截断）；文本抽取只做检索，公式/表格/上下标以渲染页为准。
-- **无头浏览器可用于页面渲染验证**：本机 `~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome` 已存在（Playwright 缓存），可直接 `--headless=new --dump-dom`；`npx` 安装 mermaid-cli 会超时，不要因此跳过渲染核对。装了 Playwright 时也可用 `render_pdf.mjs` 的 `PLAYWRIGHT_MODULE`。
+- **无头浏览器可用于页面渲染验证**：本机 `~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome` 已存在（Playwright 缓存），可直接 `--headless=new --dump-dom`；`npx` 安装 mermaid-cli 会超时，不要因此跳过渲染核对。`check_render.mjs` / `render_pdf.mjs` 会自动查找 `playwright`/`playwright-core`（含 npx 缓存），找不到时再用 `PLAYWRIGHT_MODULE` 指定。
 - 渲染发布（静态站点 / PDF / Pages）见下一节〈渲染与发布〉。
 - 临时目录 `/tmp/<topic>-docs/<编号>/`；用后清理，不把临时文件提交进仓库。
 
@@ -237,10 +237,10 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 ### PDF
 
-- 先生成站点，再打印：
+- 先生成站点，再打印（脚本自动查找 Playwright；找不到时在命令前加 `PLAYWRIGHT_MODULE=<模块路径>`）：
   ```bash
   python3 site/build.py --out _site
-  PLAYWRIGHT_MODULE=<playwright 模块路径> node <skill 目录>/scripts/render_pdf.mjs \
+  node <skill 目录>/scripts/render_pdf.mjs \
     --site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf
   python3 site/build.py --out _site   # 把新 PDF 复制进 _site
   ```

@@ -20,9 +20,9 @@ python3 site/build.py --out _site
 python3 -m http.server 8000 --directory _site
 # 打开 http://127.0.0.1:8000/
 
-# 重新生成汇总 PDF（需要 Playwright；本机复用 nano-dnf 的安装与 Chromium 缓存）
-PLAYWRIGHT_MODULE=/home/luyanfeng/luyanfeng/nano-dnf/node_modules/playwright \
-  node skills/summarize-paper-methods/scripts/render_pdf.mjs \
+# 重新生成汇总 PDF（需要 Playwright；脚本会自动查找本地 node_modules / npx 缓存，
+# 找不到时再用 PLAYWRIGHT_MODULE=/path/to/playwright 指定）
+node skills/summarize-paper-methods/scripts/render_pdf.mjs \
   --site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf
 
 # 重新构建，把新 PDF 复制进 _site

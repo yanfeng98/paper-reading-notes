@@ -4,27 +4,27 @@
  *
  * 先构建站点：
  *   python3 site/build.py --out _site
- * 再生成汇总 PDF：
- *   PLAYWRIGHT_MODULE=/path/to/playwright \
- *     node skills/summarize-paper-methods/scripts/render_pdf.mjs \
+ * 再生成汇总 PDF（Playwright 默认自动查找；找不到时用 PLAYWRIGHT_MODULE 指定）：
+ *   node skills/summarize-paper-methods/scripts/render_pdf.mjs \
  *     --site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf
+ *
+ *   # 或显式指定 Playwright：
+ *   PLAYWRIGHT_MODULE=/path/to/playwright node .../render_pdf.mjs ...
  *
  * 默认：_site、docs/rsi-methods/index.html、docs/rsi-methods.pdf。
  * 脚本会强制浅色 + print media、等待 window.__renderDone、检查渲染错误/计数/
  * 打印溢出，失败时不写出 PDF。CI 不运行本脚本；PDF 由本地生成并提交。
  */
 
-import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
 import { mkdir, readFile } from 'node:fs/promises';
 import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { loadPlaywright } from './load-playwright.mjs';
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '..', '..', '..');
-const PLAYWRIGHT =
-  process.env.PLAYWRIGHT_MODULE ||
-  '/home/luyanfeng/luyanfeng/nano-dnf/node_modules/playwright';
 
 const argv = process.argv.slice(2);
 function take(flag, fallback) {
@@ -92,13 +92,7 @@ function startServer() {
   });
 }
 
-const require = createRequire(import.meta.url);
-let playwright;
-try {
-  playwright = require(PLAYWRIGHT);
-} catch {
-  playwright = require('playwright');
-}
+const playwright = loadPlaywright();
 
 if (!(await import('node:fs/promises').then((fs) => fs.stat(SITE)).catch(() => null))) {
   throw new Error(`站点目录不存在：${SITE}\n先运行：python3 site/build.py --out _site`);
