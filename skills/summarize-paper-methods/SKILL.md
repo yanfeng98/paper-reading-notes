@@ -193,6 +193,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 19. **样本量与模式混用**：小样本诊断实验的 n 不一定等于下游基准消融的 n；RL 消融要写清 thinking / non-thinking，对应的评测还要写清 scaffold 与 user simulator。不要把 Table 5 的 50 条任务套到 Figure 5 的评测上（实际发生过）。
 20. **范围与频次被放大**：把某两个基准的硬件写成全部评测、把 per layer per step 的通信写成每 step 一次、把「秒级创建数万个/累计 5100 万」写成「几十万次」。机制与开销类数字必须带作用域（per layer / per step / per rank）与口径（速率 vs 累计量）。
 21. **并列产物/实验的归属**：一段话里并列两个产物或两个实验时，数字与素材要分别归属（实际发生过：56 段素材属于 teaser 视频，被写成架构讲解动画的素材）。
+22. **图注/表题的绝对化措辞与比例标注**：图注、表题或正文写「consistently / leads across the board」时，回表找反例（实际发生过：Table 3/4 的 caption 都写 consistently；Table 3 的 EvalPlus、Table 4 的 LiveBench/MATH500/EvalPlus 就是反例）；折线图的加速比标注按箭头的 x 坐标配对，先按图注的 batch 设置区分，相差 0.1×（如 2.2× vs 2.3×）可能只是取整（实际发生过：Fig 7b 的 1.8× 属 512K、2.2× 属 1M；对调后与 6.3×、2.3×、>2× 混在一起，写成「四个版本」）。
 
 ## 环境与工具
 
