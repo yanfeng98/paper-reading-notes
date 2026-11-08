@@ -423,7 +423,7 @@ for t in range(T):
 
 ## 与本仓库其他条目的关系
 
-- **[00132 Kimi Linear](https://arxiv.org/abs/2510.26692)**（本仓库未生成笔记）：K3 的 KDA 直接来自它，混合比例 3:1 也沿用它。K3 的两处实质改动是①把 log-decay 从无界负 Softplus 换成有界缩放 sigmoid（消除对角线 tile 的逐位置对计算），②输出门从低秩换成输入相关全秩。想理解 K3 的注意力，应先读 Kimi Linear 的分块形式与 UT 变换。
+- **[00132 Kimi Linear](../2510.26692-v2-kimi-linear/note.md)**（arXiv:2510.26692，本仓库已有笔记）：K3 的 KDA 直接来自它，混合比例 3:1 也沿用它。K3 的两处实质改动是①把 log-decay 从无界负 Softplus 换成有界缩放 sigmoid（消除对角线 tile 的逐位置对计算），②输出门从低秩换成输入相关全秩。想理解 K3 的注意力，应先读 Kimi Linear 的分块形式与 UT 变换。
 - **[00156 Kimi K2.5](../2602.02276-v2-kimi-k2.5/note.md)**（arXiv:2602.02276，本仓库已有笔记）：K3 的视觉通路（MoonViT 系列 + MLP projector、帧内/帧间分解、时间池化）与「按域训专家再合并」的后训练思路都承接 K2.5；最大差别是视觉编码器从 SigLIP 初始化改为从零训练，以及把 9 个专家用 MOPD 合并（K2.5 用的是 PARL 编排 + 冻结 subagent，两者不是同一机制，别混）。
 - **[00172 DeepSeek-V4](https://arxiv.org/abs/2606.19348) / [00191 DeepSeek-V4.1-Flash](../deepseek-v4.1-flash/note.md)**（前者本仓库未生成笔记，后者有笔记）：同一问题域（百万 token 上下文 + 大规模 MoE 训练/推理）。K3 走的是「KDA 固定状态 + 稀疏全局层」的混合注意力路线，与 KV cache 压缩路线不同；本笔记未读这两篇的细节，此处只作定位。
 

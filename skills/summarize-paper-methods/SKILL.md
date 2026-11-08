@@ -193,7 +193,9 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 19. **样本量与模式混用**：小样本诊断实验的 n 不一定等于下游基准消融的 n；RL 消融要写清 thinking / non-thinking，对应的评测还要写清 scaffold 与 user simulator。不要把 Table 5 的 50 条任务套到 Figure 5 的评测上（实际发生过）。
 20. **范围与频次被放大**：把某两个基准的硬件写成全部评测、把 per layer per step 的通信写成每 step 一次、把「秒级创建数万个/累计 5100 万」写成「几十万次」。机制与开销类数字必须带作用域（per layer / per step / per rank）与口径（速率 vs 累计量）。
 21. **并列产物/实验的归属**：一段话里并列两个产物或两个实验时，数字与素材要分别归属（实际发生过：56 段素材属于 teaser 视频，被写成架构讲解动画的素材）。
-22. **图注/表题的绝对化措辞与比例标注**：图注、表题或正文写「consistently / leads across the board」时，回表找反例（实际发生过：Table 3/4 的 caption 都写 consistently；Table 3 的 EvalPlus、Table 4 的 LiveBench/MATH500/EvalPlus 就是反例）；折线图的加速比标注按箭头的 x 坐标配对，先按图注的 batch 设置区分，相差 0.1×（如 2.2× vs 2.3×）可能只是取整（实际发生过：Fig 7b 的 1.8× 属 512K、2.2× 属 1M；对调后与 6.3×、2.3×、>2× 混在一起，写成「四个版本」）。
+22. **图注/表题的绝对化措辞与比例标注**：图注、表题或正文写「consistently / leads across the board」时，回表找反例（实际发生过：Table 3/4 的 caption 都写 consistently；Table 3 的 EvalPlus、Table 4 的 LiveBench/MATH500/EvalPlus 就是反例）；折线图的加速比标注按箭头的 x 坐标配对，先按图注的 batch 设置区分，相差 0.1×（如 2.2× vs 2.3×）可能只是取整（实际发生过：Fig 7b 的 1.8× 属 512K、2.2× 属 1M；对调后与 6.3×、2.3×、>2× 混在一起，写成「四个版本」）。**同一句并列两个 benchmark 时要逐个找反例**（实际发生过：K2 p17 同句称 Tau2 与 ACEBench「outperforming all baselines」，只核了 ACEBench，漏了 Tau2 micro 上 Opus 67.6 > 66.1）；**原文的 usually/can 是风险描述，不能写成实际发生**。
+23. **micro-average vs 简单平均**：K2 的 Tau2 66.1 是 micro，三个 domain 70.6/56.5/65.8 简单平均是 64.3；横向汇总不要把两者混用（可用基线模型的 domain 均值同样低于其 micro 值交叉验证）。
+24. **跨笔记比例/层数**：K3 的 69 层 KDA + 24 层 MLA 来自 23 组 3:1 块（69 KDA + 23 MLA）再补 1 层 MLA；69:24 本身不是 3:1；引用别把总层数比当成块内比。
 
 ## 环境与工具
 

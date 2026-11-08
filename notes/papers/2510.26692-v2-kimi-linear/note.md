@@ -336,7 +336,7 @@ Moonlight-Instruct 超过 8K 的任务未评，所以 RULER@128k 与 @1M 两行�
 ## 与本仓库其他条目的关系
 
 - **Kimi K3（00225，arXiv:2607.24653v2）**：直接后继。K3 采用 69 层 KDA + 24 层 MLA 的 3:1 块、全部 MLA NoPE、KDA 的全秩输出门与 FP32 注意力输出，并把规模推到 2.78T 总参数 / 104.2B 激活；K3 的 FlashKDA 与 KCP（KDA Context Parallelism）直接延续这条 KDA 工程线；MoonEP 则是另一条 MoE 通信线。读 K3 笔记的 §2.1 时，本文的 Eq. 1–9 与 §6.2 是公式和分块算法的出处。
-- **Kimi K2（00083，arXiv:2507.20534）**：本文的 1.4T 预训练语料、MuonClip、WSD、SFT/RL 配方都沿用 K2；MLA 也是 K2 使用的注意力。K2 笔记尚未生成。
+- **Kimi K2（00083，arXiv:2507.20534，[笔记](../2507.20534-v2-kimi-k2/note.md)）**：本文的 1.4T 预训练语料、MuonClip、WSD、SFT/RL 配方都沿用 K2；MLA 也是 K2 使用的注意力。K2 的 MuonClip、架构取舍与后训练细节见该笔记。
 - **Kimi K2.5（00156，arXiv:2602.02276v2）**：同门后续（视觉 agentic），本文没有直接引用；如果关心 KDA 在多模态/agent 场景的延续，可在读完本文后接 K2.5 与 K3。
 - **DeepSeek-V3.2（00133，arXiv:2512.02556v1）**：本文 §7.1 引的是 **DeepSeek-V3.2-Exp**（参考文献 [18]，DSA，token-level sparse attention），与仓库已读的 DeepSeek-V3.2 正式报告同族但不是同一份；后者可作为「稀疏注意力」这条对照的另一端。本文的核心论点是：稀疏注意力检索更细，但要存全量 KV cache；线性注意力状态固定、更省内存，二者不互斥，未来可以混合。
 - **Moonlight**：Appendix D 的基线（16B 总参数 / 3B 激活），不在本仓库清单中；它也是本文 scaling law 的架构来源（参考文献 [62] 是 Muon 论文，Moonlight 是该论文的模型）。
