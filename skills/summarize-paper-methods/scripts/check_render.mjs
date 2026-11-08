@@ -6,6 +6,8 @@
  * 还没渲染。本脚本在 renderDone 后显式调用 window.__ensureMermaid()，再数 SVG，
  * 避免「还没加载」被误判成「渲染失败」；同时不使用 --virtual-time-budget，
  * 以免虚拟时钟冻结 Date.now() 让多图拿到相同 id（Mermaid 用它生成图表 id）。
+ * 同时报告正文 `<img>` 数量（images）与加载失败数（brokenImages）；images 需与
+ * 源文档里的 `![...]` 数量对照，brokenImages 必须为 0。
  *
  * 用法：
  *   python3 site/build.py --out _site
@@ -125,6 +127,21 @@ try {
     }
     if (typeof window.__ensureMermaid === 'function') await window.__ensureMermaid();
     const content = document.querySelector('.prose') || document.body;
+    const imgs = [...content.querySelectorAll('img')].filter(
+      (img) => (img.getAttribute('src') || '').trim()
+    );
+    // 正文图常见 loading="lazy"；先强制 eager 并等 load/error，避免把未加载的
+    // 底部配图误算成正常（只对已开始加载的图做 broken 判定会漏报）。
+    imgs.forEach((img) => { img.loading = 'eager'; });
+    await Promise.all(imgs.map((img) => {
+      if (img.complete) return Promise.resolve();
+      return new Promise((resolveImg) => {
+        const done = () => resolveImg();
+        img.addEventListener('load', done, { once: true });
+        img.addEventListener('error', done, { once: true });
+        setTimeout(done, 5000);
+      });
+    }));
     // 只统计正文文本节点里的 `**`：行内代码、代码块、公式与 Mermaid 里的 `**`
     // 是正常内容（例如文档在讲 Markdown 语法），不应算作未渲染的加粗标记。
     const countLiteralStars = () => {
@@ -156,6 +173,8 @@ try {
       mathExpected: Number(document.body.dataset.expectedMath || 0),
       mermaid: content.querySelectorAll('.mermaid svg').length,
       mermaidExpected: Number(document.body.dataset.expectedMermaid || 0),
+      images: imgs.length,
+      brokenImages: imgs.filter((img) => img.complete && img.naturalWidth === 0).length,
       leftovers: content.querySelectorAll('pre > code.language-mermaid, pre > code.language-math').length,
       toc: document.querySelectorAll('#toc-list a').length,
       headings: content.querySelectorAll('h2, h3').length,
@@ -178,6 +197,7 @@ try {
   if (pageErrors.length) problems.push('页面 JS 错误：' + pageErrors.join(' | '));
   if (report.math !== report.mathExpected) problems.push(`公式 ${report.math}/${report.mathExpected}`);
   if (report.mermaid !== report.mermaidExpected) problems.push(`Mermaid ${report.mermaid}/${report.mermaidExpected}`);
+  if (report.brokenImages) problems.push(`配图加载失败：${report.brokenImages}/${report.images}`);
   if (report.leftovers) problems.push(`未转换的围栏：${report.leftovers}`);
   if (report.headings && !report.toc) problems.push('TOC 为空');
   if (report.literalStars) problems.push(`正文残留字面 **：${report.literalStars} 处`);
