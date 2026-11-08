@@ -7,19 +7,19 @@
 | 标题 | DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence |
 | 作者 | DeepSeek-AI（arXiv 元信息 319 条 = 团队名 DeepSeek-AI + 318 位个人；PDF 附录 A.1 按首字母排序，分 Research & Engineering 270 人与 Business & Compliance 48 人，共 318 人，`*` 标注已离开团队者） |
 | 机构 | DeepSeek-AI（首页只写团队名与 `research@deepseek.com`，没有个人机构行） |
-| 来源 | [Hugging Face 技术报告 PDF](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf)（README 00172 的标题列链接；编号列指向本地归档 `./papers/00172-DeepSeek_V4.pdf`）；同题 arXiv 条目 [arXiv:2606.19348v1](https://arxiv.org/abs/2606.19348v1) |
-| 版本历史 | 本笔记基于本地归档 `papers/00172-DeepSeek_V4.pdf`：58 页，4,479,907 B，sha256 `f4cbe4fcbd2888b25b2890a98cc6ef4ce0489df7c93e140b6f853c451d3f5c52`，PDF 创建时间 2026-04-24 09:57 UTC。完整 arXiv v1 于 2026-04-26 提交，58 页，4,713,349 B，sha256 `55b2d72f772ac00de2e470b3ee08443c648d971c7f57c52d6202895665e5978d`，creator `arXiv GenPDF`、无 `creationDate`；两版关系见下节 |
+| 来源 | [arXiv:2606.19348v1](https://arxiv.org/abs/2606.19348v1)（官方页；README 00172 的编号列与标题列自 2026-11-08 均改指此处，见「归档说明」）；首次收录时来自 [Hugging Face 技术报告 PDF](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf) |
+| 版本历史 | 本笔记基于 HF build 的本地归档 `papers/00172-DeepSeek_V4.pdf`（**该文件已于 2026-11-08 按用户要求删除**，下列尺寸与 sha256 为删除前记录）：58 页，4,479,907 B，sha256 `f4cbe4fcbd2888b25b2890a98cc6ef4ce0489df7c93e140b6f853c451d3f5c52`，PDF 创建时间 2026-04-24 09:57 UTC。完整 arXiv v1 于 2026-04-26 提交，58 页，4,713,349 B，sha256 `55b2d72f772ac00de2e470b3ee08443c648d971c7f57c52d6202895665e5978d`，creator `arXiv GenPDF`、无 `creationDate`；两版关系见下节 |
 | 许可 | PDF 未写许可；arXiv abs 页为 `nonexclusive-distrib/1.0`；HF 页面 2026-11-08 本机不可达（curl 000），权重许可未核验 |
 | 阅读日期 | 2026-11-08 |
-| 阅读范围 | 本地 58 页全文：§1–§6（p4–45）、References（p45–53）、附录 A–B（p54–58）。Table 1/6/7/8/9/10/11/12/13/14 对渲染页逐格核对，Table 2/3/4/5 对渲染页核对；Figure 1/2/3/4/5/6/7/8/9/10/11/12 已看渲染页，Figure 13 在 p43 渲染页上看到但未逐张分析，Figure 14/15 只按图注引用；References 未逐条阅读 |
-| 核对凭据 | 本地 PDF 58 页、4,479,907 B、sha256 见上。渲染页：p1（Figure 1，170 dpi）、p6/9/11/15/23/30/31/32/33/40/41/43（170–200 dpi）、p28/38/39/44/55/57/58（170 dpi）；Figure 10 另用 PDF 矢量 marker 质心 + 刻度文字中心定标（p41，200 dpi 渲染交叉核对；HLE 横轴 0=117.8 pt、20k=154.7 pt，纵轴 5=241.9、40=112.5；TB2 横轴 20k=355.4、40k=427.9，纵轴 30=239.0、70=112.8）。裁剪（300 dpi，单位 pt）：Figure 2 从 p6，框 150–446 × 78–384，成品 1234×1275；Figure 3 从 p9，70–530 × 80–308，1918×951；Figure 4 从 p11，150–445 × 78–254，1230×734；Figure 5 从 p15，66–526 × 366–551，1917×771；Figure 9 从 p40，115–480 × 330–516，1521×775。每张按元素清单点名（图内标题、图例、坐标轴标题与刻度、图内注记、共享轴标签），边缘无黑边，重裁像素差 ≈0。否定性断言检索词：`QK-Clip`、`H800`/`H100`/`H20`、`GPU hours`、`ablation`、`variance`/`seed`/`error bar`、`license`、`multimodal`、`interleav` |
-| 归档说明 | README 00172 是「非 arXiv 来源」条目，原文已归档为 `papers/00172-DeepSeek_V4.pdf`；本笔记不改编号列的指向。HF 2026-11-08 本机不可达，无法确认 HF 上是否已有更新版本；arXiv 侧只查到 v1 |
+| 阅读范围 | 删除前的本地 HF build 58 页全文：§1–§6（p4–45）、References（p45–53）、附录 A–B（p54–58）。Table 1/6/7/8/9/10/11/12/13/14 对渲染页逐格核对，Table 2/3/4/5 对渲染页核对；Figure 1/2/3/4/5/6/7/8/9/10/11/12 已看渲染页，Figure 13 在 p43 渲染页上看到但未逐张分析，Figure 14/15 只按图注引用；References 未逐条阅读 |
+| 核对凭据 | 删除前的本地 HF build：58 页、4,479,907 B、sha256 见上。渲染页：p1（Figure 1，170 dpi）、p6/9/11/15/23/30/31/32/33/40/41/43（170–200 dpi）、p28/38/39/44/55/57/58（170 dpi）；Figure 10 另用 PDF 矢量 marker 质心 + 刻度文字中心定标（p41，200 dpi 渲染交叉核对；HLE 横轴 0=117.8 pt、20k=154.7 pt，纵轴 5=241.9、40=112.5；TB2 横轴 20k=355.4、40k=427.9，纵轴 30=239.0、70=112.8）。裁剪（300 dpi，单位 pt）：Figure 2 从 p6，框 150–446 × 78–384，成品 1234×1275；Figure 3 从 p9，70–530 × 80–308，1918×951；Figure 4 从 p11，150–445 × 78–254，1230×734；Figure 5 从 p15，66–526 × 366–551，1917×771；Figure 9 从 p40，115–480 × 330–516，1521×775。每张按元素清单点名（图内标题、图例、坐标轴标题与刻度、图内注记、共享轴标签），边缘无黑边，重裁像素差 ≈0。否定性断言检索词：`QK-Clip`、`H800`/`H100`/`H20`、`GPU hours`、`ablation`、`variance`/`seed`/`error bar`、`license`、`multimodal`、`interleav` |
+| 归档说明 | 2026-11-08 按用户要求把 README 00172 的编号列从本地归档 `./papers/00172-DeepSeek_V4.pdf` 改指 [arXiv 官方页](https://arxiv.org/abs/2606.19348)。同日按用户要求删除本地归档 `papers/00172-DeepSeek_V4.pdf`（该文件是本次阅读与复核的实际基准，删除前记录的页数、字节数与 sha256 见上两行；此后仓库不再保留原文，可复现的官方版本只有 arXiv v1）。HF 2026-11-08 本机不可达，无法确认 HF 上是否已有更新版本；arXiv 侧只查到 v1 |
 
 ---
 
 ## 复核记录
 
-**2026-11-08（第 1 轮，依 check-paper-note，基准本地 `papers/00172-DeepSeek_V4.pdf`，sha256 `f4cbe4fcbd2888b25b2890a98cc6ef4ce0489df7c93e140b6f853c451d3f5c52`）**：重读 58 页全文；Table 1/6/7/8/9/10/11/12/13/14 对渲染页逐格核对，Table 2/3/4/5 对 p30/31/33 渲染页核对；Figure 1/2/3/4/5/6/7/8/9/10/11/12 对渲染页核对，Figure 10 另用 PDF 矢量 marker 质心 + 刻度文字中心定标。另从 arXiv 完整重下 v1（58 页，4,713,349 B，sha256 `55b2d72f772ac00de2e470b3ee08443c648d971c7f57c52d6202895665e5978d`），修正了第一轮把 2,040,544 B 半截下载误当完整 v1 的证据错误。
+**2026-11-08（第 1 轮，依 check-paper-note，基准本地 `papers/00172-DeepSeek_V4.pdf`（该文件已于同日按用户要求删除），sha256 `f4cbe4fcbd2888b25b2890a98cc6ef4ce0489df7c93e140b6f853c451d3f5c52`）**：重读 58 页全文；Table 1/6/7/8/9/10/11/12/13/14 对渲染页逐格核对，Table 2/3/4/5 对 p30/31/33 渲染页核对；Figure 1/2/3/4/5/6/7/8/9/10/11/12 对渲染页核对，Figure 10 另用 PDF 矢量 marker 质心 + 刻度文字中心定标。另从 arXiv 完整重下 v1（58 页，4,713,349 B，sha256 `55b2d72f772ac00de2e470b3ee08443c648d971c7f57c52d6202895665e5978d`），修正了第一轮把 2,040,544 B 半截下载误当完整 v1 的证据错误。
 
 两个独立只读子 agent（全篇 A–H + 关键数字/图表读数）的主要发现已逐条复验并修正：
 
@@ -54,7 +54,7 @@
 
 ## 版本关系：HF build 与 arXiv v1
 
-两版同为 58 页、同题、同摘要，抽查的 Table 1（p28）、Table 6（p38）、Table 7（p39）数字一致。完整 arXiv v1 是 4,713,349 B、sha256 `55b2d72f772ac00de2e470b3ee08443c648d971c7f57c52d6202895665e5978d`，creator 为 `arXiv GenPDF`，顶层没有 `creationDate`；本地版 4,479,907 B、sha256 `f4cbe4…`，PDF 创建时间 2026-04-24 09:57 UTC。**完整 v1 的文本层是正常的**——早期复核时下到过一份 2,040,544 B 的半截文件，`pymupdf` 报 `unknown cid font type` / `object is not a stream`，那是截断伪影，不是 arXiv 文件本身的问题。
+两版同为 58 页、同题、同摘要，抽查的 Table 1（p28）、Table 6（p38）、Table 7（p39）数字一致。完整 arXiv v1 是 4,713,349 B、sha256 `55b2d72f772ac00de2e470b3ee08443c648d971c7f57c52d6202895665e5978d`，creator 为 `arXiv GenPDF`，顶层没有 `creationDate`；本地版（2026-11-08 已删除）4,479,907 B、sha256 `f4cbe4…`，PDF 创建时间 2026-04-24 09:57 UTC。**完整 v1 的文本层是正常的**——早期复核时下到过一份 2,040,544 B 的半截文件，`pymupdf` 报 `unknown cid font type` / `object is not a stream`，那是截断伪影，不是 arXiv 文件本身的问题。
 
 能确认的实质差异是**章节重组与引用增删**，不只是排版：
 
@@ -66,7 +66,7 @@
 - **参考文献**：arXiv v1 有 MiniLLM（Gu et al., 2024；Y. Gu, L. Dong, F. Wei, M. Huang），本地版没有这一条。
 - **无法判定构建先后**：完整 v1 没有 `creationDate`；arXiv 提交日期（2026-04-26）晚于本地 PDF 创建时间（2026-04-24），但 v1 的章节结构看起来更像「FP4 还在 post-training」的旧稿。没有源码历史，不能仅凭日期判断谁更新。
 
-结论：两版是同一稿的两个编辑版本，关键表格数字一致；本笔记以本地 HF 版为准。若之后 arXiv 出现 v2，需要重新核对章节号与引用。
+结论：两版是同一稿的两个编辑版本，关键表格数字一致；本笔记以本地 HF 版为准（该 PDF 已删除，仅存上述哈希与页数记录；若之后 arXiv 出现 v2，需要重新核对章节号与引用）。
 
 ---
 
