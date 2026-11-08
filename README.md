@@ -357,6 +357,7 @@
 |编号|论文|年份|论文单位|笔记地址|
 |:-:|:-:|:-:|:-:|:-:|
 |[00219](https://claude.com/resources/articles/building-agents-when-to-fold-subagents-into-your-main-agent-loop)|[Building agents: When to fold subagents into your main agent loop](https://claude.com/resources/articles/building-agents-when-to-fold-subagents-into-your-main-agent-loop)|2026|Anthropic|[笔记](./notes/blogs/claude-when-to-fold-subagents/note.md)|
+|[00226](https://www.anthropic.com/research/components-of-agent-memory)|[The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory)|2026|Anthropic|[笔记](./notes/blogs/anthropic-components-of-agent-memory/note.md)|
 
 ### 其他
 
