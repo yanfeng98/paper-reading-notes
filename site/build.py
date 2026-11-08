@@ -61,6 +61,7 @@ NOTE_ROW = re.compile(
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 IMAGE = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
 READ_DATE = re.compile(r"^\|\s*阅读日期\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|")
+READ_DATE_BULLET = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?阅读日期(?:\*\*)?\s*[：:]\s*(\d{4}-\d{2}-\d{2})")
 CJK = re.compile(r"[㐀-鿿]")
 LATIN_WORD = re.compile(r"[A-Za-z0-9]+")
 URL_PARTS = ("http://", "https://", "mailto:", "tel:", "data:", "//")
@@ -313,9 +314,10 @@ def truncate(text: str, limit: int = 180) -> str:
 
 def extract_read_date(text: str) -> str:
     for _, line in iter_outside_fences(text):
-        match = READ_DATE.match(line)
-        if match:
-            return match.group(1)
+        for pattern in (READ_DATE, READ_DATE_BULLET):
+            match = pattern.match(line)
+            if match:
+                return match.group(1)
     return ""
 
 
