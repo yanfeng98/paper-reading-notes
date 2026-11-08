@@ -96,6 +96,7 @@
 |[00214](https://arxiv.org/abs/2609.14858)|[Dream-RSI: Recursive Self-Improvement through Evolving Worlds](https://dream-rsi.com/)|2026|Google|[笔记](./notes/papers/dream-rsi/note.md)|
 |[00212](https://arxiv.org/abs/2609.24972)|[RRSI: Regularized Recursive Self-Improvement of Agent Harnesses](https://arxiv.org/abs/2609.24972)|2026|Google Cloud AI Research|[笔记](./notes/papers/2609.24972-v3-rrsi/note.md)|
 |[00220](https://arxiv.org/abs/2610.14224)|[Harness^2: Recursive Agent Harnessing for an Open World](https://arxiv.org/abs/2610.14224)|2026|Google Cloud AI Research|[笔记](./notes/papers/2610.14224-v1-harness2/note.md)|
+|[00227](https://arxiv.org/abs/2609.19644)|[ScientistTwo: Pioneering the Human Knowledge Frontier with Autonomous AI](https://arxiv.org/abs/2609.19644)|2026|Google Cloud AI Research|[笔记](./notes/papers/2609.19644-v1-scientisttwo/note.md)|
 
 ### Meta
 
