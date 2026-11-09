@@ -225,7 +225,7 @@
 |:-:|:-:|:-:|:-:|:-:|
 |[00142](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00142-FlowSearch.pdf)|[FlowSearch: Advancing deep research with dynamic structured knowledge flow](https://arxiv.org/abs/2510.08521)|2025|Shanghai Artificial Intelligence Laboratory|—（待生成笔记）|
 |[00188](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00188-Harness-of-Harness.pdf)|[Harness-of-Harness: Multi-Day Autonomous Software Development with Continual Improvement](https://arxiv.org/abs/2609.01481)|2026|Shanghai Artificial Intelligence Laboratory|—（待生成笔记）|
-|[00198](https://arxiv.org/abs/2606.09498)|[Self-Harness: Harnesses That Improve Themselves](https://arxiv.org/abs/2606.09498)|2026|Shanghai Artificial Intelligence Laboratory|—（待生成笔记）|
+|[00198](https://arxiv.org/abs/2606.09498)|[Self-Harness: Harnesses That Improve Themselves](https://arxiv.org/abs/2606.09498)|2026|Shanghai Artificial Intelligence Laboratory|[笔记](./notes/papers/2606.09498-v3-self-harness/note.md)|
 
 ### Huawei
 
