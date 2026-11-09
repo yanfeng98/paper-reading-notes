@@ -189,7 +189,7 @@
 |:-:|:-:|:-:|:-:|:-:|
 |[00162](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00162-ThinkOmni.pdf)|[ThinkOmni: Lifting Textual Reasoning to Omni-modal Scenarios via Guidance Decoding](https://arxiv.org/abs/2602.23306)|2026|Xiaomi|—（待生成笔记）|
 |[00204](https://arxiv.org/abs/2608.22793)|[TRACE: A Self-Evolving Skill Bank for Consistent, Limit-Aware LLM Agents](https://arxiv.org/abs/2608.22793)|2026|Xiaomi|—（待生成笔记）|
-|[00213](https://arxiv.org/abs/2609.29166)|[HarnessPAI: An Evolving Harness for Physical AI](https://arxiv.org/abs/2609.29166)|2026|Xiaomi|—（待生成笔记）|
+|[00213](https://arxiv.org/abs/2609.29166)|[HarnessPAI: An Evolving Harness for Physical AI](https://arxiv.org/abs/2609.29166)|2026|Xiaomi|[笔记](./notes/papers/2609.29166-v2-harnesspai/note.md)|
 
 ### OPPO
 
