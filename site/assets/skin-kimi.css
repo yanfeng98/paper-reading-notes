@@ -11,7 +11,7 @@ html[data-skin="kimi"] {
   --surface: #F7F7F5;
   --surface-2: #FAFAF8;
   --text: rgba(0, 0, 0, 0.90);
-  --body: rgba(0, 0, 0, 0.62);
+  --body: rgba(0, 0, 0, 0.60);
   --muted: rgba(0, 0, 0, 0.55);
   --faint: rgba(0, 0, 0, 0.40);
   --border: rgba(0, 0, 0, 0.10);
@@ -102,6 +102,8 @@ html[data-skin="kimi"] .topbar {
   left: 0;
   right: 0;
   width: 100%;
+  min-height: 65px;
+  padding: 12px clamp(20px, 5.5vw, 80px);
   background: transparent;
   border-bottom-color: transparent;
   backdrop-filter: none;
@@ -111,7 +113,13 @@ html[data-skin="kimi"] .topbar {
 }
 
 html[data-skin="kimi"] .topbar.is-scrolled {
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  background: rgba(250, 248, 244, 0.92);
+  border-bottom-color: rgba(0, 0, 0, 0.07);
+  backdrop-filter: blur(10px);
+}
+
+html[data-skin="kimi"][data-theme="dark"] .topbar.is-scrolled {
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
   border-bottom-color: var(--border);
   backdrop-filter: blur(18px) saturate(1.2);
 }
@@ -134,15 +142,19 @@ html[data-skin="kimi"] .brand-mark {
 }
 
 html[data-skin="kimi"] .brand-text em { color: #fff; }
-html[data-skin="kimi"] .brand-text { font-weight: 500; letter-spacing: 0.02em; }
+html[data-skin="kimi"] .brand-text {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
 
 html[data-skin="kimi"] .kimi-nav {
   display: flex;
   align-items: center;
-  gap: 26px;
-  margin-left: 26px;
-  font-size: 13px;
-  letter-spacing: 0.02em;
+  gap: 32px;
+  margin-left: 48px;
+  font-size: 16px;
+  letter-spacing: 0.01em;
 }
 
 html[data-skin="kimi"] .kimi-nav a { color: rgba(255, 255, 255, 0.70); }
@@ -255,6 +267,34 @@ html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.i
   color: var(--text);
 }
 
+html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link[href*="github"] {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link[href*="github"]:hover {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+
+/* Primary action uses the same solid ink pill as the original "Try Kimi". */
+html[data-skin="kimi"] .topbar-link[href*="github"] {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+html[data-skin="kimi"] .topbar-link[href*="github"]:hover {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+html[data-skin="kimi"] .topbar.is-scrolled .topbar-link[href*="github"] {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+
 /* ---------- home hero ---------- */
 
 html[data-skin="kimi"] .hero {
@@ -303,9 +343,9 @@ html[data-skin="kimi"] .hero-scrim {
 
 html[data-skin="kimi"][data-theme="light"] .hero-scrim {
   background:
-    radial-gradient(ellipse at 50% 44%, rgba(5, 8, 11, 0.30), transparent 62%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 28%),
-    linear-gradient(0deg, var(--bg) 0%, rgba(230, 230, 230, 0.72) 12%, rgba(5, 8, 11, 0.12) 48%, rgba(5, 8, 11, 0.32) 100%);
+    radial-gradient(ellipse at 50% 44%, rgba(5, 8, 11, 0.20), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 22%),
+    linear-gradient(0deg, rgba(5, 8, 11, 0.18) 0%, transparent 18%);
 }
 
 html[data-skin="kimi"] .hero-glow { display: none; }
@@ -316,8 +356,11 @@ html[data-skin="kimi"] .hero-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   width: 100%;
   max-width: 1200px;
+  min-height: 100svh;
+  box-sizing: border-box;
   margin: 0 auto;
   padding: 130px clamp(20px, 6vw, 72px) 84px;
   text-align: center;
@@ -326,10 +369,18 @@ html[data-skin="kimi"] .hero-inner {
 
 html[data-skin="kimi"] .eyebrow { display: none; }
 
+html[data-skin="kimi"] .hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-top: clamp(40px, 12vh, 140px);
+}
+
 html[data-skin="kimi"] .hero-mark-wrap {
   position: relative;
   display: block;
-  margin: 0 0 18px;
+  margin: 0;
 }
 
 html[data-skin="kimi"] .hero-mark {
@@ -430,20 +481,47 @@ html[data-skin="kimi"] .hero-inner .hero-meta { display: none; }
 
 html[data-skin="kimi"] .kimi-hero-lower {
   display: block;
-  max-width: 1120px;
+  max-width: none;
   margin: 0 auto;
-  padding: 70px clamp(20px, 5vw, 56px) 0;
-  text-align: center;
+  padding: 176px max(20px, calc((100vw - 800px) / 2)) 0;
+  text-align: left;
+}
+
+html[data-skin="kimi"] .kimi-intro {
+  max-width: 800px;
+  margin: 0 0 56px;
+}
+
+html[data-skin="kimi"] .kimi-intro h1 {
+  max-width: 800px;
+  margin: 0 0 24px;
+  color: var(--text);
+  font-family: var(--reading);
+  font-size: clamp(1.75rem, 2.5vw, 2rem);
+  font-weight: 450;
+  line-height: 1.19;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+html[data-skin="kimi"] .kimi-intro .hero-lede {
+  max-width: 800px;
+  margin: 0;
+  color: var(--body);
+  font-family: var(--reading);
+  font-size: 16px;
+  line-height: 1.5;
+  text-shadow: none;
 }
 
 html[data-skin="kimi"] .kimi-hero-lower .hero-meta { display: block; }
 
 html[data-skin="kimi"] .kimi-hero-lower .hero-stats {
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px 26px;
   margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 html[data-skin="kimi"] .kimi-hero-lower .hero-stats strong {
@@ -454,7 +532,7 @@ html[data-skin="kimi"] .kimi-hero-lower .hero-stats strong {
 }
 
 html[data-skin="kimi"] .kimi-hero-lower .hero-tools {
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   margin-top: 28px;
 }
@@ -486,20 +564,46 @@ html[data-skin="kimi"] .kimi-hero-lower .search-kbd {
 html[data-skin="kimi"] .kimi-hero-lower .index-link { color: var(--muted); }
 html[data-skin="kimi"] .kimi-hero-lower .index-link:hover { color: var(--text); }
 
+html[data-skin="kimi"] .hero-copy h1,
+html[data-skin="kimi"] .hero-copy .hero-lede { display: none; }
+
 html[data-skin="kimi"] .hero-scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin: 46px 0 0;
-  color: rgba(255, 255, 255, 0.50);
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  animation: kimi-float 2.8s ease-in-out infinite;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--reading);
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+  animation: kimi-hint 3.2s ease-in-out infinite;
 }
 
-html[data-skin="kimi"] .hero-scroll span { font-size: 13px; }
-html[data-skin="kimi"][data-theme="light"] .hero-scroll { color: rgba(0, 0, 0, 0.46); }
+html[data-skin="kimi"] .hero-scroll-caret {
+  display: grid;
+  place-items: center;
+  height: 12px;
+  color: rgba(255, 255, 255, 0.86);
+  filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.35));
+}
+
+html[data-skin="kimi"] .hero-scroll-caret svg { display: block; }
+
+html[data-skin="kimi"] .hero-scroll-label { display: block; }
+
+@keyframes kimi-hint {
+  0%, 100% { opacity: 0.78; transform: translate(-50%, 0); }
+  50% { opacity: 1; transform: translate(-50%, -4px); }
+}
 
 @keyframes kimi-float {
   0%, 100% { transform: translateY(0); opacity: 0.55; }
@@ -571,19 +675,20 @@ html[data-skin="kimi"] .library-kicker {
 
 html[data-skin="kimi"] .library-heading h2 {
   margin: 0;
-  font-family: var(--ui);
-  font-size: clamp(2rem, 2.6vw, 2.6rem);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
+  font-family: var(--reading);
+  font-size: clamp(1.75rem, 2.5vw, 2rem);
+  font-weight: 450;
+  line-height: 1.19;
+  letter-spacing: -0.04em;
 }
 
 html[data-skin="kimi"] .library-lede {
-  max-width: 620px;
+  max-width: 800px;
   margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.85;
+  color: var(--body);
+  font-family: var(--reading);
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 html[data-skin="kimi"] .library-toolbar {
@@ -897,23 +1002,24 @@ html[data-skin="kimi"] .doc {
 
 html[data-skin="kimi"] .doc-header {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 100svh;
-  margin: 0 0 clamp(56px, 7vw, 92px);
-  padding: 180px 0 92px;
+  display: block;
+  min-height: 0;
+  margin: 0 0 48px;
+  padding: 0;
   border: 0;
   isolation: isolate;
 }
 
 html[data-skin="kimi"] .doc-cover {
   display: block;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
+  position: relative;
+  top: auto;
+  bottom: auto;
+  left: auto;
   width: 100vw;
+  height: 100svh;
+  margin-left: calc(50% - 50vw);
+  margin-bottom: 0;
   overflow: hidden;
   z-index: 0;
   background: var(--bg-soft);
@@ -921,6 +1027,27 @@ html[data-skin="kimi"] .doc-cover {
 }
 
 html[data-skin="kimi"] .doc-cover.is-positioned { visibility: visible; }
+
+/* The original hero carries only the model wordmark; keep the same
+   quiet, centered signature instead of putting the article title on it. */
+html[data-skin="kimi"] .doc-cover::before {
+  content: "Paper Reading Notes";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--reading);
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-align: center;
+  text-shadow: 0 2px 38px rgba(0, 0, 0, 0.42);
+  pointer-events: none;
+}
 
 html[data-skin="kimi"] .doc-cover img {
   display: block;
@@ -975,85 +1102,75 @@ html[data-skin="kimi"] .doc-header > *:not(.doc-cover) {
 
 html[data-skin="kimi"] .doc-kicker {
   gap: 10px 14px;
-  color: rgba(255, 255, 255, 0.66);
+  margin-top: 18px;
+  color: var(--muted);
   font-size: 11px;
   letter-spacing: 0.04em;
 }
 
-html[data-skin="kimi"] .doc-id { color: rgba(255, 255, 255, 0.86); font-weight: 500; }
+html[data-skin="kimi"] .doc-id { color: var(--text); font-weight: 500; }
 
 html[data-skin="kimi"] .kind-badge,
 html[data-skin="kimi"] .kind-blog,
 html[data-skin="kimi"] .kind-summary {
   padding: 2px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.10);
-  color: rgba(255, 255, 255, 0.82);
+  background: transparent;
+  color: var(--muted);
   font-size: 9px;
   font-weight: 500;
   letter-spacing: 0.06em;
-  backdrop-filter: blur(6px);
+  backdrop-filter: none;
 }
 
 html[data-skin="kimi"] .doc-header h1 {
-  max-width: 1040px;
-  margin: 20px 0 14px;
-  color: #fff;
+  max-width: 800px;
+  margin: 176px 0 24px;
+  color: var(--text);
   font-family: var(--reading);
-  font-size: clamp(2.4rem, 5.2vw, 4.2rem);
-  font-weight: 500;
-  line-height: 1.12;
+  font-size: 32px;
+  font-weight: 450;
+  line-height: 1.19;
   letter-spacing: -0.04em;
   text-wrap: balance;
-  text-shadow: 0 2px 34px rgba(0, 0, 0, 0.38);
+  text-shadow: none;
 }
 
 html[data-skin="kimi"] .doc-paper-title {
-  max-width: 760px;
-  margin: 0 0 16px;
-  color: rgba(255, 255, 255, 0.70);
+  max-width: 800px;
+  margin: 0 0 24px;
+  color: var(--body);
   font-family: var(--reading);
-  font-size: 15px;
-  line-height: 1.8;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 html[data-skin="kimi"] .doc-meta {
   margin-top: 18px;
-  color: rgba(255, 255, 255, 0.60);
-  font-size: 11px;
+  color: var(--muted);
+  font-size: 12px;
   letter-spacing: 0.02em;
 }
 
-html[data-skin="kimi"] .doc-meta span + span::before { color: rgba(255, 255, 255, 0.28); }
+html[data-skin="kimi"] .doc-meta span + span::before { color: var(--faint); }
 
 html[data-skin="kimi"] .doc-links { gap: 16px; margin-top: 18px; }
-html[data-skin="kimi"] .doc-link { color: rgba(255, 255, 255, 0.66); }
-html[data-skin="kimi"] .doc-link:hover { color: #fff; }
+html[data-skin="kimi"] .doc-link { color: var(--muted); }
+html[data-skin="kimi"] .doc-link:hover { color: var(--text); }
 
-html[data-skin="kimi"] .doc-scroll {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 42px 0 0;
-  color: rgba(255, 255, 255, 0.46);
-  font-size: 9px;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  animation: kimi-float 2.8s ease-in-out infinite;
-}
-html[data-skin="kimi"] .doc-scroll span { font-size: 12px; }
+html[data-skin="kimi"] .doc-scroll { display: none; }
 
 /* ---------- prose ---------- */
 
 html[data-skin="kimi"] .prose {
   color: var(--body);
   font-family: var(--reading);
-  font-size: 17px;
-  line-height: 1.9;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
-html[data-skin="kimi"] .prose p { margin: 0 0 1.2em; text-wrap: pretty; }
+html[data-skin="kimi"] .prose p { margin: 0 0 24px; text-wrap: pretty; }
 
 html[data-skin="kimi"] .prose h2,
 html[data-skin="kimi"] .prose h3,
@@ -1068,22 +1185,22 @@ html[data-skin="kimi"] .prose h2 {
   margin: 112px 0 24px;
   padding-left: 0;
   font-size: 28px;
-  font-weight: 500;
+  font-weight: 450;
   line-height: 36px;
 }
 html[data-skin="kimi"] .prose h2::before { content: none; }
 
 html[data-skin="kimi"] .prose h3 {
-  margin: 50px 0 16px;
+  margin: 48px 0 16px;
   font-size: 22px;
-  font-weight: 500;
+  font-weight: 450;
   line-height: 28px;
 }
 
 html[data-skin="kimi"] .prose h4 {
   margin: 32px 0 12px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 24px;
   color: var(--body);
 }
@@ -1092,13 +1209,14 @@ html[data-skin="kimi"] .prose > :first-child { margin-top: 0; }
 
 html[data-skin="kimi"] .prose a {
   color: var(--text);
-  text-decoration: underline;
+  text-decoration: none;
   text-decoration-color: color-mix(in srgb, var(--accent) 48%, transparent);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
 }
 html[data-skin="kimi"] .prose a:hover {
   color: var(--accent);
+  text-decoration: underline;
   text-decoration-color: var(--accent);
 }
 
@@ -1190,7 +1308,7 @@ html[data-skin="kimi"] .prose p:has(> img:only-child) {
 @media (min-width: 1360px) {
   html[data-skin="kimi"] .prose figure,
   html[data-skin="kimi"] .prose p:has(> img:only-child) {
-    width: min(1040px, calc(100vw - 488px));
+    width: min(1040px, calc(100vw - 96px));
     margin-left: 50%;
     transform: translateX(-50%);
   }
@@ -1211,18 +1329,18 @@ html[data-skin="kimi"] .prose p:has(> img:only-child) img {
   max-width: 100%;
   height: auto;
   margin: 0 auto;
-  border-radius: 6px;
+  border-radius: 12px;
 }
 
-html[data-skin="kimi"] .prose img { border-radius: 6px; }
+html[data-skin="kimi"] .prose img { border-radius: 12px; }
 
 html[data-skin="kimi"] .prose figcaption {
   max-width: 800px;
   margin: 12px auto 0;
   color: var(--faint);
-  font-family: var(--ui);
-  font-size: 11.5px;
-  line-height: 1.65;
+  font-family: var(--reading);
+  font-size: 14px;
+  line-height: 22px;
   text-align: center;
 }
 
@@ -1251,12 +1369,13 @@ html[data-skin="kimi"] .noscript-note { color: var(--muted); font-family: var(--
 
 html[data-skin="kimi"] .toc {
   position: fixed;
-  top: 118px;
-  right: 24px;
-  width: 220px;
-  max-height: calc(100vh - 150px);
-  padding: 4px 0 16px 20px;
-  border-left: 1px solid var(--border);
+  top: 200px;
+  left: 24px;
+  right: auto;
+  width: 236px;
+  max-height: calc(100vh - 250px);
+  padding: 0 0 16px;
+  border-left: 0;
   z-index: 10;
   opacity: 0;
   pointer-events: none;
@@ -1279,11 +1398,11 @@ html[data-skin="kimi"] .toc-title {
 
 html[data-skin="kimi"] .toc nav { gap: 1px; }
 html[data-skin="kimi"] .toc a {
-  padding: 6px 0 6px 10px;
+  padding: 9px 0 9px 12px;
   border-left: 1px solid transparent;
-  color: var(--faint);
-  font-size: 11.5px;
-  line-height: 1.55;
+  color: color-mix(in srgb, var(--text) 45%, transparent);
+  font-size: 14px;
+  line-height: 1.6;
 }
 html[data-skin="kimi"] .toc a:hover { color: var(--text); text-decoration: none; }
 html[data-skin="kimi"] .toc a.is-active {
@@ -1402,25 +1521,26 @@ html[data-skin="kimi"] .hero-media img {
 }
 
 @media (max-width: 760px) {
-  html[data-skin="kimi"] .topbar { min-height: 58px; }
+  html[data-skin="kimi"] .topbar { min-height: 58px; padding: 10px 20px; }
   html[data-skin="kimi"] .hero-inner { padding: 112px 20px 64px; }
+  html[data-skin="kimi"] .hero-copy { padding-top: 10vh; }
   html[data-skin="kimi"] .hero-mark { width: clamp(8rem, 40vw, 14rem); }
-  html[data-skin="kimi"] .hero h1 { font-size: 1.08rem; letter-spacing: 0.12em; text-indent: 0.12em; }
-  html[data-skin="kimi"] .hero-lede { margin-top: 16px; font-size: 0.9rem; }
-  html[data-skin="kimi"] .kimi-hero-lower { padding-top: 52px; }
-  html[data-skin="kimi"] .hero-scroll { margin-top: 34px; }
+  html[data-skin="kimi"] .kimi-hero-lower { padding-top: 96px; }
+  html[data-skin="kimi"] .hero-scroll { bottom: 18px; font-size: 15px; }
   html[data-skin="kimi"] .contrib { padding-top: 58px; }
   html[data-skin="kimi"] .library-heading { margin-top: 40px; }
   html[data-skin="kimi"] .cards { grid-template-columns: 1fr; gap: 30px; }
   html[data-skin="kimi"] .doc-layout { padding-bottom: 84px; }
   html[data-skin="kimi"] .doc { width: calc(100vw - 32px); }
   html[data-skin="kimi"] .doc-header {
-    min-height: 100svh;
-    padding: 118px 0 62px;
-    margin-bottom: 44px;
+    min-height: 0;
+    padding: 0;
+    margin-bottom: 32px;
   }
-  html[data-skin="kimi"] .doc-header h1 { font-size: clamp(2rem, 9vw, 2.9rem); }
-  html[data-skin="kimi"] .prose { font-size: 16px; line-height: 1.85; }
+  html[data-skin="kimi"] .doc-kicker { margin-top: 18px; }
+  html[data-skin="kimi"] .doc-header h1 { font-size: 28px; line-height: 1.2; margin-top: 96px; }
+  html[data-skin="kimi"] .doc-cover::before { font-size: clamp(1.7rem, 7vw, 2.4rem); }
+  html[data-skin="kimi"] .prose { font-size: 16px; line-height: 1.55; }
   html[data-skin="kimi"] .prose h2 { font-size: 24px; line-height: 31px; margin-top: 64px; }
   html[data-skin="kimi"] .prose h3 { font-size: 20px; line-height: 26px; margin-top: 40px; }
   html[data-skin="kimi"] .prose figure,
@@ -1446,6 +1566,8 @@ html[data-skin="kimi"] .hero-media img {
   html[data-skin="kimi"] .hero-scrim,
   html[data-skin="kimi"] .doc-cover,
   html[data-skin="kimi"] .reading-progress { display: none !important; }
+  html[data-skin="kimi"] .doc-header h1 { margin-top: 0; }
+  html[data-skin="kimi"] .doc-kicker { margin-top: 0; }
 }
 
 /* ---------- static cloud haze + hero appearance controls ---------- */

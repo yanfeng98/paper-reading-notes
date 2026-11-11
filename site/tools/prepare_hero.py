@@ -19,13 +19,40 @@ HERE = Path(__file__).resolve().parent
 SOURCE = HERE / "hero-source.jpg"
 ASSETS = HERE.parent / "assets"
 
+# Global mean/std of the Kimi K3.1 editorial hero (measured once from the
+# published page). Only these aggregate statistics are used; the reference
+# image itself is not stored or redistributed.
+REFERENCE_MEAN = np.array([143.1, 153.8, 159.9], dtype=np.float32)
+REFERENCE_STD = np.array([49.7, 41.1, 35.2], dtype=np.float32)
+COLOR_MATCH = 0.6
+# Lift the shadows a little; the reference photograph's cloud sea is airier and
+# its dark ridges sit closer to the midtones than the generated source.
+SHADOW_GAMMA = 0.8
+
+
+def match_reference(image: Image.Image) -> Image.Image:
+    """Shift the generated photo's colour distribution toward the reference.
+
+    A partial blend keeps the source's own lighting and texture while removing
+    the heavy blue cast and excess contrast that made the first version look
+    artificial next to the original page.
+    """
+    data = np.asarray(image, dtype=np.float32)
+    mean = data.reshape(-1, 3).mean(axis=0)
+    std = data.reshape(-1, 3).std(axis=0)
+    corrected = (data - mean) / std * REFERENCE_STD + REFERENCE_MEAN
+    corrected = 255.0 * np.power(np.clip(corrected, 0, 255) / 255.0, SHADOW_GAMMA)
+    blended = data * (1 - COLOR_MATCH) + corrected * COLOR_MATCH
+    return Image.fromarray(np.clip(blended, 0, 255).astype(np.uint8), "RGB")
+
 
 def main() -> None:
     image = Image.open(SOURCE).convert("RGB")
     image = ImageOps.fit(image, (2400, 1350), method=Image.Resampling.LANCZOS)
-    image = ImageEnhance.Brightness(image).enhance(1.03)
+    image = match_reference(image)
+    image = ImageEnhance.Brightness(image).enhance(1.02)
     image = ImageEnhance.Contrast(image).enhance(1.02)
-    image = ImageEnhance.Color(image).enhance(0.96)
+    image = ImageEnhance.Color(image).enhance(0.98)
     image = image.filter(ImageFilter.UnsharpMask(radius=1.1, percent=45, threshold=3))
 
     ASSETS.mkdir(parents=True, exist_ok=True)

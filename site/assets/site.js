@@ -103,10 +103,8 @@
     var kimi = currentSkin() === 'kimi';
     var hero = document.querySelector('.hero');
     var cover = document.querySelector('.doc-cover');
-    var immersive = hero || (cover && cover.parentElement);
-    var threshold = immersive ? Math.max(24, immersive.offsetHeight - 80) : 24;
-    if (topbar) topbar.classList.toggle('is-scrolled', kimi && window.scrollY > threshold);
-    var pastCover = !cover || window.scrollY > cover.parentElement.offsetHeight - 80;
+    if (topbar) topbar.classList.toggle('is-scrolled', kimi && window.scrollY > 8);
+    var pastCover = !cover || window.scrollY > cover.offsetHeight + 100;
     document.documentElement.classList.toggle('kimi-past-cover', kimi && pastCover);
     var pastHero = hero ? window.scrollY > hero.offsetHeight - 80 : false;
     document.documentElement.classList.toggle('kimi-past-hero', kimi && pastHero);
@@ -116,12 +114,22 @@
     var meta = document.querySelector('.hero-meta');
     var lower = document.querySelector('.kimi-hero-lower');
     var inner = document.querySelector('.hero-inner');
+    var copy = document.querySelector('.hero-copy');
+    var intro = document.querySelector('[data-kimi-intro]');
+    var title = document.querySelector('.hero-copy h1, [data-kimi-intro] h1');
+    var lede = document.querySelector('.hero-copy .hero-lede, [data-kimi-intro] .hero-lede');
     if (!meta || !lower || !inner) return;
     if (currentSkin() === 'kimi') {
       if (meta.parentElement !== lower) lower.appendChild(meta);
-    } else if (meta.parentElement !== inner) {
-      var scroll = inner.querySelector('.hero-scroll');
-      inner.insertBefore(meta, scroll || null);
+      if (intro && title && title.parentElement !== intro) intro.appendChild(title);
+      if (intro && lede && lede.parentElement !== intro) intro.appendChild(lede);
+    } else {
+      if (meta.parentElement !== inner) {
+        var scroll = inner.querySelector('.hero-scroll');
+        inner.insertBefore(meta, scroll || null);
+      }
+      if (copy && title && title.parentElement !== copy) copy.appendChild(title);
+      if (copy && lede && lede.parentElement !== copy) copy.appendChild(lede);
     }
   }
 
@@ -154,9 +162,10 @@
       svg.classList.add('is-writing');
     }
     clearTimeout(window.__heroIntroTimer);
-    var speed = parseFloat(hero.style.getPropertyValue('--hero-speed')) || 1;
-    speed = Math.max(0.5, Math.min(2, speed));
-    var duration = motionMedia.matches ? 1.2 : 3.2 / speed;
+    var speed = parseFloat(hero.style.getPropertyValue('--hero-speed')) || 3;
+    speed = Math.max(0.2, Math.min(15, speed));
+    var factor = speed / 3;
+    var duration = motionMedia.matches ? 1.2 : 3.2 / factor;
     hero.style.setProperty('--intro-duration', duration + 's');
     window.__heroIntroTimer = setTimeout(function () {
       hero.classList.add('is-intro-done');
@@ -171,7 +180,7 @@
     var panel = root.querySelector('[data-kimi-panel]');
     var toggle = root.querySelector('[data-kimi-panel-toggle]');
     var inputs = root.querySelectorAll('[data-kimi-setting]');
-    var defaults = { cloud: 0.6, speed: 1, ink: 1, coverage: 0.5 };
+    var defaults = { cloud: 0.65, speed: 3, ink: 0.9, coverage: 1 };
     var settings = Object.assign({}, defaults);
     try {
       var stored = JSON.parse(localStorage.getItem('prn-hero-settings') || 'null');
@@ -195,8 +204,8 @@
       hero.style.setProperty('--hero-cloud', String(settings.cloud));
       hero.style.setProperty('--hero-speed', String(settings.speed));
       hero.style.setProperty('--hero-ink', String(settings.ink));
-      hero.style.setProperty('--hero-scale', String(1 + settings.coverage * 0.14));
-      hero.style.setProperty('--hero-cloud-scale', String(1 / Math.max(0.5, settings.speed)));
+      hero.style.setProperty('--hero-scale', String(1 + settings.coverage * 0.08));
+      hero.style.setProperty('--hero-cloud-scale', String(1 / Math.max(0.2, settings.speed / 3)));
       inputs.forEach(function (input) {
         var key = input.dataset.kimiSetting;
         input.value = String(settings[key]);
@@ -300,7 +309,8 @@
       return;
     }
     var rect = cover.parentElement.getBoundingClientRect();
-    cover.style.left = (-rect.left) + 'px';
+    var relative = window.getComputedStyle(cover).position === 'relative';
+    cover.style.left = relative ? '' : (-rect.left) + 'px';
     cover.style.width = window.innerWidth + 'px';
     cover.classList.add('is-positioned');
   }
