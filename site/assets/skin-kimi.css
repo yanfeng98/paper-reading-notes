@@ -374,7 +374,7 @@ html[data-skin="kimi"] .hero-copy {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  padding-top: clamp(40px, 12vh, 140px);
+  padding-top: clamp(40px, calc(12vh + 5px), 140px);
 }
 
 html[data-skin="kimi"] .hero-mark-wrap {
@@ -386,7 +386,7 @@ html[data-skin="kimi"] .hero-mark-wrap {
 html[data-skin="kimi"] .hero-mark {
   position: relative;
   z-index: 1;
-  width: clamp(12rem, 30vw, 26rem);
+  width: clamp(12rem, 30vw, 25.875rem);
   aspect-ratio: 1;
   margin: 0 auto;
   filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.28));
@@ -1521,12 +1521,12 @@ html[data-skin="kimi"] .hero-media img {
 }
 
 @media (max-width: 760px) {
-  html[data-skin="kimi"] .topbar { min-height: 58px; padding: 10px 20px; }
+  html[data-skin="kimi"] .topbar { min-height: 61px; padding: 10px 20px; }
   html[data-skin="kimi"] .hero-inner { padding: 112px 20px 64px; }
-  html[data-skin="kimi"] .hero-copy { padding-top: 10vh; }
-  html[data-skin="kimi"] .hero-mark { width: clamp(8rem, 40vw, 14rem); }
+  html[data-skin="kimi"] .hero-copy { padding-top: calc(18vh + 20px); }
+  html[data-skin="kimi"] .hero-mark { width: min(70vw, 273px); }
   html[data-skin="kimi"] .kimi-hero-lower { padding-top: 96px; }
-  html[data-skin="kimi"] .hero-scroll { bottom: 18px; font-size: 15px; }
+  html[data-skin="kimi"] .hero-scroll { bottom: 80px; font-size: 16px; }
   html[data-skin="kimi"] .contrib { padding-top: 58px; }
   html[data-skin="kimi"] .library-heading { margin-top: 40px; }
   html[data-skin="kimi"] .cards { grid-template-columns: 1fr; gap: 30px; }
