@@ -328,7 +328,7 @@ html[data-skin="kimi"] .hero-media img {
 }
 html[data-skin="kimi"] .hero-media img {
   object-fit: cover;
-  object-position: center 48%;
+  object-position: center 50%;
   transform: scale(1.03);
   will-change: transform;
 }
@@ -336,16 +336,16 @@ html[data-skin="kimi"] .hero-media img {
 html[data-skin="kimi"] .hero-scrim {
   z-index: 1;
   background:
-    radial-gradient(ellipse at 50% 44%, rgba(5, 8, 11, 0.30), transparent 62%),
-    linear-gradient(180deg, rgba(5, 8, 11, 0.74) 0%, rgba(5, 8, 11, 0) 28%),
-    linear-gradient(0deg, var(--bg) 0%, rgba(15, 21, 26, 0.72) 12%, rgba(5, 8, 11, 0.12) 48%, rgba(5, 8, 11, 0.32) 100%);
+    radial-gradient(ellipse at 50% 44%, rgba(5, 8, 11, 0.10), transparent 64%),
+    linear-gradient(180deg, rgba(5, 8, 11, 0.68) 0%, rgba(5, 8, 11, 0) 26%),
+    linear-gradient(0deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 62%, transparent) 8%, transparent 24%);
 }
 
 html[data-skin="kimi"][data-theme="light"] .hero-scrim {
   background:
-    radial-gradient(ellipse at 50% 44%, rgba(5, 8, 11, 0.20), transparent 62%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 22%),
-    linear-gradient(0deg, rgba(5, 8, 11, 0.18) 0%, transparent 18%);
+    radial-gradient(ellipse at 50% 44%, rgba(5, 8, 11, 0.06), transparent 64%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 22%),
+    linear-gradient(0deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 58%, transparent) 8%, transparent 22%);
 }
 
 html[data-skin="kimi"] .hero-glow { display: none; }
@@ -399,44 +399,41 @@ html[data-skin="kimi"] .hero-mark .mark-svg {
   overflow: visible;
 }
 
+html[data-skin="kimi"] .hero-mark-caption {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: var(--reading);
+  font-size: clamp(0.72rem, 1.05vw, 0.95rem);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  white-space: nowrap;
+  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.45);
+}
+
+html[data-skin="kimi"] .hero.is-intro .hero-mark-caption {
+  animation: kimi-fade-in 0.9s 2.7s both;
+}
+
+/* Ghostly code field: the reference reveals code glyphs in a soft radius
+   around the pointer, tinted green, without a lens or backdrop plate. */
 html[data-skin="kimi"] .hero-code-layer {
   display: block;
   position: absolute;
   inset: 0;
-  z-index: 4;
+  z-index: 2;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.16s ease;
+  transition: opacity 0.24s ease;
 }
 
 html[data-skin="kimi"] .hero-code-layer.is-visible { opacity: 1; }
 
-html[data-skin="kimi"] .hero-code-layer .hero-code {
-  position: absolute;
-  left: var(--mx, 50%);
-  top: var(--my, 50%);
-  width: 164px;
-  height: 164px;
-  margin: 0;
-  padding: 16px 14px;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  overflow: hidden;
-  border-radius: 50%;
-  clip-path: circle(50% at 50% 50%);
-  background: rgba(5, 8, 11, 0.56);
-  box-shadow: inset 0 0 0 1px rgba(190, 235, 208, 0.30), 0 12px 36px rgba(0, 0, 0, 0.30);
-  color: rgba(190, 235, 208, 0.82);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 60%, transparent 76%);
-  mask-image: radial-gradient(circle at 50% 50%, #000 60%, transparent 76%);
-  font-family: var(--mono);
-  font-size: 9.5px;
-  line-height: 1.65;
-  text-align: left;
-  white-space: pre;
-  backdrop-filter: blur(6px);
+html[data-skin="kimi"] .hero-code-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 
@@ -574,24 +571,33 @@ html[data-skin="kimi"] .hero-scroll {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   margin: 0;
   padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
   transform: translateX(-50%);
   color: rgba(255, 255, 255, 0.92);
   font-family: var(--reading);
   font-size: 16px;
-  line-height: 1.2;
+  font-weight: 600;
+  line-height: 24px;
   letter-spacing: 0;
   text-transform: none;
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
-  animation: kimi-hint 3.2s ease-in-out infinite;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.38);
+}
+html[data-skin="kimi"] .hero-scroll:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 6px;
 }
 
 html[data-skin="kimi"] .hero-scroll-caret {
   display: grid;
   place-items: center;
-  height: 12px;
+  height: 24px;
   color: rgba(255, 255, 255, 0.86);
   filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.35));
 }
@@ -600,9 +606,27 @@ html[data-skin="kimi"] .hero-scroll-caret svg { display: block; }
 
 html[data-skin="kimi"] .hero-scroll-label { display: block; }
 
-@keyframes kimi-hint {
-  0%, 100% { opacity: 0.78; transform: translate(-50%, 0); }
-  50% { opacity: 1; transform: translate(-50%, -4px); }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-skin="kimi"] .hero-scroll {
+    -webkit-mask-image: linear-gradient(to top,
+      color-mix(in srgb, #fff 90%, transparent) 40%,
+      #fff 50%,
+      color-mix(in srgb, #fff 90%, transparent) 60%);
+    mask-image: linear-gradient(to top,
+      color-mix(in srgb, #fff 90%, transparent) 40%,
+      #fff 50%,
+      color-mix(in srgb, #fff 90%, transparent) 60%);
+    -webkit-mask-size: 100% 300%;
+    mask-size: 100% 300%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    animation: kimi-hint-shine 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes kimi-hint-shine {
+  0% { -webkit-mask-position: 50% 0; mask-position: 50% 0; }
+  40%, 100% { -webkit-mask-position: 50% 100%; mask-position: 50% 100%; }
 }
 
 @keyframes kimi-float {
@@ -1581,109 +1605,171 @@ html[data-skin="kimi"] .hero-mark-wrap {
   opacity: var(--hero-ink, 1);
 }
 
+/* Appearance controls, matched to the reference: four compact glass tiles
+   that expand into inline sliders on hover/focus. */
 html[data-skin="kimi"] .kimi-controls {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: 40px;
+  bottom: 40px;
   z-index: 26;
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-html[data-skin="kimi"] .kimi-control-btn {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--surface) 86%, transparent);
-  color: var(--muted);
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(12px);
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-}
-html[data-skin="kimi"] .kimi-control-btn:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-2);
-  color: var(--text);
-}
-html[data-skin="kimi"] .kimi-control-btn[aria-expanded="true"] {
-  border-color: var(--text);
-  color: var(--text);
-}
-html[data-skin="kimi"] .kimi-control-k span {
-  font-family: "Ma Shan Zheng", var(--reading);
-  font-size: 21px;
-  line-height: 1;
-}
-
-html[data-skin="kimi"] .kimi-control-panel {
-  position: absolute;
-  right: 0;
-  bottom: 54px;
-  width: min(280px, calc(100vw - 40px));
-  padding: 15px 16px 13px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  color: var(--text);
-  box-shadow: var(--shadow-lg);
-  backdrop-filter: blur(18px) saturate(1.2);
-}
-
-html[data-skin="kimi"] .kimi-control-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-  color: var(--muted);
-  font-family: var(--ui);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-html[data-skin="kimi"] .kimi-control-head button {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--faint);
-  font-family: var(--ui);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: none;
-  cursor: pointer;
-}
-html[data-skin="kimi"] .kimi-control-head button:hover { color: var(--text); }
-
-html[data-skin="kimi"] .kimi-control-row {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr) 38px;
   align-items: center;
   gap: 8px;
-  min-height: 32px;
-  color: var(--muted);
+  color: #fff;
   font-family: var(--ui);
-  font-size: 11px;
-}
-html[data-skin="kimi"] .kimi-control-row input[type="range"] {
-  width: 100%;
-  accent-color: var(--text);
-  cursor: pointer;
-}
-html[data-skin="kimi"] .kimi-control-row output {
-  color: var(--faint);
-  font-family: var(--mono);
-  font-size: 10px;
-  text-align: right;
 }
 
-@media (max-width: 760px) {
-  html[data-skin="kimi"] .kimi-controls { display: none; }
+html[data-skin="kimi"] .kimi-control {
+  --min-fill: 22px;
+  --fill-size: calc(var(--min-fill) + (100% - 4px - var(--min-fill)) * var(--progress, 0));
+  position: relative;
+  display: block;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.20);
+  color: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  transition:
+    width 0.4s cubic-bezier(0.68, -0.3, 0.32, 1.3),
+    background-color 0.2s ease-in-out;
+}
+
+html[data-skin="kimi"] .kimi-control:hover,
+html[data-skin="kimi"] .kimi-control:focus-within {
+  width: 180px;
+  background: rgba(0, 0, 0, 0.38);
+}
+
+html[data-skin="kimi"] .kimi-control:has(.kimi-control-range:focus-visible) {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+html[data-skin="kimi"] .kimi-control-icon {
+  position: absolute;
+  inset: 8px;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out;
+}
+html[data-skin="kimi"] .kimi-control-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+html[data-skin="kimi"] .kimi-control-fill,
+html[data-skin="kimi"] .kimi-control-label,
+html[data-skin="kimi"] .kimi-control-thumb {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out;
+}
+
+html[data-skin="kimi"] .kimi-control-fill {
+  inset: 2px auto 2px 2px;
+  width: var(--fill-size);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.20);
+}
+
+html[data-skin="kimi"] .kimi-control-label {
+  top: 50%;
+  left: 10px;
+  width: max-content;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  transform: translateY(-50%);
+  transition:
+    left 0.42s cubic-bezier(0.22, 1, 0.36, 1.12),
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1.12),
+    opacity 0.15s ease-in-out;
+}
+html[data-skin="kimi"] .kimi-control[data-label-end] .kimi-control-label {
+  left: calc(100% - 10px);
+  transform: translate(-100%, -50%);
+}
+
+html[data-skin="kimi"] .kimi-control-thumb {
+  top: 12px;
+  left: calc(var(--fill-size) - 10px);
+  width: 2px;
+  height: 16px;
+  border-radius: 19px;
+  background: currentColor;
+}
+
+html[data-skin="kimi"] .kimi-control:hover .kimi-control-icon,
+html[data-skin="kimi"] .kimi-control:focus-within .kimi-control-icon {
+  opacity: 0;
+}
+html[data-skin="kimi"] .kimi-control:hover .kimi-control-fill,
+html[data-skin="kimi"] .kimi-control:hover .kimi-control-label,
+html[data-skin="kimi"] .kimi-control:hover .kimi-control-thumb,
+html[data-skin="kimi"] .kimi-control:focus-within .kimi-control-fill,
+html[data-skin="kimi"] .kimi-control:focus-within .kimi-control-label,
+html[data-skin="kimi"] .kimi-control:focus-within .kimi-control-thumb {
+  opacity: 1;
+}
+
+html[data-skin="kimi"] .kimi-control-range {
+  position: absolute;
+  inset: 2px;
+  box-sizing: border-box;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  margin: 0;
+  padding: 0 10px;
+  border: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  touch-action: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+}
+html[data-skin="kimi"] .kimi-control-range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 2px;
+  height: 16px;
+}
+html[data-skin="kimi"] .kimi-control-range::-moz-range-thumb {
+  width: 2px;
+  height: 16px;
+  border: 0;
+}
+
+@media (max-width: 600px) {
+  html[data-skin="kimi"] .kimi-controls {
+    right: 16px;
+    left: 16px;
+    bottom: max(24px, env(safe-area-inset-bottom));
+    justify-content: center;
+    max-width: calc(100% - 32px);
+  }
+  html[data-skin="kimi"] .kimi-control:hover,
+  html[data-skin="kimi"] .kimi-control:focus-within {
+    flex-shrink: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin="kimi"] .kimi-control,
+  html[data-skin="kimi"] .kimi-control-icon,
+  html[data-skin="kimi"] .kimi-control-fill,
+  html[data-skin="kimi"] .kimi-control-label,
+  html[data-skin="kimi"] .kimi-control-thumb {
+    transition: none;
+  }
 }
 
 /* White reader header over the dark cover needs a quiet scrim. */
@@ -1719,7 +1805,27 @@ html[data-skin="kimi"] .hero-clouds {
   overflow: hidden;
   pointer-events: none;
   opacity: var(--hero-cloud, 0.6);
-  transition: opacity 0.3s ease;
+  transform: translate3d(
+    calc(var(--hero-pan-x, 0) * 18px),
+    calc(var(--hero-pan-y, 0) * 12px),
+    0
+  );
+  transition: opacity 0.3s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-skin="kimi"] .hero-clouds::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  background:
+    radial-gradient(ellipse 56% 30% at 50% 50%, rgba(238, 245, 249, 0.54), transparent 72%),
+    radial-gradient(ellipse 38% 24% at 32% 62%, rgba(255, 255, 255, 0.34), transparent 74%),
+    radial-gradient(ellipse 48% 22% at 68% 68%, rgba(244, 250, 253, 0.40), transparent 76%),
+    radial-gradient(ellipse 86% 24% at 50% 90%, rgba(240, 247, 250, 0.24), transparent 80%);
+  filter: blur(16px);
+  mix-blend-mode: screen;
+  opacity: calc(var(--hero-immersion, 1) * 0.54);
+  pointer-events: none;
 }
 
 html[data-skin="kimi"] .hero-cloud {

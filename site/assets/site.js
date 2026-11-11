@@ -154,6 +154,7 @@
     hero.classList.remove('is-intro', 'is-intro-done');
     document.documentElement.classList.remove('kimi-intro-done');
     if (layer) layer.classList.remove('is-visible');
+    if (window.__heroCodeReset) window.__heroCodeReset();
     void hero.offsetWidth;
     hero.classList.add('is-intro');
     if (svg) {
@@ -177,10 +178,8 @@
     var root = document.querySelector('[data-kimi-controls]');
     var hero = document.querySelector('.hero');
     if (!root || !hero) return;
-    var panel = root.querySelector('[data-kimi-panel]');
-    var toggle = root.querySelector('[data-kimi-panel-toggle]');
-    var inputs = root.querySelectorAll('[data-kimi-setting]');
     var defaults = { cloud: 0.65, speed: 3, ink: 0.9, coverage: 1 };
+    var labels = { cloud: 'Cloud', speed: 'Speed', ink: 'K3.1', coverage: 'Coverage' };
     var settings = Object.assign({}, defaults);
     try {
       var stored = JSON.parse(localStorage.getItem('prn-hero-settings') || 'null');
@@ -191,9 +190,17 @@
       }
     } catch (error) { /* ignore */ }
 
+    var controls = Array.prototype.slice.call(root.querySelectorAll('[data-kimi-setting]'));
+
     function format(key, value) {
       if (key === 'speed') return value.toFixed(1) + '×';
       return Math.round(value * 100) + '%';
+    }
+
+    function progress(key, value) {
+      if (key === 'cloud') return Math.max(0, Math.min(1, (value - 0.65) / (5 - 0.65)));
+      if (key === 'speed') return Math.max(0, Math.min(1, (value - 0.2) / (15 - 0.2)));
+      return Math.max(0, Math.min(1, value));
     }
 
     function save() {
@@ -201,22 +208,40 @@
     }
 
     function apply() {
-      hero.style.setProperty('--hero-cloud', String(settings.cloud));
+      // The reference's cloud amount raises optical depth; on the static hero
+      // we lift the drifting cloud veil instead so 0.65 still reads as dense.
+      hero.style.setProperty('--hero-cloud-amount', String(settings.cloud));
+      hero.style.setProperty('--hero-cloud', String(Math.min(1, 0.62 + settings.cloud * 0.19)));
       hero.style.setProperty('--hero-speed', String(settings.speed));
       hero.style.setProperty('--hero-ink', String(settings.ink));
-      hero.style.setProperty('--hero-scale', String(1 + settings.coverage * 0.08));
+      hero.style.setProperty('--hero-scale', String(1 + settings.coverage * 0.06));
+      hero.style.setProperty('--hero-immersion', String(settings.coverage));
       hero.style.setProperty('--hero-cloud-scale', String(1 / Math.max(0.2, settings.speed / 3)));
-      inputs.forEach(function (input) {
-        var key = input.dataset.kimiSetting;
-        input.value = String(settings[key]);
-        var output = root.querySelector('[data-kimi-output="' + key + '"]');
-        if (output) output.textContent = format(key, settings[key]);
+      controls.forEach(function (control) {
+        var key = control.dataset.kimiSetting;
+        var input = control.querySelector('.kimi-control-range');
+        var value = settings[key];
+        var p = progress(key, value);
+        control.style.setProperty('--progress', String(p));
+        control.title = labels[key] + ': ' + format(key, value);
+        control.toggleAttribute('data-label-end', p < 0.5);
+        if (input) {
+          input.value = String(value);
+          input.setAttribute('aria-valuetext', format(key, value));
+        }
       });
     }
 
-    inputs.forEach(function (input) {
+    controls.forEach(function (control) {
+      var input = control.querySelector('.kimi-control-range');
+      if (!input) return;
+      input.addEventListener('pointerdown', function (event) {
+        if (control.matches(':hover') || control.contains(document.activeElement)) return;
+        event.preventDefault();
+        input.focus();
+      });
       input.addEventListener('input', function () {
-        var key = input.dataset.kimiSetting;
+        var key = control.dataset.kimiSetting;
         var value = parseFloat(input.value);
         if (!isFinite(value)) return;
         settings[key] = value;
@@ -224,64 +249,215 @@
         save();
       });
       input.addEventListener('change', function () {
-        if (input.dataset.kimiSetting === 'speed') playHeroIntro();
+        if (control.dataset.kimiSetting === 'speed') playHeroIntro();
       });
     });
 
-    var reset = root.querySelector('[data-kimi-reset]');
-    if (reset) reset.addEventListener('click', function () {
-      settings = Object.assign({}, defaults);
-      apply();
-      save();
+    var scrollHint = document.querySelector('[data-kimi-scroll]');
+    if (scrollHint) scrollHint.addEventListener('click', function () {
+      var target = document.querySelector('.kimi-hero-lower');
+      if (!target) return;
+      target.scrollIntoView({
+        behavior: motionMedia.matches ? 'auto' : 'smooth',
+        block: 'start'
+      });
+    });
+
+    // The reference has no reset button; keep the same affordance on R so the
+    // intro can still be replayed without adding another icon.
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'r' || event.metaKey || event.ctrlKey || event.altKey) return;
+      var tag = (event.target && event.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || (event.target && event.target.isContentEditable)) return;
       playHeroIntro();
     });
-
-    function setPanel(open) {
-      panel.hidden = !open;
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    }
-    toggle.addEventListener('click', function () {
-      setPanel(panel.hidden);
-    });
-    document.addEventListener('click', function (event) {
-      if (panel.hidden || root.contains(event.target)) return;
-      setPanel(false);
-    });
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && !panel.hidden) setPanel(false);
-    });
-
-    var list = root.querySelector('[data-kimi-list]');
-    if (list) list.addEventListener('click', function () {
-      var library = document.getElementById('library');
-      if (library) library.scrollIntoView({ behavior: motionMedia.matches ? 'auto' : 'smooth', block: 'start' });
-    });
-    var replay = root.querySelector('[data-kimi-replay]');
-    if (replay) replay.addEventListener('click', playHeroIntro);
 
     apply();
     if (currentSkin() === 'kimi') playHeroIntro();
   }
 
-  function initHeroSpotlight() {
+  function initHeroCode() {
     var hero = document.querySelector('.hero');
     var layer = document.querySelector('.hero-code-layer');
-    if (!hero || !layer || window.__heroSpotlightBound) return;
-    window.__heroSpotlightBound = true;
-    function move(event) {
-      if (currentSkin() !== 'kimi' || event.pointerType === 'touch') return;
-      var rect = hero.getBoundingClientRect();
-      var x = event.clientX - rect.left;
-      var y = event.clientY - rect.top;
-      layer.style.setProperty('--mx', x + 'px');
-      layer.style.setProperty('--my', y + 'px');
-      layer.classList.add('is-visible');
+    var canvas = layer && layer.querySelector('[data-kimi-code-canvas]');
+    if (!hero || !layer || !canvas || window.__heroCodeBound) return;
+    window.__heroCodeBound = true;
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // The reference reveals fragments of a live-coding scratchpad inside the
+    // cloud. Keep the same vocabulary and green-to-white phosphor tint, but
+    // draw it on a 2D grid so the static build stays offline and cheap.
+    var snippets = [
+      'const frame = requestAnimationFrame(render);',
+      'function render(time) { return time * 0.01; }',
+      'const x = Math.sin(time * speed);',
+      'if (pointer.down) { draw(x, y); }',
+      'for (let i = 0; i < count; i++) {',
+      'const color = [r, g, b, alpha];',
+      'particles.push({ x, y, vx, vy });',
+      'ctx.fillText(glyph, x, y);',
+      'const brightness = sample(x, y);',
+      'return Math.max(0, Math.min(1, value));',
+      'canvas.width = window.innerWidth;',
+      'const length = Math.hypot(dx, dy);',
+      'stream.position.x -= delta * speed;',
+      'ctx.globalAlpha = 1.0 - fade;',
+      'const noise = Math.random() * 0.5;',
+      'if (state.active) update(delta);'
+    ];
+    var cols = 0;
+    var rows = 0;
+    var stepX = 10;
+    var stepY = 14;
+    var lines = [];
+    var visibility = null;
+    var width = 1;
+    var height = 1;
+    var pointerX = -9999;
+    var pointerY = -9999;
+    var active = false;
+    var raf = 0;
+    var last = 0;
+
+    function buildLines() {
+      lines = [];
+      for (var row = 0; row < rows; row++) {
+        var source = snippets[(row * 5 + 3) % snippets.length];
+        var line = '';
+        while (line.length < cols + 4) line += source + '   ';
+        lines.push(line);
+      }
     }
+
+    function resize() {
+      var rect = hero.getBoundingClientRect();
+      width = Math.max(1, rect.width);
+      height = Math.max(1, rect.height);
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var size = width < 600 ? 10 : 12;
+      stepX = size * 0.82;
+      stepY = size * 1.15;
+      ctx.font = '500 ' + size + 'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+      ctx.textBaseline = 'top';
+      cols = Math.ceil(width / stepX) + 1;
+      rows = Math.ceil(height / stepY) + 1;
+      visibility = new Float32Array(cols * rows);
+      buildLines();
+      if (active) revealAt(pointerX, pointerY);
+    }
+
+    function revealAt(x, y) {
+      if (!visibility) return;
+      var radius = Math.max(160, Math.min(285, width * 0.18));
+      var minCol = Math.max(0, Math.floor((x - radius) / stepX));
+      var maxCol = Math.min(cols - 1, Math.ceil((x + radius) / stepX));
+      var minRow = Math.max(0, Math.floor((y - radius) / stepY));
+      var maxRow = Math.min(rows - 1, Math.ceil((y + radius) / stepY));
+      for (var row = minRow; row <= maxRow; row++) {
+        for (var col = minCol; col <= maxCol; col++) {
+          var dx = x - (col + 0.5) * stepX;
+          var dy = y - (row + 0.5) * stepY;
+          var distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance >= radius) continue;
+          var target = Math.pow(1 - distance / radius, 1.25) * 0.98;
+          var index = row * cols + col;
+          if (target > visibility[index]) visibility[index] = target;
+        }
+      }
+    }
+
+    function draw(time) {
+      raf = 0;
+      if (currentSkin() !== 'kimi' || motionMedia.matches) {
+        ctx.clearRect(0, 0, width, height);
+        layer.classList.remove('is-visible');
+        return;
+      }
+      var delta = last ? Math.min(0.12, (time - last) / 1000) : 0.033;
+      last = time;
+      ctx.clearRect(0, 0, width, height);
+      var decay = Math.pow(0.945, delta * 30);
+      var visible = false;
+      for (var row = 0; row < rows; row++) {
+        var line = lines[row] || '';
+        for (var col = 0; col < cols; col++) {
+          var index = row * cols + col;
+          var value = visibility[index] * decay;
+          visibility[index] = value;
+          if (value < 0.015) continue;
+          var glyph = line.charAt(col);
+          if (!glyph || glyph === ' ') continue;
+          visible = true;
+          ctx.globalAlpha = Math.min(0.95, value * 1.55) * 0.92;
+          ctx.fillStyle = value > 0.58
+            ? 'rgba(224, 255, 218, 1)'
+            : 'rgba(72, 190, 64, 1)';
+          ctx.fillText(glyph, col * stepX, row * stepY);
+        }
+      }
+      ctx.globalAlpha = 1;
+      if (!visible) {
+        layer.classList.remove('is-visible');
+        return;
+      }
+      raf = window.requestAnimationFrame(draw);
+    }
+
+    function start() {
+      if (raf || motionMedia.matches) return;
+      last = 0;
+      raf = window.requestAnimationFrame(draw);
+    }
+
+    function move(event) {
+      if (currentSkin() !== 'kimi' || event.pointerType === 'touch' || motionMedia.matches) return;
+      if (!document.documentElement.classList.contains('kimi-intro-done')) return;
+      if (parseFloat(hero.style.getPropertyValue('--hero-ink') || '1') <= 0) return;
+      var rect = hero.getBoundingClientRect();
+      pointerX = event.clientX - rect.left;
+      pointerY = event.clientY - rect.top;
+      active = true;
+      hero.style.setProperty('--hero-pan-x', (pointerX / width - 0.5).toFixed(3));
+      hero.style.setProperty('--hero-pan-y', (pointerY / height - 0.5).toFixed(3));
+      layer.classList.add('is-visible');
+      revealAt(pointerX, pointerY);
+      start();
+    }
+
+    function leave() {
+      active = false;
+      hero.style.setProperty('--hero-pan-x', '0');
+      hero.style.setProperty('--hero-pan-y', '0');
+      if (!raf) {
+        layer.classList.remove('is-visible');
+      }
+    }
+
+    function reset() {
+      active = false;
+      last = 0;
+      hero.style.setProperty('--hero-pan-x', '0');
+      hero.style.setProperty('--hero-pan-y', '0');
+      if (raf) {
+        window.cancelAnimationFrame(raf);
+        raf = 0;
+      }
+      if (visibility) visibility.fill(0);
+      ctx.clearRect(0, 0, width, height);
+      layer.classList.remove('is-visible');
+    }
+
     hero.addEventListener('pointermove', move, { passive: true });
     hero.addEventListener('pointerdown', move, { passive: true });
-    hero.addEventListener('pointerleave', function () {
-      layer.classList.remove('is-visible');
-    });
+    hero.addEventListener('pointerleave', leave);
+    hero.addEventListener('pointercancel', leave);
+    window.addEventListener('resize', resize, { passive: true });
+    window.__heroCodeReset = reset;
+    resize();
   }
 
   function hydrateKimiImages() {
@@ -357,6 +533,7 @@
     if (window.__kimiParallaxBound) return;
     window.__kimiParallaxBound = true;
     var ticking = false;
+    var heroNode = document.querySelector('.hero');
     function frame() {
       ticking = false;
       var image = document.querySelector('.hero-media img');
@@ -373,7 +550,9 @@
       var limit = hero ? hero.offsetHeight : window.innerHeight;
       var y = Math.min(window.scrollY, limit);
       var progress = Math.min(1, y / Math.max(1, limit));
-      image.style.transform = 'translate3d(0,' + (y * 0.09).toFixed(2) + 'px,0) scale(1.04)';
+      var panX = parseFloat(hero && hero.style.getPropertyValue('--hero-pan-x')) || 0;
+      var panY = parseFloat(hero && hero.style.getPropertyValue('--hero-pan-y')) || 0;
+      image.style.transform = 'translate3d(' + (panX * 9).toFixed(2) + 'px,' + (panY * 7 + y * 0.09).toFixed(2) + 'px,0) scale(1.045)';
       if (inner) {
         inner.style.transform = 'translate3d(0,' + (progress * 34).toFixed(2) + 'px,0)';
         inner.style.opacity = String(Math.max(0, 1 - progress * 1.05));
@@ -387,6 +566,14 @@
       syncTopbar();
     }, { passive: true });
     window.addEventListener('resize', frame, { passive: true });
+    if (heroNode) {
+      heroNode.addEventListener('pointermove', function () {
+        if (!ticking) {
+          ticking = true;
+          window.requestAnimationFrame(frame);
+        }
+      }, { passive: true });
+    }
     frame();
   }
 
@@ -408,6 +595,7 @@
         if (hero) hero.classList.remove('is-intro', 'is-intro-done');
         document.documentElement.classList.remove('kimi-intro-done');
         if (layer) layer.classList.remove('is-visible');
+        if (window.__heroCodeReset) window.__heroCodeReset();
       }
     }
     layoutHomeSections();
@@ -1545,7 +1733,7 @@
 
   initTheme();
   initSkin();
-  initHeroSpotlight();
+  initHeroCode();
   initKimiControls();
   if (page === 'home') {
     initContribution();

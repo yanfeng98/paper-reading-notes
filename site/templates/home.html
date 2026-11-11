@@ -63,7 +63,7 @@
       <div class="hero-media kimi-only" aria-hidden="true">
         <picture>
           <source data-kimi-srcset="{{ROOT}}assets/hero-kimi-1600.webp 1600w, {{ROOT}}assets/hero-kimi-2400.webp 2400w" sizes="100vw" type="image/webp">
-          <img data-kimi-src="{{ROOT}}assets/hero-kimi-1600.jpg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="2400" height="1350" fetchpriority="high" decoding="async">
+          <img data-kimi-src="{{ROOT}}assets/hero-kimi-1600.jpg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="2400" height="1800" fetchpriority="high" decoding="async">
         </picture>
       </div>
       <div class="hero-scrim kimi-only" aria-hidden="true"></div>
@@ -73,6 +73,9 @@
         <span class="hero-cloud" style="--y:38%;--size:700px;--dur:92s;--delay:-44s;--op:.70"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-3.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
         <span class="hero-cloud" style="--y:54%;--size:880px;--dur:118s;--delay:-96s;--op:.52"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-4.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
         <span class="hero-cloud" style="--y:68%;--size:620px;--dur:76s;--delay:-8s;--op:.65"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-2.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
+        <span class="hero-cloud" style="--y:18%;--size:920px;--dur:132s;--delay:-64s;--op:.74"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-1.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
+        <span class="hero-cloud" style="--y:46%;--size:1040px;--dur:154s;--delay:-118s;--op:.78"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-3.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
+        <span class="hero-cloud" style="--y:78%;--size:860px;--dur:116s;--delay:-36s;--op:.72"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-4.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
       </div>
       <div class="hero-glow" aria-hidden="true"></div>
       <div class="hero-inner">
@@ -112,6 +115,7 @@
             </g>
             </svg>
             </div>
+            <p class="hero-mark-caption">PAPER READING NOTES</p>
           </div>
           <p class="eyebrow">PAPER READING NOTES</p>
           <h1>论文阅读笔记</h1>
@@ -130,53 +134,44 @@
             <a class="index-link" href="{{REPO_URL}}/blob/main/README.md" target="_blank" rel="noopener noreferrer">完整论文清单 <span aria-hidden="true">↗</span></a>
           </div>
         </div>
-        <p class="hero-scroll kimi-only"><span class="hero-scroll-caret" aria-hidden="true"><svg viewBox="0 0 24 14" width="20" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7"/></svg></span><span class="hero-scroll-label">Scroll to explore</span></p>
+        <button type="button" class="hero-scroll kimi-only" data-kimi-scroll aria-label="Scroll to explore"><span class="hero-scroll-caret" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.3912 8.46132C11.743 8.11202 12.3111 8.11304 12.6617 8.46362L19.6364 15.4383C19.9879 15.7898 19.9879 16.3597 19.6364 16.7111C19.2849 17.0626 18.7151 17.0626 18.3636 16.7111L12.023 10.3705L5.63409 16.7134C5.28135 17.0636 4.71151 17.0616 4.36131 16.7088C4.01111 16.3561 4.01317 15.7862 4.36591 15.436L11.3912 8.46132Z"/></svg></span><span class="hero-scroll-label">Scroll to explore</span></button>
       </div>
-      <div class="hero-code-layer kimi-only" aria-hidden="true"><pre class="hero-code">q = x @ Wq
-k = x @ Wk
-v = x @ Wv
-attn = softmax(q @ k.T / sqrt(d)) @ v
-x = layer_norm(x + attn)
-ffn = gelu(x @ W1) @ W2
-x = layer_norm(x + ffn)</pre></div>
+      <div class="hero-code-layer kimi-only" aria-hidden="true"><canvas class="hero-code-canvas" data-kimi-code-canvas></canvas></div>
     </section>
 
     <section class="kimi-hero-lower kimi-only" aria-label="搜索与统计">
       <div class="kimi-intro" data-kimi-intro></div>
     </section>
 
-    <div class="kimi-controls kimi-only" data-kimi-controls>
-      <div class="kimi-control-panel" id="kimi-control-panel" data-kimi-panel hidden>
-        <div class="kimi-control-head">
-          <span>Hero appearance</span>
-          <button type="button" data-kimi-reset>Reset</button>
-        </div>
-        <label class="kimi-control-row">Cloud
-          <input type="range" min="0" max="1" step="0.01" value="0.65" data-kimi-setting="cloud">
-          <output data-kimi-output="cloud">65%</output>
-        </label>
-        <label class="kimi-control-row">Speed
-          <input type="range" min="0.2" max="15" step="0.1" value="3" data-kimi-setting="speed">
-          <output data-kimi-output="speed">3.0×</output>
-        </label>
-        <label class="kimi-control-row">K3.1
-          <input type="range" min="0" max="1" step="0.01" value="0.9" data-kimi-setting="ink">
-          <output data-kimi-output="ink">90%</output>
-        </label>
-        <label class="kimi-control-row">Coverage
-          <input type="range" min="0" max="1" step="0.01" value="1" data-kimi-setting="coverage">
-          <output data-kimi-output="coverage">100%</output>
-        </label>
-      </div>
-      <button class="kimi-control-btn" type="button" data-kimi-panel-toggle aria-expanded="false" aria-controls="kimi-control-panel" aria-label="Hero appearance">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 18.5h11a3.5 3.5 0 0 0 .4-6.98A5.5 5.5 0 0 0 7.2 10.1 4.2 4.2 0 0 0 6.5 18.5Z"/></svg>
-      </button>
-      <button class="kimi-control-btn" type="button" data-kimi-list aria-label="跳到资料库">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>
-      </button>
-      <button class="kimi-control-btn kimi-control-k" type="button" data-kimi-replay aria-label="重播开场">
-        <span aria-hidden="true">K</span>
-      </button>
+    <div class="kimi-controls kimi-only" data-kimi-controls role="group" aria-label="Hero appearance">
+      <label class="kimi-control" data-kimi-setting="cloud" data-label-end title="Cloud: 65%" style="--progress:0">
+        <span class="kimi-control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M17 17.2002V19H7V17.2002H17ZM20.2002 14C20.2002 12.2327 18.7673 10.7998 17 10.7998H16.8242C15.9896 10.7998 15.2642 10.2263 15.0723 9.41406C14.5824 7.3407 12.7192 5.7998 10.5 5.7998C8.03134 5.7998 6.0067 7.7053 5.81641 10.125C5.77552 10.6432 5.51204 11.1187 5.09473 11.4287C4.30572 12.0149 3.7998 12.9481 3.7998 14C3.7998 15.7673 5.23269 17.2002 7 17.2002V19C4.23858 19 2 16.7614 2 14C2 12.3545 2.79478 10.8946 4.02148 9.9834C4.28481 6.63511 7.08406 4 10.5 4C13.5734 4 16.1469 6.13351 16.8242 9H17C19.7614 9 22 11.2386 22 14C22 16.7614 19.7614 19 17 19V17.2002C18.7673 17.2002 20.2002 15.7673 20.2002 14Z"/></svg></span>
+        <span class="kimi-control-fill" aria-hidden="true"></span>
+        <span class="kimi-control-label" aria-hidden="true">Cloud</span>
+        <span class="kimi-control-thumb" aria-hidden="true"></span>
+        <input class="kimi-control-range" type="range" min="0.65" max="5" step="0.05" value="0.65" aria-label="Cloud" aria-valuetext="65%">
+      </label>
+      <label class="kimi-control" data-kimi-setting="speed" data-label-end title="Speed: 3.0×" style="--progress:0.18918918918918917">
+        <span class="kimi-control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M11.4004 16.1945C13.524 14.7789 16.2435 14.61 18.5264 15.7512L19.3017 16.1388C19.7462 16.3611 19.9262 16.9013 19.7041 17.3459C19.4818 17.7905 18.9416 17.9705 18.4971 17.7482L17.7217 17.3605C16.0165 16.5082 13.9846 16.6351 12.3984 17.6926C10.2747 19.1083 7.55538 19.2773 5.27245 18.1359L4.49706 17.7482C4.05267 17.5258 3.87247 16.9857 4.09471 16.5412C4.31703 16.0969 4.85729 15.9168 5.30174 16.1388L6.07713 16.5265C7.7824 17.379 9.81407 17.252 11.4004 16.1945ZM11.4004 11.1945C13.524 9.77895 16.2435 9.61001 18.5264 10.7512L19.3017 11.1388C19.7462 11.3611 19.9261 11.9014 19.7041 12.3459C19.4818 12.7905 18.9416 12.9705 18.4971 12.7482L17.7217 12.3605C16.0165 11.5082 13.9846 11.6352 12.3984 12.6926C10.2747 14.1083 7.55538 14.2773 5.27245 13.1359L4.49706 12.7482C4.0527 12.5258 3.87247 11.9857 4.09471 11.5412C4.31705 11.097 4.85733 10.9169 5.30174 11.1388L6.07713 11.5265C7.7824 12.379 9.81407 12.252 11.4004 11.1945ZM11.4004 6.19451C13.524 4.77886 16.2435 4.60994 18.5264 5.75115L19.3017 6.13885C19.7463 6.36114 19.9264 6.9013 19.7041 7.34588C19.4818 7.79045 18.9416 7.97051 18.4971 7.74822L17.7217 7.36053C16.0164 6.50815 13.9847 6.63507 12.3984 7.69256C10.2747 9.10819 7.55533 9.27723 5.27245 8.13592L4.49706 7.74822C4.05265 7.52587 3.87247 6.98569 4.09471 6.54119C4.31696 6.09669 4.85721 5.91673 5.30174 6.13885L6.07713 6.52654C7.78235 7.37902 9.81409 7.25198 11.4004 6.19451Z"/></svg></span>
+        <span class="kimi-control-fill" aria-hidden="true"></span>
+        <span class="kimi-control-label" aria-hidden="true">Speed</span>
+        <span class="kimi-control-thumb" aria-hidden="true"></span>
+        <input class="kimi-control-range" type="range" min="0.2" max="15" step="0.1" value="3" aria-label="Speed" aria-valuetext="3.0×">
+      </label>
+      <label class="kimi-control" data-kimi-setting="ink" data-label-end title="K3.1: 90%" style="--progress:0.9">
+        <span class="kimi-control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M10.4999 4.09961C10.9969 4.09961 11.4003 4.50295 11.4003 5.00001C11.4003 5.49707 10.9969 5.90041 10.4999 5.90041H9.90026V8.93754L12.3456 8.53031C13.3579 8.36139 14.0994 7.48528 14.0996 6.459V5.90041H13.4999C13.0031 5.90018 12.5995 5.49693 12.5995 5.00001C12.5995 4.50309 13.0031 4.09984 13.4999 4.09961H16.5C16.997 4.09961 17.4004 4.50295 17.4004 5.00001C17.4004 5.49707 16.997 5.90041 16.5 5.90041H15.9004V6.459C15.9002 8.36519 14.5218 9.99214 12.6415 10.3057L9.90026 10.7618V11.5997H12.7704C14.3688 11.5999 15.6648 12.8959 15.665 14.4942V15.5567C15.665 16.604 16.0287 17.6193 16.6943 18.4279C17.0102 18.8115 16.9557 19.3784 16.5723 19.6945C16.1886 20.0101 15.6216 19.9558 15.3056 19.5724C14.3744 18.4415 13.8642 17.0217 13.8642 15.5567V14.4942C13.864 13.89 13.3746 13.4007 12.7704 13.4005H9.90026V15.0001C9.90026 16.8571 9.02545 18.6056 7.53987 19.7199C7.14228 20.0178 6.57828 19.9376 6.28008 19.5402C5.98213 19.1427 6.06256 18.5787 6.45977 18.2804C7.49219 17.5061 8.09945 16.2906 8.09945 15.0001V5.90041H7.49983C7.00296 5.90018 6.59942 5.49693 6.59942 5.00001C6.59942 4.50309 7.00296 4.09984 7.49983 4.09961H10.4999Z"/></svg></span>
+        <span class="kimi-control-fill" aria-hidden="true"></span>
+        <span class="kimi-control-label" aria-hidden="true">K3.1</span>
+        <span class="kimi-control-thumb" aria-hidden="true"></span>
+        <input class="kimi-control-range" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="K3.1" aria-valuetext="90%">
+      </label>
+      <label class="kimi-control" data-kimi-setting="coverage" title="Coverage: 100%" style="--progress:1">
+        <span class="kimi-control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M13.9498 10C16.1011 10.0001 17.9024 11.4936 18.3766 13.5H18.4996C20.4326 13.5 21.9996 15.067 21.9996 17C21.9996 18.933 20.4326 20.5 18.4996 20.5H11.4996C9.5668 20.4998 7.99962 18.9329 7.99962 17C7.99962 15.8481 8.55586 14.8253 9.41466 14.1875C9.5994 11.8442 11.5591 10.0002 13.9498 10ZM13.9498 11.7998C12.5062 11.8 11.3201 12.9144 11.2086 14.3291C11.1677 14.8474 10.9053 15.3229 10.4879 15.6328C10.0675 15.9451 9.79942 16.4409 9.79942 17C9.79942 17.9388 10.5609 18.7 11.4996 18.7002H18.4996C19.4385 18.7002 20.1998 17.9389 20.1998 17C20.1998 16.0611 19.4385 15.2998 18.4996 15.2998H18.3766C17.5421 15.2996 16.8166 14.7262 16.6246 13.9141C16.3558 12.7765 15.3799 11.9138 14.19 11.8105L13.9498 11.7998ZM7.54259 3.89746C8.03952 3.89761 8.44298 4.30088 8.44298 4.79785C8.44295 5.2948 8.03951 5.6981 7.54259 5.69824H7.1129V8.16504L9.16075 7.82422C10.0083 7.68279 10.6295 6.94918 10.6295 6.08984V5.69824H10.2008C9.70375 5.69824 9.30043 5.29489 9.3004 4.79785C9.3004 4.3008 9.70374 3.89746 10.2008 3.89746H12.859C13.3559 3.89762 13.7594 4.30089 13.7594 4.79785C13.7594 5.29479 13.3559 5.69808 12.859 5.69824H12.4303V6.08984C12.4303 7.82909 11.1722 9.31352 9.45665 9.59961L7.1129 9.99023V10.543H9.10021C9.27386 10.543 9.368 10.7517 9.26134 10.8887C8.97293 11.258 8.72763 11.6628 8.53185 12.0947C8.46428 12.2437 8.31752 12.3438 8.15392 12.3438H7.1129V13.6582C7.11289 15.3359 6.3232 16.9162 4.98107 17.9229C4.58359 18.2208 4.01958 18.1403 3.7213 17.7432C3.42318 17.3456 3.50351 16.7807 3.90099 16.4824C4.78979 15.8157 5.31308 14.7693 5.3131 13.6582V5.69824H4.88439C4.38735 5.69824 3.98402 5.29489 3.98399 4.79785C3.98399 4.3008 4.38733 3.89746 4.88439 3.89746H7.54259Z"/></svg></span>
+        <span class="kimi-control-fill" aria-hidden="true"></span>
+        <span class="kimi-control-label" aria-hidden="true">Coverage</span>
+        <span class="kimi-control-thumb" aria-hidden="true"></span>
+        <input class="kimi-control-range" type="range" min="0" max="1" step="0.01" value="1" aria-label="Coverage" aria-valuetext="100%">
+      </label>
     </div>
 
     {{CONTRIB_HTML}}
