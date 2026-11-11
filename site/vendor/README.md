@@ -7,8 +7,12 @@
 | `marked.min.js` | marked 12.0.2 | <https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js> | [MIT](licenses/marked-LICENSE.md) |
 | `mermaid.min.js` | Mermaid 11.12.0 | <https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.min.js> | [MIT](licenses/mermaid-LICENSE.txt) |
 | `mathjax/tex-svg.js` | MathJax 3.2.2 | <https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js> | [Apache-2.0](licenses/mathjax-LICENSE.txt) |
+| `fonts/lora/*.woff2` | Lora variable（latin / latin-ext） | Google Fonts | [OFL](fonts/licenses/Lora-OFL.txt) |
+| `fonts/noto-serif-sc/*.woff2` | Noto Serif SC variable 分片 | Google Fonts | [OFL](fonts/licenses/NotoSerifSC-OFL.txt) |
+| `fonts/mashanzheng/*.woff2` | Ma Shan Zheng（控件 K 图标分片） | Google Fonts | [OFL](fonts/licenses/MaShanZheng-OFL.txt) |
+| `licenses/hanzi-writer-data-ARPHICPL.txt` | 字标笔顺数据（内联进首页 SVG） | [hanzi-writer-data](https://github.com/chanind/hanzi-writer-data) | Arphic Public License |
 
-升级时替换对应文件并更新本表（含 `licenses/` 下的许可证全文）。MathJax 使用 `tex-svg` 组合包（SVG 输出，无额外字体文件）。Mermaid 只在存在 `mermaid` 围栏的页面加载，MathJax 只在存在 `math` 围栏的页面加载。
+升级时替换对应文件并更新本表（含 `licenses/` 下的许可证全文）。MathJax 使用 `tex-svg` 组合包（SVG 输出，无额外字体文件）。Mermaid 只在存在 `mermaid` 围栏的页面加载，MathJax 只在存在 `math` 围栏的页面加载。字体只在 Kimi 皮肤真正用到对应字符时按 `unicode-range` 分片加载；经典皮肤不会请求字体文件。
 
 ## 构建、预览与 PDF
 

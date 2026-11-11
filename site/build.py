@@ -89,6 +89,7 @@ class Entry:
     math_count: int = 0
     mermaid_count: int = 0
     image_count: int = 0
+    cover_rel: str = ""
     source_hash: str = ""
     pdf_rel: str = ""
     prev_route: str = ""
@@ -431,6 +432,35 @@ def route_for(source: Path) -> str:
     raise BuildError(f"无法为 {rel} 生成路由")
 
 
+COVER_SUFFIXES = {".avif", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"}
+# A transparent 1x1 GIF keeps Kimi-only <img> elements from showing a broken
+# icon before site.js hydrates their real data-kimi-src.
+KIMI_PLACEHOLDER = (
+    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+)
+
+
+def first_cover_image(source_path: str, images: list[str]) -> str:
+    """Return the first local note asset suitable for a Kimi cover.
+
+    Only images under the note's own ``assets/`` directory are used: that is
+    the directory the builder copies next to the generated page, so the URL is
+    guaranteed to resolve on both the home card and the reader page.
+    """
+    asset_prefix = posixpath.join(posixpath.dirname(source_path), "assets") + "/"
+    for target in images:
+        repo_path, status = resolve_repo_path(source_path, target)
+        if status != "relative" or not repo_path:
+            continue
+        if not repo_path.startswith(asset_prefix):
+            continue
+        if Path(repo_path).suffix.lower() not in COVER_SUFFIXES:
+            continue
+        if (ROOT / repo_path).is_file():
+            return repo_path
+    return ""
+
+
 def analyze(
     source: Path,
     kind: str,
@@ -467,6 +497,7 @@ def analyze(
         math_count=math_count,
         mermaid_count=mermaid_count,
         image_count=len(images),
+        cover_rel=first_cover_image(source_path, images) if kind != "summary" else "",
         source_hash=file_hash(source),
         pdf_rel=pdf_rel,
     )
@@ -833,8 +864,20 @@ def render_card(entry: Entry, root: str = "") -> str:
         paper = f'<p class="card-paper">{html.escape(entry.paper_title)}</p>'
     read_date = f'<span>读于 {html.escape(entry.read_date)}</span>' if entry.read_date else ""
     doc_id = f'<span class="card-id">{html.escape(entry.doc_id)}</span>' if entry.doc_id else '<span class="card-id">专题</span>'
+    if entry.cover_rel:
+        media = (
+            f'<div class="card-media kimi-only"><img data-kimi-src="{html.escape(root + entry.cover_rel)}" '
+            f'src="{KIMI_PLACEHOLDER}" alt="" loading="lazy" decoding="async"></div>'
+        )
+    else:
+        glyph = {"paper": "文", "blog": "博", "summary": "汇"}.get(entry.kind, "记")
+        media = (
+            f'<div class="card-media card-media-fallback kimi-only" data-kind="{entry.kind}" '
+            f'aria-hidden="true"><span>{glyph}</span></div>'
+        )
     return f"""<article class="card" data-kind="{entry.kind}" data-title="{html.escape(entry.title)}" data-year="{html.escape(entry.year)}" data-read-date="{html.escape(entry.read_date)}" data-search="{html.escape(card_search_text(entry))}">
   <a class="card-link" href="{href}">
+    {media}
     <div class="card-top">{doc_id}<span class="card-kind">{entry.kind_label}</span></div>
     <h3>{html.escape(entry.title)}</h3>
     {paper}
@@ -851,8 +894,10 @@ def render_featured(summaries: list[Entry]) -> str:
         pdf = ""
         if summary.pdf_rel:
             pdf = f'<a class="button button-ghost" href="{html.escape(summary.pdf_rel)}" target="_blank" rel="noopener">PDF</a>'
+        cover = summary.cover_rel or "assets/hero-kimi-1600.webp"
         cards.append(
             f"""<article class="featured-card" data-kind="summary" data-title="{html.escape(summary.title)}" data-year="" data-read-date="" data-search="{html.escape(card_search_text(summary))}">
+  <div class="featured-media kimi-only" aria-hidden="true"><img data-kimi-src="{html.escape(cover)}" src="{KIMI_PLACEHOLDER}" alt="" loading="lazy" decoding="async"></div>
   <div class="featured-main">
     <div class="card-top"><span class="card-id">专题</span><span class="card-kind">主题汇总</span><span class="featured-count">跨篇方法汇总</span></div>
     <h2><a href="{html.escape(summary.route)}">{html.escape(summary.title)}</a></h2>
@@ -932,9 +977,12 @@ def build_site(out_dir: Path) -> None:
     site_js = SITE / "assets" / "site.js"
     if not site_css.exists() or not site_js.exists():
         raise BuildError("site/assets/site.css 或 site.js 不存在")
-    asset_version = hashlib.sha256(
-        site_css.read_bytes() + site_js.read_bytes()
-    ).hexdigest()[:10]
+    asset_digest = hashlib.sha256()
+    for asset in sorted((SITE / "assets").iterdir()):
+        if asset.is_file() and asset.suffix in {".css", ".js"}:
+            asset_digest.update(asset.name.encode("utf-8"))
+            asset_digest.update(asset.read_bytes())
+    asset_version = asset_digest.hexdigest()[:10]
     # Vendor bundles are large (mermaid 2.7 MB); version them by their own
     # content so a site.css/site.js edit does not invalidate their cache.
     vendor_digest = hashlib.sha256()
@@ -989,6 +1037,12 @@ def build_site(out_dir: Path) -> None:
         if entry.original_url:
             original_link = f'<a class="doc-link" href="{html.escape(entry.original_url)}" target="_blank" rel="noopener">原文 ↗</a>'
         source_link = f'<a class="doc-link" href="{html.escape(source_url)}" target="_blank" rel="noopener">GitHub 源 ↗</a>'
+        if entry.cover_rel:
+            cover_image = posixpath.relpath(
+                entry.cover_rel, posixpath.dirname(entry.source_path)
+            )
+        else:
+            cover_image = entry.root + "assets/hero-kimi-1600.webp"
         route_map = {item.source_path: item.route for item in entries}
         doc_data = {
             "source": entry.source_path,
@@ -1036,6 +1090,8 @@ def build_site(out_dir: Path) -> None:
                 "META_HTML": doc_meta_html(entry),
                 "ORIGINAL_LINK": original_link,
                 "SOURCE_LINK": source_link,
+                "COVER_IMAGE": html.escape(cover_image),
+                "COVER_CLASS": " is-custom" if entry.cover_rel else "",
                 "SOURCE_PATH": html.escape(entry.source_path),
                 "SOURCE_HASH": entry.source_hash,
                 "MD_URL": f"./{html.escape(Path(entry.source_path).name)}?v={entry.source_hash}",
@@ -1084,8 +1140,9 @@ def build_site(out_dir: Path) -> None:
 
         assets_out = tmp / "assets"
         assets_out.mkdir(parents=True, exist_ok=True)
-        copy_file(site_css, assets_out / "site.css")
-        copy_file(site_js, assets_out / "site.js")
+        for asset in sorted((SITE / "assets").iterdir()):
+            if asset.is_file():
+                copy_file(asset, assets_out / asset.name)
         shutil.copytree(SITE / "vendor", assets_out / "vendor", dirs_exist_ok=True)
 
         manifest = {

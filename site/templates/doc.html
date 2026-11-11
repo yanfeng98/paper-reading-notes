@@ -7,17 +7,25 @@
   <meta name="description" content="{{PAGE_DESCRIPTION}}">
   <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="{{ROOT}}assets/site.css?v={{ASSET_VERSION}}">
+  <link rel="stylesheet" href="{{ROOT}}assets/fonts.css?v={{ASSET_VERSION}}">
+  <link rel="stylesheet" href="{{ROOT}}assets/skin-kimi.css?v={{ASSET_VERSION}}">
   <script>
     (function () {
       try {
+        var skin = localStorage.getItem('prn-skin');
+        var fromUrl = new URLSearchParams(window.location.search).get('skin');
+        if (fromUrl === 'kimi' || fromUrl === 'classic') skin = fromUrl;
+        skin = skin === 'classic' ? 'classic' : 'kimi';
         var mode = localStorage.getItem('prn-theme') || 'auto';
         var resolved = mode === 'auto'
           ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : mode;
+        document.documentElement.dataset.skin = skin;
         document.documentElement.dataset.theme = resolved;
         document.documentElement.dataset.themeMode = mode;
       } catch (error) {
         document.documentElement.dataset.theme = 'light';
+        document.documentElement.dataset.skin = 'kimi';
       }
     })();
     window.MathJax = {
@@ -42,10 +50,20 @@
       <span class="brand-mark" aria-hidden="true">P</span>
       <span class="brand-text">Paper <em>Reading</em> Notes</span>
     </a>
+    <nav class="kimi-nav kimi-only" aria-label="资料库分类">
+      <a href="{{ROOT}}">资料库</a>
+      <a href="{{ROOT}}?type=paper">论文笔记</a>
+      <a href="{{ROOT}}?type=blog">博客笔记</a>
+      <a href="{{ROOT}}?type=summary">主题汇总</a>
+    </nav>
     <nav class="doc-breadcrumb" aria-label="面包屑">
       <a href="{{ROOT}}">资料库</a><span aria-hidden="true">/</span><span>{{KIND_LABEL}}</span>
     </nav>
     <div class="topbar-actions">
+      <button class="skin-toggle" type="button" data-skin-toggle aria-pressed="false" aria-label="切换到 Kimi 风格" title="切换页面风格">
+        <span class="skin-icon" aria-hidden="true">◈</span>
+        <span class="skin-label">Kimi 风格</span>
+      </button>
       <a class="topbar-link search-jump" href="{{ROOT}}?q=" aria-label="搜索笔记">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
         <span>搜索</span>
@@ -62,6 +80,9 @@
   <main class="doc-layout">
     <article class="doc" aria-labelledby="doc-title">
       <header class="doc-header">
+        <div class="doc-cover kimi-only{{COVER_CLASS}}" aria-hidden="true">
+          <img data-kimi-src="{{COVER_IMAGE}}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="2400" height="1350" fetchpriority="high" decoding="async">
+        </div>
         <div class="doc-kicker">
           <span class="kind-badge kind-{{KIND}}">{{KIND_LABEL}}</span>
           <span class="doc-id">{{DOC_ID}}</span>
@@ -71,6 +92,7 @@
         {{SUBTITLE_HTML}}
         <div class="doc-meta">{{META_HTML}}</div>
         <div class="doc-links">{{ORIGINAL_LINK}}{{SOURCE_LINK}}</div>
+        <p class="doc-scroll kimi-only">Scroll to read <span aria-hidden="true">↓</span></p>
       </header>
 
       <div id="doc-content" class="prose">

@@ -39,7 +39,8 @@
 
 ## 站点
 
-- 源码在 `site/`：`build.py`（仅 Python 标准库）、`templates/home.html`、`templates/doc.html`、`assets/site.css`、`assets/site.js`、`vendor/`（marked/MathJax/Mermaid 与许可证）。构建输出 `_site/`，已加入 `.gitignore`，不提交。
+- 源码在 `site/`：`build.py`（仅 Python 标准库）、`templates/home.html`、`templates/doc.html`、`assets/site.css`（经典皮肤）、`assets/skin-kimi.css`（Kimi 皮肤）、`assets/fonts.css`、`assets/site.js`、`vendor/`（marked/MathJax/Mermaid、Lora/Noto Serif SC 字体与许可证）。构建输出 `_site/`，已加入 `.gitignore`，不提交。
+- 双皮肤：`html[data-skin="classic|kimi"]`，`localStorage.prn-skin` 持久化，`?skin=` 可分享，默认 Kimi、可切回经典；顶栏按钮与 `Shift+K` 切换。Kimi 规则全部包在 `html[data-skin="kimi"]` 下，经典皮肤不变；Kimi 皮肤默认浅色文章页，深色仍可切换。首页 Kimi hero 有 3.2s 按笔顺 SVG 写字 intro、hero 内跟随鼠标的圆形代码 lens、5 条云 track 漂移、右下 Hero appearance 控件（localStorage `prn-hero-settings`）；「读」字标是内联 SVG（hanzi-writer-data 笔顺，Arphic Public License）；首屏/阅读页封面素材在 `site/assets/hero-kimi-*`，hero 生成脚本为 `site/tools/prepare_hero.py`，源图为 `site/tools/hero-source.jpg`（非构建依赖）。
 - `python3 site/build.py --out _site` 会自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；每个 `note.md` 必须有 README 对应行，构建会做双向校验、图片/链接校验和公式/Mermaid 计数校验。`docs/` 支持多篇汇总，都会作为首页 featured 卡片。
 - 首页贡献热力图由构建时的 `git log` 生成，按 UTC+8 归日、统计当前分支提交数，默认展示最近 12 个月并可切换到有提交的自然年（当前年份截至今天，标签「YYYY 年（至今）」）。它是构建快照，每次推送 `main` 和每日定时构建时刷新；Actions 的 checkout 必须 `fetch-depth: 0`，浅克隆或没有 `.git` 时构建会隐藏面板并在 stderr 警告。
 - 阅读页按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库。

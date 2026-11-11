@@ -7,17 +7,26 @@
   <meta name="description" content="{{PAGE_DESCRIPTION}}">
   <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="{{ROOT}}assets/site.css?v={{ASSET_VERSION}}">
+  <link rel="stylesheet" href="{{ROOT}}assets/fonts.css?v={{ASSET_VERSION}}">
+  <link rel="stylesheet" href="{{ROOT}}assets/skin-kimi.css?v={{ASSET_VERSION}}">
+  <link rel="preload" href="{{ROOT}}assets/vendor/fonts/mashanzheng/ma-shan-zheng-slice.woff2" as="font" type="font/woff2" crossorigin>
   <script>
     (function () {
       try {
+        var skin = localStorage.getItem('prn-skin');
+        var fromUrl = new URLSearchParams(window.location.search).get('skin');
+        if (fromUrl === 'kimi' || fromUrl === 'classic') skin = fromUrl;
+        skin = skin === 'classic' ? 'classic' : 'kimi';
         var mode = localStorage.getItem('prn-theme') || 'auto';
         var resolved = mode === 'auto'
           ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
           : mode;
+        document.documentElement.dataset.skin = skin;
         document.documentElement.dataset.theme = resolved;
         document.documentElement.dataset.themeMode = mode;
       } catch (error) {
         document.documentElement.dataset.theme = 'light';
+        document.documentElement.dataset.skin = 'kimi';
       }
     })();
   </script>
@@ -30,7 +39,17 @@
       <span class="brand-mark" aria-hidden="true">P</span>
       <span class="brand-text">Paper <em>Reading</em> Notes</span>
     </a>
+    <nav class="kimi-nav kimi-only" aria-label="资料库分类">
+      <a href="#library">资料库</a>
+      <a href="?type=paper">论文笔记</a>
+      <a href="?type=blog">博客笔记</a>
+      <a href="?type=summary">主题汇总</a>
+    </nav>
     <nav class="topbar-actions" aria-label="站点操作">
+      <button class="skin-toggle" type="button" data-skin-toggle aria-pressed="false" aria-label="切换到 Kimi 风格" title="切换页面风格">
+        <span class="skin-icon" aria-hidden="true">◈</span>
+        <span class="skin-label">Kimi 风格</span>
+      </button>
       <a class="topbar-link" href="{{REPO_URL}}" target="_blank" rel="noopener noreferrer">GitHub</a>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换主题">
         <span class="theme-icon" aria-hidden="true">◐</span>
@@ -40,27 +59,124 @@
   </header>
 
   <main>
-    <section class="hero">
-      <div class="hero-glow" aria-hidden="true"></div>
-      <p class="eyebrow">PAPER READING NOTES</p>
-      <h1>论文阅读笔记</h1>
-      <p class="hero-lede">把一篇论文读成自己的东西：核心结论、方法拆解、关键数字与横向对比。</p>
-      <div class="hero-stats">{{STATS_HTML}}</div>
-      <div class="hero-tools">
-        <label class="search-box">
-          <span class="search-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
-          </span>
-          <input id="search" type="search" placeholder="搜索标题、编号、单位、章节…" autocomplete="off" aria-label="搜索笔记">
-          <kbd class="search-kbd">/</kbd>
-        </label>
-        <a class="index-link" href="{{REPO_URL}}/blob/main/README.md" target="_blank" rel="noopener noreferrer">完整论文清单 <span aria-hidden="true">↗</span></a>
+    <section class="hero is-intro">
+      <div class="hero-media kimi-only" aria-hidden="true">
+        <picture>
+          <source data-kimi-srcset="{{ROOT}}assets/hero-kimi-1600.webp 1600w, {{ROOT}}assets/hero-kimi-2400.webp 2400w" sizes="100vw" type="image/webp">
+          <img data-kimi-src="{{ROOT}}assets/hero-kimi-1600.jpg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" width="2400" height="1350" fetchpriority="high" decoding="async">
+        </picture>
       </div>
+      <div class="hero-scrim kimi-only" aria-hidden="true"></div>
+      <div class="hero-clouds kimi-only" aria-hidden="true">
+        <span class="hero-cloud" style="--y:12%;--size:620px;--dur:82s;--delay:-18s;--op:.62"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-1.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
+        <span class="hero-cloud" style="--y:24%;--size:780px;--dur:104s;--delay:-72s;--op:.55"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-2.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
+        <span class="hero-cloud" style="--y:38%;--size:700px;--dur:92s;--delay:-44s;--op:.70"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-3.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
+        <span class="hero-cloud" style="--y:54%;--size:880px;--dur:118s;--delay:-96s;--op:.52"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-4.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
+        <span class="hero-cloud" style="--y:68%;--size:620px;--dur:76s;--delay:-8s;--op:.65"><img data-kimi-src="{{ROOT}}assets/cloud-sprite-2.webp" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt=""></span>
+      </div>
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <div class="hero-mark-wrap kimi-only" aria-hidden="true">
+            <div class="hero-mark">
+            <svg class="mark-svg is-writing" viewBox="0 0 1024 1024" width="100%" height="100%" aria-hidden="true" focusable="false">
+            <style>
+            .mark-svg .ink-mask { stroke-dasharray: 1; stroke-dashoffset: 1; }
+            .mark-svg.is-writing .ink-mask { animation: mark-draw 0.42s cubic-bezier(0.4, 0, 0.2, 1) var(--delay, 0s) both; }
+            @keyframes mark-draw { to { stroke-dashoffset: 0; } }
+            </style>
+            <defs>
+            <filter id="du-ink" x="-8%" y="-8%" width="116%" height="116%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="n"/>
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="2.1" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            </defs>
+            <g filter="url(#du-ink)"><mask id="du-m0" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 257 783 L 350 724 L 376 681" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:0.00s"/></mask>
+            <path d="M 282 735 Q 313 708 345 676 Q 360 660 378 661 Q 391 662 396 677 Q 402 693 392 728 Q 386 750 351 767 Q 267 800 252 791 Q 246 787 248 772 Q 252 759 282 735 Z" fill="#fff" mask="url(#du-m0)"/><mask id="du-m1" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 71 464 L 108 458 L 142 465 L 234 507 L 270 507 L 278 497 L 245 185 L 255 152 L 289 163 L 384 254" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:0.28s"/></mask>
+            <path d="M 153 493 Q 104 477 78 475 Q 63 476 61 468 Q 57 461 68 452 Q 107 428 139 442 Q 229 491 241 482 Q 248 476 242 371 Q 239 259 207 155 Q 192 124 234 76 Q 244 64 254 71 Q 261 78 273 101 Q 307 152 381 239 Q 393 251 390 258 Q 389 265 378 256 Q 341 231 305 200 Q 268 167 273 215 Q 273 281 298 442 Q 302 466 323 489 Q 336 499 326 511 Q 316 527 278 544 Q 266 550 249 539 Q 188 505 153 493 Z" fill="#fff" mask="url(#du-m1)"/><mask id="du-m2" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 490 666 L 546 660 L 629 673 L 723 697 L 783 699" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:0.56s"/></mask>
+            <path d="M 607 691 Q 555 681 497 676 Q 463 670 487 654 Q 521 633 593 646 Q 599 647 609 648 L 656 657 Q 699 667 746 675 Q 785 684 791 689 Q 800 696 795 704 Q 788 716 760 723 Q 727 729 660 704 L 607 691 Z" fill="#fff" mask="url(#du-m2)"/><mask id="du-m3" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 597 802 L 634 767 L 630 583 L 615 562" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:0.84s"/></mask>
+            <path d="M 660 704 Q 661 713 662 720 Q 665 739 668 753 Q 672 763 674 773 Q 677 782 659 795 Q 628 811 607 815 Q 594 819 586 811 Q 579 804 587 791 Q 602 769 607 691 L 609 648 Q 610 603 610 554 C 610 524 646 531 648 561 Q 652 610 656 657 L 660 704 Z" fill="#fff" mask="url(#du-m3)"/><mask id="du-m4" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 419 512 L 467 505 L 666 552 L 753 567 L 791 567 L 821 554 L 836 534 L 773 454" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:1.12s"/></mask>
+            <path d="M 610 554 Q 561 547 508 535 Q 468 526 426 521 Q 396 517 416 502 Q 447 477 478 487 Q 587 529 737 547 Q 767 551 777 550 Q 796 541 794 533 Q 782 493 768 450 L 769 449 Q 776 445 790 457 Q 838 493 878 505 Q 911 518 909 525 Q 908 535 841 581 Q 819 596 739 578 Q 670 569 648 561 L 610 554 Z" fill="#fff" mask="url(#du-m4)"/><mask id="du-m5" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 485 425 L 522 401 L 539 382" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:1.40s"/></mask>
+            <path d="M 480 412 Q 519 364 539 365 Q 551 364 556 380 Q 557 392 548 409 Q 530 430 483 436 Q 474 437 474 427 Q 473 420 480 412 Z" fill="#fff" mask="url(#du-m5)"/><mask id="du-m6" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 461 341 L 499 314 L 519 291" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:1.68s"/></mask>
+            <path d="M 455 328 Q 497 274 519 273 Q 531 272 537 288 Q 538 300 529 317 Q 522 330 502 337 Q 471 350 459 352 Q 450 353 450 343 Q 449 336 455 328 Z" fill="#fff" mask="url(#du-m6)"/><mask id="du-m7" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 407 207 L 454 199 L 616 226 L 785 263 L 823 266 L 862 260" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:1.96s"/></mask>
+            <path d="M 638 211 Q 689 224 853 246 Q 863 245 873 258 Q 874 270 851 280 Q 821 301 732 275 Q 698 268 663 257 Q 656 256 649 253 L 599 243 L 412 217 Q 384 213 406 196 Q 418 186 432 178 Q 445 171 467 177 Q 521 190 588 202 L 638 211 Z" fill="#fff" mask="url(#du-m7)"/><mask id="du-m8" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 590 464 L 633 435 L 639 411 L 629 274 L 604 177 L 579 134 L 521 78 L 460 42 L 380 14" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:2.24s"/></mask>
+            <path d="M 649 253 Q 656 299 664 370 Q 665 395 676 425 Q 682 435 673 443 Q 625 486 589 476 Q 570 469 585 453 Q 609 426 610 377 Q 610 293 599 243 L 588 202 Q 552 121 463 63 Q 432 47 389 25 Q 377 21 374 17 Q 370 13 384 9 Q 445 5 559 78 Q 578 94 593 112 Q 636 172 638 211 L 649 253 Z" fill="#fff" mask="url(#du-m8)"/><mask id="du-m9" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path class="ink-mask" d="M 693 161 L 802 85 L 829 51 L 842 19" pathLength="1" fill="none" stroke="#fff" stroke-width="240" stroke-linecap="round" stroke-linejoin="round" style="--delay:2.52s"/></mask>
+            <path d="M 694 141 Q 746 95 808 26 Q 824 7 840 2 Q 850 1 857 11 Q 870 24 856 69 Q 846 109 771 143 Q 722 164 694 172 Q 685 178 683 165 Q 683 152 694 141 Z" fill="#fff" mask="url(#du-m9)"/></g>
+            </svg>
+            </div>
+          </div>
+          <p class="eyebrow">PAPER READING NOTES</p>
+          <h1>论文阅读笔记</h1>
+          <p class="hero-lede">把一篇论文读成自己的东西：核心结论、方法拆解、关键数字与横向对比。</p>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-stats">{{STATS_HTML}}</div>
+          <div class="hero-tools">
+            <label class="search-box">
+              <span class="search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+              </span>
+              <input id="search" type="search" placeholder="搜索标题、编号、单位、章节…" autocomplete="off" aria-label="搜索笔记">
+              <kbd class="search-kbd">/</kbd>
+            </label>
+            <a class="index-link" href="{{REPO_URL}}/blob/main/README.md" target="_blank" rel="noopener noreferrer">完整论文清单 <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+        <p class="hero-scroll kimi-only">Scroll to explore <span aria-hidden="true">↓</span></p>
+      </div>
+      <div class="hero-code-layer kimi-only" aria-hidden="true"><pre class="hero-code">q = x @ Wq
+k = x @ Wk
+v = x @ Wv
+attn = softmax(q @ k.T / sqrt(d)) @ v
+x = layer_norm(x + attn)
+ffn = gelu(x @ W1) @ W2
+x = layer_norm(x + ffn)</pre></div>
     </section>
+
+    <section class="kimi-hero-lower kimi-only" aria-label="搜索与统计"></section>
+
+    <div class="kimi-controls kimi-only" data-kimi-controls>
+      <div class="kimi-control-panel" id="kimi-control-panel" data-kimi-panel hidden>
+        <div class="kimi-control-head">
+          <span>Hero appearance</span>
+          <button type="button" data-kimi-reset>Reset</button>
+        </div>
+        <label class="kimi-control-row">Cloud
+          <input type="range" min="0" max="1" step="0.01" value="0.6" data-kimi-setting="cloud">
+          <output data-kimi-output="cloud">60%</output>
+        </label>
+        <label class="kimi-control-row">Speed
+          <input type="range" min="0.5" max="2" step="0.1" value="1" data-kimi-setting="speed">
+          <output data-kimi-output="speed">1.0×</output>
+        </label>
+        <label class="kimi-control-row">Ink
+          <input type="range" min="0" max="1" step="0.01" value="1" data-kimi-setting="ink">
+          <output data-kimi-output="ink">100%</output>
+        </label>
+        <label class="kimi-control-row">Coverage
+          <input type="range" min="0" max="1" step="0.01" value="0.5" data-kimi-setting="coverage">
+          <output data-kimi-output="coverage">50%</output>
+        </label>
+      </div>
+      <button class="kimi-control-btn" type="button" data-kimi-panel-toggle aria-expanded="false" aria-controls="kimi-control-panel" aria-label="Hero appearance">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 18.5h11a3.5 3.5 0 0 0 .4-6.98A5.5 5.5 0 0 0 7.2 10.1 4.2 4.2 0 0 0 6.5 18.5Z"/></svg>
+      </button>
+      <button class="kimi-control-btn" type="button" data-kimi-list aria-label="跳到资料库">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"/></svg>
+      </button>
+      <button class="kimi-control-btn kimi-control-k" type="button" data-kimi-replay aria-label="重播开场">
+        <span aria-hidden="true">K</span>
+      </button>
+    </div>
 
     {{CONTRIB_HTML}}
 
     <section class="library" id="library" aria-label="笔记资料库">
+      <div class="library-heading kimi-only">
+        <p class="library-kicker">LIBRARY</p>
+        <h2>笔记资料库</h2>
+        <p class="library-lede">按论文、博客与主题汇总浏览。搜索、筛选和排序都保留，只是换了一种更安静的读法。</p>
+      </div>
       <div class="library-toolbar">
         <div class="filters" role="group" aria-label="按类型筛选">
           <button class="filter is-active" type="button" data-filter="all" aria-pressed="true">全部 <span class="filter-count">{{COUNT_ALL}}</span></button>

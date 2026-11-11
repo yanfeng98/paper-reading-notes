@@ -122,6 +122,9 @@ button { color: inherit; }
 
 [hidden] { display: none !important; }
 
+/* Skin-specific nodes stay out of the classic layout. */
+.kimi-only { display: none; }
+
 .skip-link {
   position: fixed;
   top: -60px;
@@ -186,6 +189,7 @@ button { color: inherit; }
 
 .topbar-link,
 .theme-toggle,
+.skin-toggle,
 .nav-action {
   display: inline-flex;
   align-items: center;
@@ -202,6 +206,7 @@ button { color: inherit; }
 }
 .topbar-link:hover,
 .theme-toggle:hover,
+.skin-toggle:hover,
 .nav-action:hover {
   color: var(--primary);
   background: var(--primary-soft);
@@ -209,6 +214,7 @@ button { color: inherit; }
   text-decoration: none;
 }
 .theme-icon { font-size: 15px; line-height: 1; }
+.skin-icon { font-size: 14px; line-height: 1; }
 .nav-action.pdf-action { color: var(--primary); border-color: var(--border); }
 
 /* ---------- home hero ---------- */
@@ -1648,6 +1654,7 @@ html.toc-open body { overflow: hidden; }
   .brand-text { display: none; }
   .doc-breadcrumb { display: none; }
   .topbar-link span { display: none; }
+  .skin-label { display: none; }
   .search-jump { display: inline-flex; }
   .hero { padding-top: 48px; }
   .hero h1 { font-size: clamp(2.2rem, 11vw, 3.2rem); }

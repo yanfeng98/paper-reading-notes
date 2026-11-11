@@ -7,7 +7,10 @@
   var page = body.dataset.page;
   var root = body.dataset.root || './';
   var THEME_KEY = 'prn-theme';
+  var SKIN_KEY = 'prn-skin';
+  var KIMI_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   var themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+  var motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   function storedTheme() {
     try { return localStorage.getItem(THEME_KEY) || 'auto'; } catch (error) { return 'auto'; }
@@ -55,8 +58,10 @@
         var systemTheme = themeMedia.matches ? 'dark' : 'light';
         var next;
         if (current === 'auto') {
-          // First click always makes a visible change: go to the opposite theme.
-          next = systemTheme === 'light' ? 'dark' : 'light';
+          // First click always makes a visible change: go to the opposite of
+          // the theme that "auto" currently resolves to (the Kimi skin's auto
+          // is dark even on a light system).
+          next = resolveTheme('auto') === 'light' ? 'dark' : 'light';
         } else if (current === 'light') {
           next = systemTheme === 'light' ? 'auto' : 'dark';
         } else {
@@ -72,6 +77,368 @@
     };
     if (themeMedia.addEventListener) themeMedia.addEventListener('change', onChange);
     else if (themeMedia.addListener) themeMedia.addListener(onChange);
+  }
+
+  /* ---------------- skin: classic / kimi ---------------- */
+
+  function currentSkin() {
+    return document.documentElement.dataset.skin === 'kimi' ? 'kimi' : 'classic';
+  }
+
+  function updateSkinControls() {
+    var kimi = currentSkin() === 'kimi';
+    document.querySelectorAll('[data-skin-toggle]').forEach(function (button) {
+      var label = button.querySelector('.skin-label');
+      var icon = button.querySelector('.skin-icon');
+      button.setAttribute('aria-pressed', kimi ? 'true' : 'false');
+      button.setAttribute('aria-label', kimi ? '切换到经典风格' : '切换到 Kimi 风格');
+      button.setAttribute('title', kimi ? '当前 Kimi 风格，点击切回经典' : '当前经典风格，点击切换到 Kimi');
+      if (label) label.textContent = kimi ? '经典风格' : 'Kimi 风格';
+      if (icon) icon.textContent = '◈';
+    });
+  }
+
+  function syncTopbar() {
+    var topbar = document.querySelector('.topbar');
+    var kimi = currentSkin() === 'kimi';
+    var hero = document.querySelector('.hero');
+    var cover = document.querySelector('.doc-cover');
+    var immersive = hero || (cover && cover.parentElement);
+    var threshold = immersive ? Math.max(24, immersive.offsetHeight - 80) : 24;
+    if (topbar) topbar.classList.toggle('is-scrolled', kimi && window.scrollY > threshold);
+    var pastCover = !cover || window.scrollY > cover.parentElement.offsetHeight - 80;
+    document.documentElement.classList.toggle('kimi-past-cover', kimi && pastCover);
+    var pastHero = hero ? window.scrollY > hero.offsetHeight - 80 : false;
+    document.documentElement.classList.toggle('kimi-past-hero', kimi && pastHero);
+  }
+
+  function layoutHeroMeta() {
+    var meta = document.querySelector('.hero-meta');
+    var lower = document.querySelector('.kimi-hero-lower');
+    var inner = document.querySelector('.hero-inner');
+    if (!meta || !lower || !inner) return;
+    if (currentSkin() === 'kimi') {
+      if (meta.parentElement !== lower) lower.appendChild(meta);
+    } else if (meta.parentElement !== inner) {
+      var scroll = inner.querySelector('.hero-scroll');
+      inner.insertBefore(meta, scroll || null);
+    }
+  }
+
+  function layoutHomeSections() {
+    var contrib = document.querySelector('.contrib');
+    var library = document.querySelector('.library');
+    if (!contrib || !library || !library.parentElement) return;
+    if (currentSkin() === 'kimi') {
+      if (contrib.previousElementSibling !== library) {
+        library.insertAdjacentElement('afterend', contrib);
+      }
+    } else if (contrib.nextElementSibling !== library) {
+      library.parentElement.insertBefore(contrib, library);
+    }
+  }
+
+  function playHeroIntro() {
+    var hero = document.querySelector('.hero');
+    if (!hero || page !== 'home') return;
+    var layer = document.querySelector('.hero-code-layer');
+    var svg = document.querySelector('.mark-svg');
+    hero.classList.remove('is-intro', 'is-intro-done');
+    document.documentElement.classList.remove('kimi-intro-done');
+    if (layer) layer.classList.remove('is-visible');
+    void hero.offsetWidth;
+    hero.classList.add('is-intro');
+    if (svg) {
+      svg.classList.remove('is-writing');
+      void svg.getBoundingClientRect();
+      svg.classList.add('is-writing');
+    }
+    clearTimeout(window.__heroIntroTimer);
+    var speed = parseFloat(hero.style.getPropertyValue('--hero-speed')) || 1;
+    speed = Math.max(0.5, Math.min(2, speed));
+    var duration = motionMedia.matches ? 1.2 : 3.2 / speed;
+    hero.style.setProperty('--intro-duration', duration + 's');
+    window.__heroIntroTimer = setTimeout(function () {
+      hero.classList.add('is-intro-done');
+      document.documentElement.classList.add('kimi-intro-done');
+    }, (duration + 0.45) * 1000);
+  }
+
+  function initKimiControls() {
+    var root = document.querySelector('[data-kimi-controls]');
+    var hero = document.querySelector('.hero');
+    if (!root || !hero) return;
+    var panel = root.querySelector('[data-kimi-panel]');
+    var toggle = root.querySelector('[data-kimi-panel-toggle]');
+    var inputs = root.querySelectorAll('[data-kimi-setting]');
+    var defaults = { cloud: 0.6, speed: 1, ink: 1, coverage: 0.5 };
+    var settings = Object.assign({}, defaults);
+    try {
+      var stored = JSON.parse(localStorage.getItem('prn-hero-settings') || 'null');
+      if (stored && typeof stored === 'object') {
+        ['cloud', 'speed', 'ink', 'coverage'].forEach(function (key) {
+          if (typeof stored[key] === 'number' && isFinite(stored[key])) settings[key] = stored[key];
+        });
+      }
+    } catch (error) { /* ignore */ }
+
+    function format(key, value) {
+      if (key === 'speed') return value.toFixed(1) + '×';
+      return Math.round(value * 100) + '%';
+    }
+
+    function save() {
+      try { localStorage.setItem('prn-hero-settings', JSON.stringify(settings)); } catch (error) { /* ignore */ }
+    }
+
+    function apply() {
+      hero.style.setProperty('--hero-cloud', String(settings.cloud));
+      hero.style.setProperty('--hero-speed', String(settings.speed));
+      hero.style.setProperty('--hero-ink', String(settings.ink));
+      hero.style.setProperty('--hero-scale', String(1 + settings.coverage * 0.14));
+      hero.style.setProperty('--hero-cloud-scale', String(1 / Math.max(0.5, settings.speed)));
+      inputs.forEach(function (input) {
+        var key = input.dataset.kimiSetting;
+        input.value = String(settings[key]);
+        var output = root.querySelector('[data-kimi-output="' + key + '"]');
+        if (output) output.textContent = format(key, settings[key]);
+      });
+    }
+
+    inputs.forEach(function (input) {
+      input.addEventListener('input', function () {
+        var key = input.dataset.kimiSetting;
+        var value = parseFloat(input.value);
+        if (!isFinite(value)) return;
+        settings[key] = value;
+        apply();
+        save();
+      });
+      input.addEventListener('change', function () {
+        if (input.dataset.kimiSetting === 'speed') playHeroIntro();
+      });
+    });
+
+    var reset = root.querySelector('[data-kimi-reset]');
+    if (reset) reset.addEventListener('click', function () {
+      settings = Object.assign({}, defaults);
+      apply();
+      save();
+      playHeroIntro();
+    });
+
+    function setPanel(open) {
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    toggle.addEventListener('click', function () {
+      setPanel(panel.hidden);
+    });
+    document.addEventListener('click', function (event) {
+      if (panel.hidden || root.contains(event.target)) return;
+      setPanel(false);
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !panel.hidden) setPanel(false);
+    });
+
+    var list = root.querySelector('[data-kimi-list]');
+    if (list) list.addEventListener('click', function () {
+      var library = document.getElementById('library');
+      if (library) library.scrollIntoView({ behavior: motionMedia.matches ? 'auto' : 'smooth', block: 'start' });
+    });
+    var replay = root.querySelector('[data-kimi-replay]');
+    if (replay) replay.addEventListener('click', playHeroIntro);
+
+    apply();
+    if (currentSkin() === 'kimi') playHeroIntro();
+  }
+
+  function initHeroSpotlight() {
+    var hero = document.querySelector('.hero');
+    var layer = document.querySelector('.hero-code-layer');
+    if (!hero || !layer || window.__heroSpotlightBound) return;
+    window.__heroSpotlightBound = true;
+    function move(event) {
+      if (currentSkin() !== 'kimi' || event.pointerType === 'touch') return;
+      var rect = hero.getBoundingClientRect();
+      var x = event.clientX - rect.left;
+      var y = event.clientY - rect.top;
+      layer.style.setProperty('--mx', x + 'px');
+      layer.style.setProperty('--my', y + 'px');
+      layer.classList.add('is-visible');
+    }
+    hero.addEventListener('pointermove', move, { passive: true });
+    hero.addEventListener('pointerdown', move, { passive: true });
+    hero.addEventListener('pointerleave', function () {
+      layer.classList.remove('is-visible');
+    });
+  }
+
+  function hydrateKimiImages() {
+    var kimi = currentSkin() === 'kimi';
+    document.querySelectorAll('source[data-kimi-srcset]').forEach(function (source) {
+      if (kimi) {
+        if (!source.getAttribute('srcset')) source.setAttribute('srcset', source.dataset.kimiSrcset);
+      } else {
+        source.removeAttribute('srcset');
+      }
+    });
+    document.querySelectorAll('img[data-kimi-src]').forEach(function (image) {
+      var target = kimi ? image.dataset.kimiSrc : KIMI_PLACEHOLDER;
+      if (image.getAttribute('src') !== target) image.setAttribute('src', target);
+    });
+  }
+
+  function positionDocCover() {
+    var cover = document.querySelector('.doc-cover');
+    if (!cover || !cover.parentElement) return;
+    if (currentSkin() !== 'kimi') {
+      cover.style.left = '';
+      cover.style.width = '';
+      cover.classList.remove('is-positioned');
+      return;
+    }
+    var rect = cover.parentElement.getBoundingClientRect();
+    cover.style.left = (-rect.left) + 'px';
+    cover.style.width = window.innerWidth + 'px';
+    cover.classList.add('is-positioned');
+  }
+
+  var revealObserver = null;
+
+  function setupReveal() {
+    if (revealObserver) {
+      revealObserver.disconnect();
+      revealObserver = null;
+    }
+    document.querySelectorAll('.kimi-reveal').forEach(function (node) {
+      node.classList.remove('kimi-reveal', 'is-visible');
+    });
+    if (currentSkin() !== 'kimi' || motionMedia.matches || !('IntersectionObserver' in window)) return;
+    var selectors = page === 'home'
+      ? ['.library-heading', '.featured-card', '.card', '.contrib-card']
+      : ['.prose > h2', '.prose > h3', '.prose > blockquote',
+         '.prose > .table-wrap', '.prose > pre', '.prose > .mermaid', '.page-navs'];
+    var nodes = [];
+    selectors.forEach(function (selector) {
+      document.querySelectorAll(selector).forEach(function (node) { nodes.push(node); });
+    });
+    if (!nodes.length) return;
+    revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    nodes.forEach(function (node) {
+      node.classList.add('kimi-reveal');
+      revealObserver.observe(node);
+      var rect = node.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        node.classList.add('is-visible');
+        revealObserver.unobserve(node);
+      }
+    });
+  }
+
+  function setupKimiParallax() {
+    if (window.__kimiParallaxBound) return;
+    window.__kimiParallaxBound = true;
+    var ticking = false;
+    function frame() {
+      ticking = false;
+      var image = document.querySelector('.hero-media img');
+      var inner = document.querySelector('.hero-inner');
+      if (!image || currentSkin() !== 'kimi' || motionMedia.matches) {
+        if (image) image.style.transform = '';
+        if (inner) {
+          inner.style.transform = '';
+          inner.style.opacity = '';
+        }
+        return;
+      }
+      var hero = image.closest('.hero');
+      var limit = hero ? hero.offsetHeight : window.innerHeight;
+      var y = Math.min(window.scrollY, limit);
+      var progress = Math.min(1, y / Math.max(1, limit));
+      image.style.transform = 'translate3d(0,' + (y * 0.09).toFixed(2) + 'px,0) scale(1.04)';
+      if (inner) {
+        inner.style.transform = 'translate3d(0,' + (progress * 34).toFixed(2) + 'px,0)';
+        inner.style.opacity = String(Math.max(0, 1 - progress * 1.05));
+      }
+    }
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        ticking = true;
+        window.requestAnimationFrame(frame);
+      }
+      syncTopbar();
+    }, { passive: true });
+    window.addEventListener('resize', frame, { passive: true });
+    frame();
+  }
+
+  function applySkin(skin, persist) {
+    var next = skin === 'kimi' ? 'kimi' : 'classic';
+    document.documentElement.dataset.skin = next;
+    if (persist) {
+      try { localStorage.setItem(SKIN_KEY, next); } catch (error) { /* ignore */ }
+    }
+    hydrateKimiImages();
+    layoutHeroMeta();
+    if (page === 'home') {
+      if (next === 'kimi') {
+        playHeroIntro();
+      } else {
+        clearTimeout(window.__heroIntroTimer);
+        var hero = document.querySelector('.hero');
+        var layer = document.querySelector('.hero-code-layer');
+        if (hero) hero.classList.remove('is-intro', 'is-intro-done');
+        document.documentElement.classList.remove('kimi-intro-done');
+        if (layer) layer.classList.remove('is-visible');
+      }
+    }
+    layoutHomeSections();
+    applyTheme(document.documentElement.dataset.themeMode || 'auto', false);
+    updateSkinControls();
+    syncTopbar();
+    window.requestAnimationFrame(function () {
+      positionDocCover();
+      setupReveal();
+      setupKimiParallax();
+    });
+  }
+
+  function initSkin() {
+    var skin = 'kimi';
+    try { skin = localStorage.getItem(SKIN_KEY) || 'kimi'; } catch (error) { /* ignore */ }
+    var params = new URLSearchParams(window.location.search);
+    var fromUrl = params.get('skin');
+    if (fromUrl === 'kimi' || fromUrl === 'classic') {
+      skin = fromUrl;
+      try { localStorage.setItem(SKIN_KEY, skin); } catch (error) { /* ignore */ }
+    }
+    if (skin !== 'classic') skin = 'kimi';
+    applySkin(skin, false);
+    document.querySelectorAll('[data-skin-toggle]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        applySkin(currentSkin() === 'kimi' ? 'classic' : 'kimi', true);
+      });
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'K' || !event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) return;
+      var tag = (event.target && event.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || (event.target && event.target.isContentEditable)) return;
+      event.preventDefault();
+      applySkin(currentSkin() === 'kimi' ? 'classic' : 'kimi', true);
+    });
+    window.addEventListener('resize', debounce(function () {
+      positionDocCover();
+      syncTopbar();
+    }, 120));
+    motionMedia.addEventListener && motionMedia.addEventListener('change', setupReveal);
   }
 
   function debounce(fn, wait) {
@@ -292,7 +659,10 @@
     }
 
     function writeUrl() {
-      var next = new URLSearchParams();
+      var next = new URLSearchParams(window.location.search);
+      next.delete('q');
+      next.delete('type');
+      next.delete('sort');
       if (state.q.trim()) next.set('q', state.q.trim());
       if (state.type !== 'all') next.set('type', state.type);
       if (state.sort !== 'recent') next.set('sort', state.sort);
@@ -1154,6 +1524,8 @@
       await Promise.all([renderMath(), renderMermaid()]);
       validateRendered();
 
+      positionDocCover();
+      setupReveal();
       window.__renderError = null;
     }
 
@@ -1162,6 +1534,9 @@
   }
 
   initTheme();
+  initSkin();
+  initHeroSpotlight();
+  initKimiControls();
   if (page === 'home') {
     initContribution();
     initHome();

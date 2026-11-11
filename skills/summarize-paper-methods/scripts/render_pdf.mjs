@@ -117,7 +117,12 @@ try {
     if (msg.type() === 'error') consoleErrors.push(msg.text());
   });
   await page.addInitScript(() => {
-    try { localStorage.setItem('prn-theme', 'light'); } catch { /* ignore */ }
+    // Print/PDF uses the classic skin: the Kimi hero and full-bleed covers are
+    // screen-only, and the classic print styles are the readable A4 layout.
+    try {
+      localStorage.setItem('prn-theme', 'light');
+      localStorage.setItem('prn-skin', 'classic');
+    } catch { /* ignore */ }
   });
   await page.emulateMedia({ media: 'print' });
   await page.goto(`http://127.0.0.1:${port}/${PAGE}`, {
