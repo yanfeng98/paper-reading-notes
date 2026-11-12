@@ -124,9 +124,13 @@ html[data-skin="kimi"][data-theme="dark"] .topbar.is-scrolled {
   backdrop-filter: blur(18px) saturate(1.2);
 }
 
-html[data-skin="kimi"] .brand,
+html[data-skin="kimi"] .brand {
+  color: #fff;
+  transition: opacity 0.2s ease;
+}
 html[data-skin="kimi"] .brand:hover {
   color: #fff;
+  opacity: 0.78;
 }
 
 html[data-skin="kimi"] .brand-mark {
@@ -231,48 +235,51 @@ html[data-skin="kimi"] .topbar.is-scrolled .doc-breadcrumb a {
   color: var(--muted);
 }
 
-/* Light theme: the generated hero has a pale sky, so the original-style
-   header uses dark ink over the image instead of a white-on-dark scrim. */
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) { color: var(--text); }
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .brand,
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .brand:hover,
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .brand-text em {
-  color: var(--text);
+/* Over the hero the original keeps the chrome white on the cloud photograph:
+   a dark top gradient in the scrim supplies the contrast, not a dark theme. */
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) {
+  color: #fff;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.38);
 }
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .brand-mark {
-  border-color: rgba(0, 0, 0, 0.24);
-  background: rgba(255, 255, 255, 0.24);
-  color: var(--text);
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .brand,
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .brand:hover,
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .brand-text em {
+  color: #fff;
 }
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link,
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .theme-toggle,
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .skin-toggle,
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .nav-action {
-  border-color: rgba(0, 0, 0, 0.16);
-  background: rgba(255, 255, 255, 0.22);
-  color: rgba(0, 0, 0, 0.70);
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .brand-mark {
+  border-color: rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
 }
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link:hover,
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .theme-toggle:hover,
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .skin-toggle:hover,
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .nav-action:hover {
-  border-color: rgba(0, 0, 0, 0.30);
-  background: rgba(255, 255, 255, 0.42);
-  color: var(--text);
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .kimi-nav a {
+  color: rgba(255, 255, 255, 0.78);
 }
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .kimi-nav a {
-  color: rgba(0, 0, 0, 0.62);
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .kimi-nav a:hover {
+  color: #fff;
 }
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .kimi-nav a:hover {
-  color: var(--text);
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link,
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .theme-toggle,
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .skin-toggle,
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .nav-action {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(8, 12, 16, 0.22);
+  color: rgba(255, 255, 255, 0.82);
 }
-
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link[href*="github"] {
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link:hover,
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .theme-toggle:hover,
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .skin-toggle:hover,
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .nav-action:hover {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link[href*="github"] {
   border-color: #111;
   background: #111;
   color: #fff;
+  text-shadow: none;
 }
-html[data-skin="kimi"][data-theme="light"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link[href*="github"]:hover {
+html[data-skin="kimi"] body[data-page="home"] .topbar:not(.is-scrolled) .topbar-link[href*="github"]:hover {
   border-color: #000;
   background: #000;
   color: #fff;
@@ -357,7 +364,7 @@ html[data-skin="kimi"] .hero-scrim {
 html[data-skin="kimi"][data-theme="light"] .hero-scrim {
   background:
     radial-gradient(ellipse at 50% 44%, rgba(5, 8, 11, 0.06), transparent 64%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 22%),
+    linear-gradient(180deg, rgba(7, 12, 16, 0.46) 0%, rgba(7, 12, 16, 0.16) 11%, transparent 25%),
     linear-gradient(0deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 58%, transparent) 8%, transparent 22%);
 }
 
@@ -418,14 +425,37 @@ html[data-skin="kimi"] .hero-mark {
 }
 
 html[data-skin="kimi"] .hero-mark.is-windy {
+  filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.28));
+}
+
+/* The WebGL wind pass replaces the flat glyph only while the pointer is on
+   it; the SVG underneath keeps the brush-writing intro crisp. */
+html[data-skin="kimi"] .hero-mark.is-svg-wind {
   filter: url(#kimi-mark-wind) drop-shadow(0 8px 32px rgba(0, 0, 0, 0.28));
 }
 
+html[data-skin="kimi"] .kimi-mark-wind {
+  /* 20% transparent bleed on every side gives the shader room to smear the
+     brush strokes without clipping them at the hero mark's box. */
+  position: absolute;
+  inset: -20%;
+  z-index: 2;
+  display: block;
+  width: 140%;
+  height: 140%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
 html[data-skin="kimi"] .hero-mark .mark-svg {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
+  transition: opacity 0.14s ease;
 }
 
 /* The reference brings the wordmark up through progressively sharper
@@ -470,7 +500,7 @@ html[data-skin="kimi"] .hero-code-layer {
   transition: opacity 0.24s ease;
 }
 
-html[data-skin="kimi"] .hero-code-layer.is-visible { opacity: 1; }
+html[data-skin="kimi"] .hero-code-layer.is-visible { opacity: var(--hero-ink, 1); }
 
 html[data-skin="kimi"] .hero-code-canvas {
   display: block;
@@ -536,7 +566,7 @@ html[data-skin="kimi"] .kimi-intro h1 {
   margin: 0 0 24px;
   color: var(--text);
   font-family: var(--reading);
-  font-size: clamp(1.75rem, 2.5vw, 2rem);
+  font-size: clamp(1.875rem, 2.7vw, 2.375rem);
   font-weight: 450;
   line-height: 1.19;
   letter-spacing: -0.04em;
@@ -566,7 +596,7 @@ html[data-skin="kimi"] .kimi-hero-lower .hero-stats {
 html[data-skin="kimi"] .kimi-hero-lower .hero-stats strong {
   color: var(--text);
   font-family: var(--reading);
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 500;
 }
 
@@ -742,7 +772,7 @@ html[data-skin="kimi"] .library-kicker {
 html[data-skin="kimi"] .library-heading h2 {
   margin: 0;
   font-family: var(--reading);
-  font-size: clamp(1.75rem, 2.5vw, 2rem);
+  font-size: clamp(1.875rem, 2.7vw, 2.375rem);
   font-weight: 450;
   line-height: 1.19;
   letter-spacing: -0.04em;
@@ -1619,7 +1649,7 @@ html[data-skin="kimi"] .hero-media img {
 @media (max-width: 520px) {
   html[data-skin="kimi"] .hero h1 { font-size: 1rem; letter-spacing: 0.1em; text-indent: 0.1em; }
   html[data-skin="kimi"] .kimi-hero-lower .hero-stats { gap: 8px 16px; font-size: 11px; }
-  html[data-skin="kimi"] .kimi-hero-lower .hero-stats strong { font-size: 17px; }
+  html[data-skin="kimi"] .kimi-hero-lower .hero-stats strong { font-size: 19px; }
   html[data-skin="kimi"] .library { padding-left: 16px; padding-right: 16px; }
   html[data-skin="kimi"] .contrib { padding-left: 16px; padding-right: 16px; }
   html[data-skin="kimi"] .doc-layout { padding-left: 16px; padding-right: 16px; }

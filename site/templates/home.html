@@ -35,7 +35,7 @@
   <a class="skip-link" href="#library">跳到资料库</a>
 
   <header class="topbar">
-    <a class="brand" href="{{ROOT}}">
+    <a class="brand" href="{{ROOT}}" title="回到资料库首页" aria-label="Paper Reading Notes 资料库首页">
       <span class="brand-mark" aria-hidden="true">P</span>
       <span class="brand-text">Paper <em>Reading</em> Notes</span>
     </a>
@@ -90,6 +90,7 @@
           </svg>
           <div class="hero-mark-wrap kimi-only" aria-hidden="true">
             <div class="hero-mark" data-kimi-mark>
+            <canvas class="kimi-mark-wind" data-kimi-mark-wind aria-hidden="true"></canvas>
             <svg class="mark-svg is-writing" viewBox="0 0 1024 1024" width="100%" height="100%" aria-hidden="true" focusable="false">
             <style>
             .mark-svg .ink-mask { stroke-dasharray: 1; stroke-dashoffset: 1; }

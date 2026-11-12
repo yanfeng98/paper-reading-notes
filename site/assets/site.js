@@ -282,6 +282,206 @@
     if (currentSkin() === 'kimi') playHeroIntro();
   }
 
+  function createMarkWindRenderer(canvas) {
+    var gl = canvas.getContext('webgl2', {
+      alpha: true,
+      premultipliedAlpha: true,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: 'low-power'
+    });
+    if (!gl) return null;
+
+    var vertex = '#version 300 es\n' +
+      'in vec2 p; out vec2 vUv;\n' +
+      'void main(){ vUv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }';
+
+    var fragment = [
+      '#version 300 es',
+      'precision highp float;',
+      'in vec2 vUv;',
+      'out vec4 outColor;',
+      'uniform sampler2D uGlyph;',
+      'uniform vec2 uPointer;',
+      'uniform vec2 uWind;',
+      'uniform float uStrength;',
+      'uniform float uTime;',
+      'float hash(vec2 p){',
+      '  p = fract(p * vec2(123.34, 456.21));',
+      '  p += dot(p, p + 45.32);',
+      '  return fract(p.x * p.y);',
+      '}',
+      'float noise(vec2 p){',
+      '  vec2 i = floor(p), f = fract(p);',
+      '  f = f * f * (3.0 - 2.0 * f);',
+      '  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),',
+      '             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);',
+      '}',
+      'float fbm(vec2 p){',
+      '  float sum = 0.0, amp = 0.5;',
+      '  for (int i = 0; i < 4; i++){',
+      '    sum += amp * noise(p);',
+      '    p = p * 2.03 + vec2(1.7, 9.2);',
+      '    amp *= 0.5;',
+      '  }',
+      '  return sum / 0.9375;',
+      '}',
+      'float glyph(vec2 uv){',
+      '  if (uv.x < -0.02 || uv.x > 1.02 || uv.y < -0.02 || uv.y > 1.02) return 0.0;',
+      '  return texture(uGlyph, clamp(uv, 0.0, 1.0)).a;',
+      '}',
+      'void main(){',
+      '  vec2 uv = vUv;',
+      '  float anchor = smoothstep(0.02, 0.98, uv.y);',
+      '  vec2 p = uv - uPointer;',
+      '  float along = dot(p, uWind);',
+      '  float across = dot(p, vec2(-uWind.y, uWind.x));',
+      // A downwind ellipse with a long tail, not a circle: the gust centre
+      // sits at the pointer and the wake trails behind it.
+      '  float nearGust = exp(-(along * along * 8.0 + across * across * 20.0));',
+      '  float tail = exp(-(max(along, 0.0) * max(along, 0.0) * 2.0 + across * across * 26.0));',
+      '  float gust = uStrength * (0.26 + 0.78 * nearGust + 0.68 * tail);',
+      '  float sway = 0.5 + 0.5 * sin(uTime * 1.45 + uv.y * 4.3 + uv.x * 1.2);',
+      // Sample upstream and draw downstream so the brush leans and smears in
+      // the direction the air is moving.
+      '  vec2 warp = uWind * (0.006 + 0.13 * gust + 0.008 * sway) * (0.30 + 0.95 * anchor);',
+      '  warp.x += (uv.y - 0.15) * 0.09 * gust;',
+      '  vec2 n = vec2(',
+      '    fbm(uv * vec2(5.0, 7.0) + vec2(uTime * 0.50, 0.0)),',
+      '    fbm(uv * vec2(5.0, 7.0) + vec2(3.7, -uTime * 0.38))',
+      '  );',
+      '  warp += (n - 0.5) * (0.004 + 0.035 * gust) * (0.25 + anchor);',
+      '  float core = glyph(uv - warp);',
+      '  core *= 1.0 - smoothstep(0.62, 1.0, uv.y) * gust * 0.45;',
+      '  float trail = 0.015 + 0.34 * gust * (0.30 + anchor);',
+      '  float streaks = 0.0;',
+      '  for (int i = 1; i <= 20; i++){',
+      '    float t = float(i) / 20.0;',
+      '    vec2 suv = uv - warp * (1.0 + t * 0.35) - uWind * trail * t;',
+      '    float s = glyph(suv);',
+      '    float bands = fbm(vec2(suv.x * 8.0 - uTime * 0.55, suv.y * 30.0));',
+      '    s *= smoothstep(0.30, 0.74, bands + 0.30 - t * 0.17);',
+      '    streaks += s * pow(1.0 - t, 1.75) * 0.135;',
+      '  }',
+      '  float a = max(core, clamp(streaks, 0.0, 0.95) * (1.0 - core * 0.72) * 0.94);',
+      '  vec2 fuv = uv - warp * 1.7 - uWind * trail * 1.25;',
+      '  float flake = glyph(fuv);',
+      '  float mask = fbm(fuv * vec2(15.0, 36.0) + vec2(-uTime * 0.8, uTime * 0.12));',
+      '  a = max(a, flake * smoothstep(0.60, 0.84, mask) * 0.42 * uStrength);',
+      '  a *= smoothstep(0.0, 0.16, uStrength);',
+      '  vec3 ink = mix(vec3(0.975, 0.963, 0.925), vec3(0.88, 0.91, 0.89), clamp(streaks, 0.0, 1.0) * 0.5);',
+      '  outColor = vec4(ink * a, a);',
+      '}'
+    ].join('\n');
+
+    function compile(type, source) {
+      var shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        throw new Error(gl.getShaderInfoLog(shader) || 'mark wind shader compile failed');
+      }
+      return shader;
+    }
+
+    var program;
+    try {
+      program = gl.createProgram();
+      gl.attachShader(program, compile(gl.VERTEX_SHADER, vertex));
+      gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragment));
+      gl.bindAttribLocation(program, 0, 'p');
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw new Error(gl.getProgramInfoLog(program) || 'mark wind link failed');
+      }
+    } catch (error) {
+      console.warn('Mark wind renderer unavailable:', error);
+      return null;
+    }
+
+    var uniforms = {};
+    var count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+    for (var u = 0; u < count; u++) {
+      var name = gl.getActiveUniform(program, u).name;
+      uniforms[name] = gl.getUniformLocation(program, name);
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.BLEND);
+
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    var textureReady = false;
+    function paintTexture() {
+      var source = document.createElement('canvas');
+      source.width = source.height = 1024;
+      var sourceCtx = source.getContext('2d');
+      if (!sourceCtx) return;
+      sourceCtx.clearRect(0, 0, 1024, 1024);
+      sourceCtx.fillStyle = '#fff';
+      sourceCtx.font = '400 731px "Ma Shan Zheng", "Noto Serif SC", serif';
+      sourceCtx.textAlign = 'center';
+      sourceCtx.textBaseline = 'alphabetic';
+      sourceCtx.fillText('读', 512, 789);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+      textureReady = true;
+    }
+    paintTexture();
+    if (document.fonts && document.fonts.load) {
+      document.fonts.load('400 512px "Ma Shan Zheng"').then(paintTexture).catch(function () {});
+    }
+
+    var width = 1;
+    var height = 1;
+
+    var api = {
+      canvas: canvas,
+      resize: function (w, h) {
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var nw = Math.max(1, Math.round(w * dpr));
+        var nh = Math.max(1, Math.round(h * dpr));
+        if (nw === canvas.width && nh === canvas.height) return;
+        canvas.width = nw;
+        canvas.height = nh;
+        width = nw;
+        height = nh;
+      },
+      render: function (strength, time, pointerX, pointerY, windX, windY) {
+        if (!textureReady || !width) return;
+        gl.viewport(0, 0, width, height);
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.useProgram(program);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniform1i(uniforms.uGlyph, 0);
+        gl.uniform2f(uniforms.uPointer, pointerX, pointerY);
+        gl.uniform2f(uniforms.uWind, windX, windY);
+        gl.uniform1f(uniforms.uStrength, strength);
+        gl.uniform1f(uniforms.uTime, time);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      },
+      destroy: function () {
+        gl.deleteTexture(texture);
+        gl.deleteProgram(program);
+      }
+    };
+    return api;
+  }
+
   function initHeroCode() {
     var hero = document.querySelector('.hero');
     var layer = document.querySelector('.hero-code-layer');
@@ -292,9 +492,9 @@
     var ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Real lines from NVIDIA/Megatron-LM core (main @ 7a01f00) replace the
-    // generic animation scratchpad, so the drifting field is recognisable
-    // training-system code rather than decorative pseudo-code.
+    // Real lines from NVIDIA/Megatron-LM core (main @ 7a01f00). The original
+    // K3.1 hero draws a glyph grid from a code atlas; using actual training
+    // source here keeps the same "wind-blown code" language.
     // https://github.com/NVIDIA/Megatron-LM
     var snippets = [
       'from megatron.core import parallel_state',
@@ -320,49 +520,119 @@
       'self.force_all_reduce = False',
       'def finish_grad_sync(self, force_all_reduce: Optional[bool] = False):'
     ];
-    var cols = 0;
-    var rows = 0;
-    var stepX = 10;
-    var stepY = 14;
-    var lines = [];
-    var visibility = null;
+
     var width = 1;
     var height = 1;
+    var cols = 1;
+    var rows = 1;
+    var size = 12;
+    var stepX = 9.6;
+    var stepY = 13.8;
+    var grid = new Uint8Array(2);
+    var ribbons = [];
+    var bodyAtlas = null;
+    var hotAtlas = null;
+    var atlasCellW = 1;
+    var atlasCellH = 1;
+    var raf = 0;
+    var last = 0;
+    var clock = 0;
     var pointerX = -9999;
     var pointerY = -9999;
     var prevX = -9999;
     var prevY = -9999;
+    var pointerSpeed = 0;
     var active = false;
-    var raf = 0;
-    var last = 0;
-    var clock = 0;
-    var gusts = [];
+    var lastPoint = null;
     var markRect = null;
     var markWind = 0;
     var markTarget = 0;
     var markHover = false;
-    var windVX = 0;
-    var windVY = 0;
-    var lastWind = 0;
-    var lastInput = 0;
+    var windX = -1;
+    var windY = -0.16;
+    var markSvg = mark && mark.querySelector('.mark-svg');
+    var windCanvas = mark && mark.querySelector('[data-kimi-mark-wind]');
+    var windRenderer = windCanvas ? createMarkWindRenderer(windCanvas) : null;
     var windNoise = document.getElementById('kimi-wind-noise');
     var windDisplace = document.getElementById('kimi-wind-displace');
+    if (mark && windRenderer) {
+      mark.classList.add('has-wind-canvas');
+      windCanvas.addEventListener('webglcontextlost', function (event) {
+        event.preventDefault();
+        windRenderer = null;
+        windCanvas.style.display = 'none';
+        mark.classList.remove('has-wind-canvas');
+        mark.classList.add('is-svg-wind');
+        if (markSvg) markSvg.style.opacity = '';
+      });
+    } else if (mark) {
+      mark.classList.add('is-svg-wind');
+    }
 
     canvas.dataset.codeSource = 'https://github.com/NVIDIA/Megatron-LM';
     canvas.dataset.codeRevision = '7a01f00';
 
-    function hash2(x, y, seed) {
-      var n = Math.sin(x * 12.9898 + y * 78.233 + seed * 37.719) * 43758.5453;
-      return n - Math.floor(n);
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
     }
 
-    function buildLines() {
-      lines = [];
+    function buildGrid() {
+      // Same density law as the original hero: ~12px cells that grow only on
+      // unusually large or tall viewports, so the field reads as dense data
+      // rather than a few oversized letters.
+      size = Math.max(13.5, width / 340, height / 250);
+      stepX = size * 0.8;
+      stepY = size * 1.15;
+      cols = Math.ceil(width / stepX);
+      rows = Math.ceil(height / stepY);
+      grid = new Uint8Array(cols * rows * 2);
       for (var row = 0; row < rows; row++) {
-        var source = snippets[(row * 7 + 3) % snippets.length];
-        var line = '';
-        while (line.length < cols + 4) line += source + '   ';
-        lines.push(line);
+        var text = '';
+        var cursor = 0;
+        while (text.length < cols + 2) {
+          text += snippets[(row * 7 + 11 * cursor++) % snippets.length] + '   ';
+        }
+        for (var col = 0; col < cols; col++) {
+          grid[(row * cols + col) * 2] = text.charCodeAt(col) - 32;
+        }
+      }
+      ribbons.length = 0;
+      lastPoint = null;
+    }
+
+    function buildAtlases() {
+      // The original hero samples one 16x6 glyph atlas in a shader. Canvas 2D
+      // is far slower per glyph, so bake the same atlas once (green body and
+      // near-white head, both with a dark contour) and blit sprites per cell.
+      var colsAtlas = 16;
+      var rowsAtlas = 6;
+      atlasCellW = Math.ceil(stepX * 1.55);
+      atlasCellH = Math.ceil(stepY * 1.55);
+      bodyAtlas = document.createElement('canvas');
+      hotAtlas = document.createElement('canvas');
+      bodyAtlas.width = hotAtlas.width = colsAtlas * atlasCellW;
+      bodyAtlas.height = hotAtlas.height = rowsAtlas * atlasCellH;
+      var body = bodyAtlas.getContext('2d');
+      var hot = hotAtlas.getContext('2d');
+      [body, hot].forEach(function (g) {
+        g.font = '600 ' + size.toFixed(2) + 'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+        g.textAlign = 'center';
+        g.textBaseline = 'middle';
+        g.lineJoin = 'round';
+        g.lineWidth = Math.max(1.2, size * 0.11);
+        g.strokeStyle = 'rgba(2, 16, 6, 0.94)';
+      });
+      for (var code = 32; code < 127; code++) {
+        var ch = String.fromCharCode(code);
+        var slot = code - 32;
+        var x = (slot % colsAtlas + 0.5) * atlasCellW;
+        var y = (Math.floor(slot / colsAtlas) + 0.5) * atlasCellH;
+        body.strokeText(ch, x, y);
+        body.fillStyle = '#45e04d';
+        body.fillText(ch, x, y);
+        hot.strokeText(ch, x, y);
+        hot.fillStyle = '#eeffdc';
+        hot.fillText(ch, x, y);
       }
     }
 
@@ -374,17 +644,11 @@
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var size = width < 600 ? 10 : 12;
-      stepX = size * 0.82;
-      stepY = size * 1.15;
-      ctx.font = '500 ' + size + 'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-      ctx.textBaseline = 'top';
-      cols = Math.ceil(width / stepX) + 1;
-      rows = Math.ceil(height / stepY) + 1;
-      visibility = new Float32Array(cols * rows);
-      buildLines();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      buildGrid();
+      buildAtlases();
       syncMarkRect();
-      gusts = [];
     }
 
     function syncMarkRect() {
@@ -399,123 +663,117 @@
         cx: rect.left - heroRect.left + rect.width / 2,
         cy: rect.top - heroRect.top + rect.height / 2
       };
+      if (windRenderer) windRenderer.resize(rect.width * 1.4, rect.height * 1.4);
     }
 
-    function addGust(x, y, dx, dy, speed) {
-      var length = Math.hypot(dx, dy);
-      var ux = length > 0.001 ? dx / length : 1;
-      var uy = length > 0.001 ? dy / length : -0.08;
-      var wave = Math.sin(clock * 1.7 + x * 0.013) * 0.22;
-      var c = Math.cos(wave);
-      var s = Math.sin(wave);
-      var rx = ux * c - uy * s;
-      var ry = ux * s + uy * c;
-      gusts.push({
-        x: x,
-        y: y,
-        ux: rx,
-        uy: ry,
+    // A ribbon is the original's unit of wind: a horizontal run of 18-40
+    // glyphs whose head sits at the pointer and whose tail streams upwind.
+    function addRibbon(x, y) {
+      var row = clamp(Math.floor(y / stepY), 0, rows - 1);
+      var col = clamp(Math.floor(x / stepX), 0, cols - 1);
+      ribbons.push({
+        row: row,
+        head: col + 0.5,
+        cols: 22 + 30 * Math.random(),
         age: 0,
-        life: 0.55 + Math.random() * 0.55,
-        width: Math.max(30, 38 + speed * 2.5),
-        length: Math.max(190, 220 + speed * 7),
-        seed: Math.random() * 991,
-        power: Math.min(1, 0.5 + speed / 24)
+        duration: 5.2 * (0.85 + 0.4 * Math.random()),
+        speed: 95 * (0.55 + 0.7 * Math.random())
       });
-      if (gusts.length > 28) gusts.shift();
+      if (ribbons.length > 220) ribbons.shift();
+      active = true;
     }
 
-    function paintGusts(delta) {
-      if (!visibility) return;
-      for (var g = 0; g < gusts.length; g++) {
-        var gust = gusts[g];
-        gust.age += delta;
-        var fade = Math.pow(Math.max(0, 1 - gust.age / gust.life), 1.35);
-        if (fade <= 0) continue;
-        var ux = gust.ux;
-        var uy = gust.uy;
-        var reach = gust.length;
-        var minCol = Math.max(0, Math.floor((gust.x - reach - gust.width) / stepX));
-        var maxCol = Math.min(cols - 1, Math.ceil((gust.x + reach + gust.width) / stepX));
-        var minRow = Math.max(0, Math.floor((gust.y - reach - gust.width) / stepY));
-        var maxRow = Math.min(rows - 1, Math.ceil((gust.y + reach + gust.width) / stepY));
-        for (var row = minRow; row <= maxRow; row++) {
-          for (var col = minCol; col <= maxCol; col++) {
-            var dx = (col + 0.5) * stepX - gust.x;
-            var dy = (row + 0.5) * stepY - gust.y;
-            var along = dx * ux + dy * uy;
-            var across = -dx * uy + dy * ux;
-            if (along > gust.length * 0.35 || along < -gust.length) continue;
-            if (Math.abs(across) > gust.width * 1.45) continue;
-            var trail = along < 0 ? 1 : 0.4;
-            var u = along / (gust.length * (along < 0 ? 1 : 0.55));
-            var v = across / gust.width;
-            var fall = 1 - (u * u + v * v);
-            if (fall <= 0) continue;
-            var grain = hash2(col * 0.71, row * 1.13, gust.seed);
-            if (grain < 0.17) continue;
-            var ribbon = 0.58 + 0.42 * Math.max(0, Math.sin(row * 0.83 + gust.seed + clock * 0.9));
-            var value = Math.pow(fall, 1.08) * fade * gust.power * trail *
-              (0.45 + 0.55 * grain) * ribbon;
-            var index = row * cols + col;
-            if (value > visibility[index]) visibility[index] = value;
+    function addRibbonsAlong(x0, y0, x1, y1) {
+      var distance = Math.hypot(x1 - x0, y1 - y0);
+      if (!isFinite(distance) || distance >= 180) {
+        addRibbon(x1, y1);
+        return;
+      }
+      if (distance < 1) return;
+      var steps = Math.ceil(distance / Math.max(7, 1.45 * size));
+      for (var i = 1; i <= steps; i++) {
+        if (Math.random() > 0.84) continue;
+        var px = x0 + (x1 - x0) * i / steps;
+        var py = y0 + (y1 - y0) * i / steps;
+        addRibbon(px, py);
+        // A light vertical spread turns a single mouse row into a band of
+        // data without falling back to a circular patch.
+        for (var k = 1; k <= 3; k++) {
+          if (Math.random() < 0.52) {
+            var offset = (Math.random() < 0.5 ? -1 : 1) * stepY * (1.4 + Math.random() * 4.2);
+            addRibbon(px, py + offset);
           }
         }
       }
     }
 
-    function paintRestingPatch(x, y) {
-      if (!visibility) return;
-      var radius = Math.max(150, Math.min(245, width * 0.16));
-      var minCol = Math.max(0, Math.floor((x - radius) / stepX));
-      var maxCol = Math.min(cols - 1, Math.ceil((x + radius) / stepX));
-      var minRow = Math.max(0, Math.floor((y - radius) / stepY));
-      var maxRow = Math.min(rows - 1, Math.ceil((y + radius) / stepY));
-      for (var row = minRow; row <= maxRow; row++) {
-        for (var col = minCol; col <= maxCol; col++) {
-          var dx = x - (col + 0.5) * stepX;
-          var dy = y - (row + 0.5) * stepY;
-          var distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance >= radius) continue;
-          var angle = Math.atan2(dy, dx);
-          var edge = 0.76 +
-            0.16 * Math.sin(angle * 5 + clock * 1.4) +
-            0.08 * Math.sin(angle * 11 - clock * 2.1);
-          var normalized = distance / (radius * edge);
-          if (normalized >= 1) continue;
-          var grain = hash2(col * 0.53, row * 0.91, Math.floor(clock * 2.4));
-          if (grain < 0.22) continue;
-          var value = Math.pow(1 - normalized, 1.22) * (0.34 + 0.66 * grain);
-          var index = row * cols + col;
-          if (value > visibility[index]) visibility[index] = value;
+    function advance(dt) {
+      if (!active && !ribbons.length) return false;
+      for (var i = 1; i < grid.length; i += 2) grid[i] = 0;
+      var alive = false;
+      for (var r = ribbons.length - 1; r >= 0; r--) {
+        var ribbon = ribbons[r];
+        ribbon.age += Math.max(0, dt);
+        var head = ribbon.head - ribbon.age * ribbon.speed / stepX;
+        var fade = Math.pow(clamp(1 - ribbon.age / ribbon.duration, 0, 1), 1.42);
+        if (fade > 0) {
+          var start = Math.max(0, Math.ceil(head - ribbon.cols - 0.5));
+          var end = Math.min(cols - 1, Math.floor(head + 0.05));
+          for (var col = start; col <= end; col++) {
+            var near = clamp(1 - (head - col - 0.5) / ribbon.cols, 0, 1);
+            var value = Math.min(255, Math.max(0,
+              Math.round(255 * fade * (0.24 + 1.32 * Math.pow(near, 0.72)) / 1.38)));
+            var index = (ribbon.row * cols + col) * 2 + 1;
+            if (value > grid[index]) grid[index] = value;
+          }
+        }
+        if (ribbon.age < ribbon.duration && ribbon.head * stepX - ribbon.age * ribbon.speed > -stepX) {
+          alive = true;
+        } else {
+          ribbons.splice(r, 1);
         }
       }
+      if (!ribbons.length) active = false;
+      return alive;
     }
 
-    function revealAt(x, y, dx, dy) {
-      var speed = Math.hypot(dx, dy);
-      addGust(x, y, dx, dy, speed);
-      paintRestingPatch(x, y);
-      markHover = !!(markRect && Math.hypot(x - markRect.cx, y - markRect.cy) < markRect.width * 0.66);
-      if (markHover) {
-        markTarget = Math.min(1, 0.34 + speed / 17);
-        windVX = dx;
-        windVY = dy;
-        lastWind = performance.now();
+    function paintCode() {
+      ctx.clearRect(0, 0, width, height);
+      var visible = false;
+      for (var row = 0; row < rows; row++) {
+        var y = row * stepY + stepY / 2 - atlasCellH / 2;
+        for (var col = 0; col < cols; col++) {
+          var index = (row * cols + col) * 2;
+          var raw = grid[index + 1];
+          if (raw < 3) continue;
+          var value = Math.min(1, raw / 255 * 1.38);
+          var code = grid[index];
+          if (!code || code === 0) continue;
+          visible = true;
+          var x = col * stepX + stepX / 2 - atlasCellW / 2;
+          var sx = (code % 16) * atlasCellW;
+          var sy = Math.floor(code / 16) * atlasCellH;
+          var head = value > 0.66;
+          ctx.globalAlpha = head ? 1 : Math.min(1, 0.78 + value * 0.38);
+          ctx.drawImage(head ? hotAtlas : bodyAtlas,
+            sx, sy, atlasCellW, atlasCellH,
+            x, y, atlasCellW, atlasCellH);
+        }
       }
-      start();
+      ctx.globalAlpha = 1;
+      return visible;
     }
 
     function updateMark(delta) {
       if (!mark) return;
       if (!active || !markHover) {
-        markTarget *= Math.pow(0.86, delta * 60);
+        markTarget *= Math.pow(0.84, delta * 60);
       } else {
-        // A lightly trembling hold keeps the brush alive while the pointer
-        // rests on the character; moving faster pushes it much further.
-        markTarget = Math.max(markTarget, 0.3 + 0.08 * Math.sin(clock * 2.1));
+        // Hovering alone bends the brush; pointer speed drives a harder gust.
+        markTarget = Math.max(markTarget, clamp(0.66 + pointerSpeed / 620, 0.66, 1));
+        markTarget *= 0.92 + 0.08 * Math.sin(clock * 1.9);
       }
-      markWind += (markTarget - markWind) * Math.min(1, delta * 11);
+      markWind += (markTarget - markWind) * Math.min(1, delta * 9);
       if (markWind < 0.012) {
         if (mark.classList.contains('is-windy')) {
           mark.classList.remove('is-windy');
@@ -523,28 +781,37 @@
           mark.style.removeProperty('--kimi-wind-y');
           mark.style.removeProperty('--kimi-wind-r');
         }
+        if (windRenderer) windCanvas.style.opacity = '0';
+        if (markSvg) markSvg.style.opacity = '';
         if (windDisplace) windDisplace.setAttribute('scale', '0');
         return;
       }
       mark.classList.add('is-windy');
-      // A slow sway keeps the character alive while the pointer rests on it;
-      // pointer velocity adds a directional lean on top.
-      var swayX = Math.sin(clock * 2.15) * (1.1 + markWind * 2.1);
-      var swayY = Math.sin(clock * 1.6 + 0.9) * (0.7 + markWind * 1.3);
-      var mx = Math.max(-12, Math.min(12, windVX * 1.15 + swayX));
-      var my = Math.max(-7, Math.min(7, windVY * 0.75 + swayY));
-      var rot = Math.max(-2.8, Math.min(2.8, windVX * 0.09 + Math.sin(clock * 1.9) * 0.5));
-      mark.style.setProperty('--kimi-wind-x', mx.toFixed(2) + 'px');
-      mark.style.setProperty('--kimi-wind-y', my.toFixed(2) + 'px');
-      mark.style.setProperty('--kimi-wind-r', rot.toFixed(2) + 'deg');
-      if (windDisplace) windDisplace.setAttribute('scale', (markWind * 17).toFixed(2));
-      if (windNoise) {
-        var grain = Math.sin(clock * 1.3) * 0.0006;
-        windNoise.setAttribute(
-          'baseFrequency',
-          (0.008 + markWind * 0.003 + grain).toFixed(4) + ' ' +
-          (0.014 + markWind * 0.006 + grain).toFixed(4)
-        );
+      var swayX = Math.sin(clock * 1.9) * (0.8 + markWind * 1.8);
+      var swayY = Math.sin(clock * 1.45 + 0.9) * (0.5 + markWind * 1.1);
+      mark.style.setProperty('--kimi-wind-x', clamp(windX * markWind * 4.2 + swayX, -4.5, 4.5).toFixed(2) + 'px');
+      mark.style.setProperty('--kimi-wind-y', clamp(windY * markWind * 4.2 + swayY, -3.2, 3.2).toFixed(2) + 'px');
+      mark.style.setProperty('--kimi-wind-r', clamp(Math.sin(clock * 1.6) * 0.45 + windX * 0.35, -1.1, 1.1).toFixed(2) + 'deg');
+      if (windRenderer && markRect) {
+        var pad = markRect.width * 0.2;
+        var span = markRect.width * 1.4;
+        var uvx = (pointerX - (markRect.left - pad)) / Math.max(1, span);
+        var uvy = 1 - (pointerY - (markRect.top - pad)) / Math.max(1, span);
+        windRenderer.render(markWind, clock, uvx, uvy, windX, -windY);
+        windCanvas.style.opacity = String(clamp((markWind - 0.02) * 7.5, 0, 1));
+        if (markSvg) markSvg.style.opacity = String(clamp(1 - markWind * 7.5, 0, 1));
+      } else {
+        if (windCanvas) windCanvas.style.opacity = '0';
+        if (markSvg) markSvg.style.opacity = '';
+        if (windDisplace) windDisplace.setAttribute('scale', (markWind * 18).toFixed(2));
+        if (windNoise) {
+          var grain = Math.sin(clock * 1.3) * 0.0006;
+          windNoise.setAttribute(
+            'baseFrequency',
+            (0.008 + markWind * 0.003 + grain).toFixed(4) + ' ' +
+            (0.014 + markWind * 0.006 + grain).toFixed(4)
+          );
+        }
       }
     }
 
@@ -555,57 +822,20 @@
         layer.classList.remove('is-visible');
         return;
       }
-      var delta = last ? Math.min(0.12, (time - last) / 1000) : 0.033;
+      var delta = last ? Math.min(0.08, (time - last) / 1000) : 0.033;
       last = time;
       clock += delta;
-      // A stalled/throttled tab can otherwise leave a stale gust on screen.
-      if (lastInput && performance.now() - lastInput > 1400) {
-        gusts = [];
-        if (visibility) visibility.fill(0);
-      }
-      ctx.clearRect(0, 0, width, height);
-      paintGustTracking(delta);
-      var decay = Math.pow(0.94, delta * 30);
-      var visible = false;
-      for (var row = 0; row < rows; row++) {
-        var line = lines[row] || '';
-        for (var col = 0; col < cols; col++) {
-          var index = row * cols + col;
-          var value = visibility[index] * decay;
-          visibility[index] = value;
-          if (value < 0.014) continue;
-          var glyph = line.charAt(col);
-          if (!glyph || glyph === ' ') continue;
-          // Keep thin gaps between wind streaks instead of a solid disc.
-          if (value < 0.3 && hash2(col, row, Math.floor(clock * 1.3)) < 0.1) continue;
-          visible = true;
-          ctx.globalAlpha = Math.min(0.95, value * 2.7);
-          ctx.fillStyle = value > 0.58
-            ? 'rgba(224, 255, 218, 1)'
-            : 'rgba(72, 190, 64, 1)';
-          ctx.fillText(glyph, col * stepX + Math.sin((row + clock * 2) * 0.7) * value * 1.1, row * stepY);
-        }
-      }
+      pointerSpeed *= Math.pow(0.95, delta * 60);
+      advance(delta);
+      var visible = paintCode();
       updateMark(delta);
-      ctx.globalAlpha = 1;
-      if (!visible) {
+      if (visible) {
+        layer.classList.add('is-visible');
+      } else {
         layer.classList.remove('is-visible');
-        if (markWind < 0.012 && gusts.length === 0) return;
       }
+      if (!visible && markWind < 0.012) return;
       raf = window.requestAnimationFrame(draw);
-    }
-
-    function paintGustTracking(delta) {
-      // Gusts keep drifting after the pointer stops, so the reveal reads as
-      // wind rather than a radial brush cursor.
-      for (var g = gusts.length - 1; g >= 0; g--) {
-        var gust = gusts[g];
-        gust.age += delta * 0.32;
-        gust.x += gust.ux * delta * 26;
-        gust.y += gust.uy * delta * 26;
-        if (gust.age >= gust.life) gusts.splice(g, 1);
-      }
-      paintGusts(delta * 0.68);
     }
 
     function start() {
@@ -623,24 +853,38 @@
       var y = event.clientY - rect.top;
       var dx = prevX > -9000 ? x - prevX : 0;
       var dy = prevY > -9000 ? y - prevY : 0;
+      var speed = Math.hypot(dx, dy);
+      pointerSpeed = Math.max(pointerSpeed, speed);
+      // Keep the ambient gale blowing left (the way the code ribbons stream)
+      // while vertical flicks tilt it a little.
+      windY = clamp(-0.16 + dy * 0.0028, -0.48, 0.4);
+      windX = -1;
+      var windLength = Math.hypot(windX, windY) || 1;
+      windX /= windLength;
+      windY /= windLength;
       prevX = x;
       prevY = y;
       pointerX = x;
       pointerY = y;
-      active = true;
-      lastInput = performance.now();
       syncMarkRect();
+      if (lastPoint) addRibbonsAlong(lastPoint.x, lastPoint.y, x, y);
+      else addRibbon(x, y);
+      lastPoint = { x: x, y: y };
+      markHover = !!(markRect &&
+        Math.abs(x - markRect.cx) < markRect.width * 0.62 &&
+        Math.abs(y - markRect.cy) < markRect.height * 0.62);
       hero.style.setProperty('--hero-pan-x', (x / width - 0.5).toFixed(3));
       hero.style.setProperty('--hero-pan-y', (y / height - 0.5).toFixed(3));
-      layer.classList.add('is-visible');
-      revealAt(x, y, dx, dy);
+      start();
     }
 
     function leave() {
       active = false;
+      lastPoint = null;
       prevX = prevY = -9999;
       markTarget = 0;
       markHover = false;
+      pointerSpeed = 0;
       hero.style.setProperty('--hero-pan-x', '0');
       hero.style.setProperty('--hero-pan-y', '0');
       if (windDisplace) windDisplace.setAttribute('scale', '0');
@@ -650,30 +894,33 @@
         mark.style.removeProperty('--kimi-wind-y');
         mark.style.removeProperty('--kimi-wind-r');
       }
-      if (!raf) {
-        layer.classList.remove('is-visible');
-      }
+      if (windRenderer) windCanvas.style.opacity = '0';
+      if (markSvg) markSvg.style.opacity = '';
     }
 
     function reset() {
       active = false;
+      lastPoint = null;
       prevX = prevY = -9999;
       markTarget = 0;
       markHover = false;
       markWind = 0;
+      pointerSpeed = 0;
       last = 0;
       clock = 0;
-      gusts = [];
+      ribbons.length = 0;
+      for (var i = 1; i < grid.length; i += 2) grid[i] = 0;
       hero.style.setProperty('--hero-pan-x', '0');
       hero.style.setProperty('--hero-pan-y', '0');
       if (raf) {
         window.cancelAnimationFrame(raf);
         raf = 0;
       }
-      if (visibility) visibility.fill(0);
       ctx.clearRect(0, 0, width, height);
       layer.classList.remove('is-visible');
       if (windDisplace) windDisplace.setAttribute('scale', '0');
+      if (windRenderer) windCanvas.style.opacity = '0';
+      if (markSvg) markSvg.style.opacity = '';
       if (mark) {
         mark.classList.remove('is-windy');
         mark.style.removeProperty('--kimi-wind-x');
@@ -837,6 +1084,9 @@
       positionDocCover();
       setupReveal();
       setupKimiParallax();
+      // The classic and Kimi heroes have different dimensions; rebuilding
+      // the code field / wind buffer keeps them from stretching on a skin swap.
+      window.dispatchEvent(new Event('resize'));
     });
   }
 
@@ -1182,13 +1432,24 @@
     });
 
     // The wordmark is the home link in the reference. On the home page a
-    // full reload is a no-op, so make it a real "back to top" affordance.
+    // full reload is a no-op, so make it do something useful in both states:
+    // scroll back to the top, or (already at the top) jump into the library.
     var brand = document.querySelector('.topbar .brand');
     if (brand) {
       brand.addEventListener('click', function (event) {
         if (page !== 'home') return;
         event.preventDefault();
-        window.scrollTo({ top: 0, behavior: motionMedia.matches ? 'auto' : 'smooth' });
+        if (window.scrollY > 8) {
+          window.scrollTo({ top: 0, behavior: motionMedia.matches ? 'auto' : 'smooth' });
+          return;
+        }
+        var library = document.getElementById('library');
+        if (library) {
+          library.scrollIntoView({
+            behavior: motionMedia.matches ? 'auto' : 'smooth',
+            block: 'start'
+          });
+        }
       });
     }
 
