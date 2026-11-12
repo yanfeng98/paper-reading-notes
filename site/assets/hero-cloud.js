@@ -242,12 +242,11 @@
     }
 
     api.ready = true;
-    hero.classList.add('hero-cloud-ready');
 
     var renderNow = function () {
       if (!state) return;
       state.resizeDirty = true;
-      try { state.draw(0); } catch (error) { /* keep the last frame */ }
+      try { state.draw(0); markCloudReady(); } catch (error) { /* keep the last frame */ }
     };
     var resizeObserver = new ResizeObserver(renderNow);
     resizeObserver.observe(hero);
@@ -287,7 +286,6 @@
       try {
         state = createRenderer(gl, sourceImage);
         api.ready = true;
-        hero.classList.add('hero-cloud-ready');
         start();
       } catch (error) { /* keep photograph */ }
     });
@@ -444,6 +442,12 @@
     return renderer;
   }
 
+  function markCloudReady() {
+    if (!hero.classList.contains('hero-cloud-ready')) {
+      hero.classList.add('hero-cloud-ready');
+    }
+  }
+
   function frame(now) {
     raf = 0;
     if (!state || reduce.matches) return;
@@ -455,6 +459,7 @@
     time += dt * Math.max(0.2, Math.min(15, settings.speed));
     try {
       state.draw(dt);
+      markCloudReady();
     } catch (error) {
       console.warn('Hero cloud draw failed:', error);
       stop();

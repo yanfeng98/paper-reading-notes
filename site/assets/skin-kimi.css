@@ -315,7 +315,9 @@ html[data-skin="kimi"] .hero {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: var(--bg);
+  /* Original hero scene colour: keeps the first paint cinematic instead of
+     flashing the light page background while the photograph/clouds load. */
+  background: #1b2530;
   isolation: isolate;
 }
 
@@ -348,8 +350,8 @@ html[data-skin="kimi"] .hero-cloud-canvas {
   transition: opacity 0.6s ease;
 }
 html[data-skin="kimi"] .hero.hero-cloud-ready .hero-cloud-canvas { opacity: 1; }
-html[data-skin="kimi"] .hero.hero-cloud-ready .hero-media picture,
-html[data-skin="kimi"] .hero.hero-cloud-ready .hero-media img { visibility: hidden; }
+/* Keep the photograph underneath the opaque cloud canvas so the crossfade is
+   smooth; hiding it before the first cloud frame caused a blank hero. */
 html[data-skin="kimi"] .hero.hero-cloud-ready .hero-clouds { display: none; }
 html:not([data-skin="kimi"]) .hero-cloud-canvas { display: none; }
 
