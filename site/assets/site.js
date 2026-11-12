@@ -179,7 +179,7 @@
     var hero = document.querySelector('.hero');
     if (!root || !hero) return;
     var defaults = { cloud: 0.65, speed: 3, ink: 0.9, coverage: 1 };
-    var labels = { cloud: 'Cloud', speed: 'Speed', ink: 'K3.1', coverage: 'Coverage' };
+    var labels = { cloud: 'Cloud', speed: 'Speed', ink: 'Ink', coverage: 'Coverage' };
     var settings = Object.assign({}, defaults);
     try {
       var stored = JSON.parse(localStorage.getItem('prn-hero-settings') || 'null');
@@ -217,6 +217,13 @@
       hero.style.setProperty('--hero-scale', String(1 + settings.coverage * 0.06));
       hero.style.setProperty('--hero-immersion', String(settings.coverage));
       hero.style.setProperty('--hero-cloud-scale', String(1 / Math.max(0.2, settings.speed / 3)));
+      if (window.__heroCloud) {
+        window.__heroCloud.setSettings({
+          cloud: settings.cloud,
+          speed: settings.speed,
+          coverage: settings.coverage
+        });
+      }
       controls.forEach(function (control) {
         var key = control.dataset.kimiSetting;
         var input = control.querySelector('.kimi-control-range');
@@ -248,9 +255,8 @@
         apply();
         save();
       });
-      input.addEventListener('change', function () {
-        if (control.dataset.kimiSetting === 'speed') playHeroIntro();
-      });
+      // Speed only changes the cloud clock, as in the reference; it does not
+      // replay the writing intro. R still replays on demand.
     });
 
     var scrollHint = document.querySelector('[data-kimi-scroll]');
@@ -280,31 +286,39 @@
     var hero = document.querySelector('.hero');
     var layer = document.querySelector('.hero-code-layer');
     var canvas = layer && layer.querySelector('[data-kimi-code-canvas]');
+    var mark = document.querySelector('[data-kimi-mark]');
     if (!hero || !layer || !canvas || window.__heroCodeBound) return;
     window.__heroCodeBound = true;
     var ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // The reference reveals fragments of a live-coding scratchpad inside the
-    // cloud. Keep the same vocabulary and green-to-white phosphor tint, but
-    // draw it on a 2D grid so the static build stays offline and cheap.
+    // Real lines from NVIDIA/Megatron-LM core (main @ 7a01f00) replace the
+    // generic animation scratchpad, so the drifting field is recognisable
+    // training-system code rather than decorative pseudo-code.
+    // https://github.com/NVIDIA/Megatron-LM
     var snippets = [
-      'const frame = requestAnimationFrame(render);',
-      'function render(time) { return time * 0.01; }',
-      'const x = Math.sin(time * speed);',
-      'if (pointer.down) { draw(x, y); }',
-      'for (let i = 0; i < count; i++) {',
-      'const color = [r, g, b, alpha];',
-      'particles.push({ x, y, vx, vy });',
-      'ctx.fillText(glyph, x, y);',
-      'const brightness = sample(x, y);',
-      'return Math.max(0, Math.min(1, value));',
-      'canvas.width = window.innerWidth;',
-      'const length = Math.hypot(dx, dy);',
-      'stream.position.x -= delta * speed;',
-      'ctx.globalAlpha = 1.0 - fade;',
-      'const noise = Math.random() * 0.5;',
-      'if (state.active) update(delta);'
+      'from megatron.core import parallel_state',
+      'def initialize_model_parallel(',
+      'tensor_model_parallel_size: int = 1,',
+      'pipeline_model_parallel_size: int = 1,',
+      'def get_tensor_model_parallel_group(check_initialized=True):',
+      'return _TENSOR_MODEL_PARALLEL_GROUP',
+      'def get_tensor_model_parallel_world_size():',
+      'return get_tensor_model_parallel_group().size()',
+      'class ColumnParallelLinear(torch.nn.Module):',
+      'output_parallel = self._forward_impl(',
+      'class RowParallelLinear(torch.nn.Module):',
+      'input_parallel = scatter_to_tensor_model_parallel_region(input_, group=self.tp_group)',
+      'def forward_backward_pipelining_with_interleaving(',
+      'forward_backward_func = forward_backward_pipelining_with_interleaving',
+      'loss = torch.sum(losses.view(-1) * loss_mask) / loss_mask.sum()',
+      'averaged_loss = average_losses_across_data_parallel_group([loss])',
+      'def forward_step_helper(virtual_microbatch_id, checkpoint_activations_microbatch):',
+      'output_tensor, loss_func = forward_step_func(data_iterator, model)',
+      'torch.distributed.all_reduce(grad_input, group=ctx.tp_group)',
+      'handle = torch.distributed.all_reduce(grad_input, group=tp_group, async_op=True)',
+      'self.force_all_reduce = False',
+      'def finish_grad_sync(self, force_all_reduce: Optional[bool] = False):'
     ];
     var cols = 0;
     var rows = 0;
@@ -316,14 +330,36 @@
     var height = 1;
     var pointerX = -9999;
     var pointerY = -9999;
+    var prevX = -9999;
+    var prevY = -9999;
     var active = false;
     var raf = 0;
     var last = 0;
+    var clock = 0;
+    var gusts = [];
+    var markRect = null;
+    var markWind = 0;
+    var markTarget = 0;
+    var markHover = false;
+    var windVX = 0;
+    var windVY = 0;
+    var lastWind = 0;
+    var lastInput = 0;
+    var windNoise = document.getElementById('kimi-wind-noise');
+    var windDisplace = document.getElementById('kimi-wind-displace');
+
+    canvas.dataset.codeSource = 'https://github.com/NVIDIA/Megatron-LM';
+    canvas.dataset.codeRevision = '7a01f00';
+
+    function hash2(x, y, seed) {
+      var n = Math.sin(x * 12.9898 + y * 78.233 + seed * 37.719) * 43758.5453;
+      return n - Math.floor(n);
+    }
 
     function buildLines() {
       lines = [];
       for (var row = 0; row < rows; row++) {
-        var source = snippets[(row * 5 + 3) % snippets.length];
+        var source = snippets[(row * 7 + 3) % snippets.length];
         var line = '';
         while (line.length < cols + 4) line += source + '   ';
         lines.push(line);
@@ -347,12 +383,90 @@
       rows = Math.ceil(height / stepY) + 1;
       visibility = new Float32Array(cols * rows);
       buildLines();
-      if (active) revealAt(pointerX, pointerY);
+      syncMarkRect();
+      gusts = [];
     }
 
-    function revealAt(x, y) {
+    function syncMarkRect() {
+      if (!mark) return;
+      var heroRect = hero.getBoundingClientRect();
+      var rect = mark.getBoundingClientRect();
+      markRect = {
+        left: rect.left - heroRect.left,
+        top: rect.top - heroRect.top,
+        width: rect.width,
+        height: rect.height,
+        cx: rect.left - heroRect.left + rect.width / 2,
+        cy: rect.top - heroRect.top + rect.height / 2
+      };
+    }
+
+    function addGust(x, y, dx, dy, speed) {
+      var length = Math.hypot(dx, dy);
+      var ux = length > 0.001 ? dx / length : 1;
+      var uy = length > 0.001 ? dy / length : -0.08;
+      var wave = Math.sin(clock * 1.7 + x * 0.013) * 0.22;
+      var c = Math.cos(wave);
+      var s = Math.sin(wave);
+      var rx = ux * c - uy * s;
+      var ry = ux * s + uy * c;
+      gusts.push({
+        x: x,
+        y: y,
+        ux: rx,
+        uy: ry,
+        age: 0,
+        life: 0.55 + Math.random() * 0.55,
+        width: Math.max(30, 38 + speed * 2.5),
+        length: Math.max(190, 220 + speed * 7),
+        seed: Math.random() * 991,
+        power: Math.min(1, 0.5 + speed / 24)
+      });
+      if (gusts.length > 28) gusts.shift();
+    }
+
+    function paintGusts(delta) {
       if (!visibility) return;
-      var radius = Math.max(160, Math.min(285, width * 0.18));
+      for (var g = 0; g < gusts.length; g++) {
+        var gust = gusts[g];
+        gust.age += delta;
+        var fade = Math.pow(Math.max(0, 1 - gust.age / gust.life), 1.35);
+        if (fade <= 0) continue;
+        var ux = gust.ux;
+        var uy = gust.uy;
+        var reach = gust.length;
+        var minCol = Math.max(0, Math.floor((gust.x - reach - gust.width) / stepX));
+        var maxCol = Math.min(cols - 1, Math.ceil((gust.x + reach + gust.width) / stepX));
+        var minRow = Math.max(0, Math.floor((gust.y - reach - gust.width) / stepY));
+        var maxRow = Math.min(rows - 1, Math.ceil((gust.y + reach + gust.width) / stepY));
+        for (var row = minRow; row <= maxRow; row++) {
+          for (var col = minCol; col <= maxCol; col++) {
+            var dx = (col + 0.5) * stepX - gust.x;
+            var dy = (row + 0.5) * stepY - gust.y;
+            var along = dx * ux + dy * uy;
+            var across = -dx * uy + dy * ux;
+            if (along > gust.length * 0.35 || along < -gust.length) continue;
+            if (Math.abs(across) > gust.width * 1.45) continue;
+            var trail = along < 0 ? 1 : 0.4;
+            var u = along / (gust.length * (along < 0 ? 1 : 0.55));
+            var v = across / gust.width;
+            var fall = 1 - (u * u + v * v);
+            if (fall <= 0) continue;
+            var grain = hash2(col * 0.71, row * 1.13, gust.seed);
+            if (grain < 0.17) continue;
+            var ribbon = 0.58 + 0.42 * Math.max(0, Math.sin(row * 0.83 + gust.seed + clock * 0.9));
+            var value = Math.pow(fall, 1.08) * fade * gust.power * trail *
+              (0.45 + 0.55 * grain) * ribbon;
+            var index = row * cols + col;
+            if (value > visibility[index]) visibility[index] = value;
+          }
+        }
+      }
+    }
+
+    function paintRestingPatch(x, y) {
+      if (!visibility) return;
+      var radius = Math.max(150, Math.min(245, width * 0.16));
       var minCol = Math.max(0, Math.floor((x - radius) / stepX));
       var maxCol = Math.min(cols - 1, Math.ceil((x + radius) / stepX));
       var minRow = Math.max(0, Math.floor((y - radius) / stepY));
@@ -363,10 +477,74 @@
           var dy = y - (row + 0.5) * stepY;
           var distance = Math.sqrt(dx * dx + dy * dy);
           if (distance >= radius) continue;
-          var target = Math.pow(1 - distance / radius, 1.25) * 0.98;
+          var angle = Math.atan2(dy, dx);
+          var edge = 0.76 +
+            0.16 * Math.sin(angle * 5 + clock * 1.4) +
+            0.08 * Math.sin(angle * 11 - clock * 2.1);
+          var normalized = distance / (radius * edge);
+          if (normalized >= 1) continue;
+          var grain = hash2(col * 0.53, row * 0.91, Math.floor(clock * 2.4));
+          if (grain < 0.22) continue;
+          var value = Math.pow(1 - normalized, 1.22) * (0.34 + 0.66 * grain);
           var index = row * cols + col;
-          if (target > visibility[index]) visibility[index] = target;
+          if (value > visibility[index]) visibility[index] = value;
         }
+      }
+    }
+
+    function revealAt(x, y, dx, dy) {
+      var speed = Math.hypot(dx, dy);
+      addGust(x, y, dx, dy, speed);
+      paintRestingPatch(x, y);
+      markHover = !!(markRect && Math.hypot(x - markRect.cx, y - markRect.cy) < markRect.width * 0.66);
+      if (markHover) {
+        markTarget = Math.min(1, 0.34 + speed / 17);
+        windVX = dx;
+        windVY = dy;
+        lastWind = performance.now();
+      }
+      start();
+    }
+
+    function updateMark(delta) {
+      if (!mark) return;
+      if (!active || !markHover) {
+        markTarget *= Math.pow(0.86, delta * 60);
+      } else {
+        // A lightly trembling hold keeps the brush alive while the pointer
+        // rests on the character; moving faster pushes it much further.
+        markTarget = Math.max(markTarget, 0.3 + 0.08 * Math.sin(clock * 2.1));
+      }
+      markWind += (markTarget - markWind) * Math.min(1, delta * 11);
+      if (markWind < 0.012) {
+        if (mark.classList.contains('is-windy')) {
+          mark.classList.remove('is-windy');
+          mark.style.removeProperty('--kimi-wind-x');
+          mark.style.removeProperty('--kimi-wind-y');
+          mark.style.removeProperty('--kimi-wind-r');
+        }
+        if (windDisplace) windDisplace.setAttribute('scale', '0');
+        return;
+      }
+      mark.classList.add('is-windy');
+      // A slow sway keeps the character alive while the pointer rests on it;
+      // pointer velocity adds a directional lean on top.
+      var swayX = Math.sin(clock * 2.15) * (1.1 + markWind * 2.1);
+      var swayY = Math.sin(clock * 1.6 + 0.9) * (0.7 + markWind * 1.3);
+      var mx = Math.max(-12, Math.min(12, windVX * 1.15 + swayX));
+      var my = Math.max(-7, Math.min(7, windVY * 0.75 + swayY));
+      var rot = Math.max(-2.8, Math.min(2.8, windVX * 0.09 + Math.sin(clock * 1.9) * 0.5));
+      mark.style.setProperty('--kimi-wind-x', mx.toFixed(2) + 'px');
+      mark.style.setProperty('--kimi-wind-y', my.toFixed(2) + 'px');
+      mark.style.setProperty('--kimi-wind-r', rot.toFixed(2) + 'deg');
+      if (windDisplace) windDisplace.setAttribute('scale', (markWind * 17).toFixed(2));
+      if (windNoise) {
+        var grain = Math.sin(clock * 1.3) * 0.0006;
+        windNoise.setAttribute(
+          'baseFrequency',
+          (0.008 + markWind * 0.003 + grain).toFixed(4) + ' ' +
+          (0.014 + markWind * 0.006 + grain).toFixed(4)
+        );
       }
     }
 
@@ -379,8 +557,15 @@
       }
       var delta = last ? Math.min(0.12, (time - last) / 1000) : 0.033;
       last = time;
+      clock += delta;
+      // A stalled/throttled tab can otherwise leave a stale gust on screen.
+      if (lastInput && performance.now() - lastInput > 1400) {
+        gusts = [];
+        if (visibility) visibility.fill(0);
+      }
       ctx.clearRect(0, 0, width, height);
-      var decay = Math.pow(0.945, delta * 30);
+      paintGustTracking(delta);
+      var decay = Math.pow(0.94, delta * 30);
       var visible = false;
       for (var row = 0; row < rows; row++) {
         var line = lines[row] || '';
@@ -388,23 +573,39 @@
           var index = row * cols + col;
           var value = visibility[index] * decay;
           visibility[index] = value;
-          if (value < 0.015) continue;
+          if (value < 0.014) continue;
           var glyph = line.charAt(col);
           if (!glyph || glyph === ' ') continue;
+          // Keep thin gaps between wind streaks instead of a solid disc.
+          if (value < 0.3 && hash2(col, row, Math.floor(clock * 1.3)) < 0.1) continue;
           visible = true;
-          ctx.globalAlpha = Math.min(0.95, value * 1.55) * 0.92;
+          ctx.globalAlpha = Math.min(0.95, value * 2.7);
           ctx.fillStyle = value > 0.58
             ? 'rgba(224, 255, 218, 1)'
             : 'rgba(72, 190, 64, 1)';
-          ctx.fillText(glyph, col * stepX, row * stepY);
+          ctx.fillText(glyph, col * stepX + Math.sin((row + clock * 2) * 0.7) * value * 1.1, row * stepY);
         }
       }
+      updateMark(delta);
       ctx.globalAlpha = 1;
       if (!visible) {
         layer.classList.remove('is-visible');
-        return;
+        if (markWind < 0.012 && gusts.length === 0) return;
       }
       raf = window.requestAnimationFrame(draw);
+    }
+
+    function paintGustTracking(delta) {
+      // Gusts keep drifting after the pointer stops, so the reveal reads as
+      // wind rather than a radial brush cursor.
+      for (var g = gusts.length - 1; g >= 0; g--) {
+        var gust = gusts[g];
+        gust.age += delta * 0.32;
+        gust.x += gust.ux * delta * 26;
+        gust.y += gust.uy * delta * 26;
+        if (gust.age >= gust.life) gusts.splice(g, 1);
+      }
+      paintGusts(delta * 0.68);
     }
 
     function start() {
@@ -418,20 +619,37 @@
       if (!document.documentElement.classList.contains('kimi-intro-done')) return;
       if (parseFloat(hero.style.getPropertyValue('--hero-ink') || '1') <= 0) return;
       var rect = hero.getBoundingClientRect();
-      pointerX = event.clientX - rect.left;
-      pointerY = event.clientY - rect.top;
+      var x = event.clientX - rect.left;
+      var y = event.clientY - rect.top;
+      var dx = prevX > -9000 ? x - prevX : 0;
+      var dy = prevY > -9000 ? y - prevY : 0;
+      prevX = x;
+      prevY = y;
+      pointerX = x;
+      pointerY = y;
       active = true;
-      hero.style.setProperty('--hero-pan-x', (pointerX / width - 0.5).toFixed(3));
-      hero.style.setProperty('--hero-pan-y', (pointerY / height - 0.5).toFixed(3));
+      lastInput = performance.now();
+      syncMarkRect();
+      hero.style.setProperty('--hero-pan-x', (x / width - 0.5).toFixed(3));
+      hero.style.setProperty('--hero-pan-y', (y / height - 0.5).toFixed(3));
       layer.classList.add('is-visible');
-      revealAt(pointerX, pointerY);
-      start();
+      revealAt(x, y, dx, dy);
     }
 
     function leave() {
       active = false;
+      prevX = prevY = -9999;
+      markTarget = 0;
+      markHover = false;
       hero.style.setProperty('--hero-pan-x', '0');
       hero.style.setProperty('--hero-pan-y', '0');
+      if (windDisplace) windDisplace.setAttribute('scale', '0');
+      if (mark) {
+        mark.classList.remove('is-windy');
+        mark.style.removeProperty('--kimi-wind-x');
+        mark.style.removeProperty('--kimi-wind-y');
+        mark.style.removeProperty('--kimi-wind-r');
+      }
       if (!raf) {
         layer.classList.remove('is-visible');
       }
@@ -439,7 +657,13 @@
 
     function reset() {
       active = false;
+      prevX = prevY = -9999;
+      markTarget = 0;
+      markHover = false;
+      markWind = 0;
       last = 0;
+      clock = 0;
+      gusts = [];
       hero.style.setProperty('--hero-pan-x', '0');
       hero.style.setProperty('--hero-pan-y', '0');
       if (raf) {
@@ -449,6 +673,13 @@
       if (visibility) visibility.fill(0);
       ctx.clearRect(0, 0, width, height);
       layer.classList.remove('is-visible');
+      if (windDisplace) windDisplace.setAttribute('scale', '0');
+      if (mark) {
+        mark.classList.remove('is-windy');
+        mark.style.removeProperty('--kimi-wind-x');
+        mark.style.removeProperty('--kimi-wind-y');
+        mark.style.removeProperty('--kimi-wind-r');
+      }
     }
 
     hero.addEventListener('pointermove', move, { passive: true });
@@ -932,6 +1163,35 @@
         search.blur();
       }
     });
+    var navLinks = Array.prototype.slice.call(document.querySelectorAll('.kimi-nav a[href^="?type="]'));
+    navLinks.forEach(function (link) {
+      link.addEventListener('click', function (event) {
+        var type = new URLSearchParams(link.search).get('type');
+        if (['all', 'paper', 'blog', 'summary'].indexOf(type) < 0) return;
+        event.preventDefault();
+        state.type = type;
+        apply();
+        var library = document.getElementById('library');
+        if (library) {
+          library.scrollIntoView({
+            behavior: motionMedia.matches ? 'auto' : 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // The wordmark is the home link in the reference. On the home page a
+    // full reload is a no-op, so make it a real "back to top" affordance.
+    var brand = document.querySelector('.topbar .brand');
+    if (brand) {
+      brand.addEventListener('click', function (event) {
+        if (page !== 'home') return;
+        event.preventDefault();
+        window.scrollTo({ top: 0, behavior: motionMedia.matches ? 'auto' : 'smooth' });
+      });
+    }
+
     apply();
   }
 

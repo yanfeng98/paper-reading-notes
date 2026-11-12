@@ -321,7 +321,8 @@ html[data-skin="kimi"] .hero-scrim {
 
 html[data-skin="kimi"] .hero-media { z-index: 0; overflow: hidden; }
 html[data-skin="kimi"] .hero-media picture,
-html[data-skin="kimi"] .hero-media img {
+html[data-skin="kimi"] .hero-media img,
+html[data-skin="kimi"] .hero-cloud-canvas {
   display: block;
   width: 100%;
   height: 100%;
@@ -332,6 +333,18 @@ html[data-skin="kimi"] .hero-media img {
   transform: scale(1.03);
   will-change: transform;
 }
+html[data-skin="kimi"] .hero-cloud-canvas {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+html[data-skin="kimi"] .hero.hero-cloud-ready .hero-cloud-canvas { opacity: 1; }
+html[data-skin="kimi"] .hero.hero-cloud-ready .hero-media picture,
+html[data-skin="kimi"] .hero.hero-cloud-ready .hero-media img { visibility: hidden; }
+html[data-skin="kimi"] .hero.hero-cloud-ready .hero-clouds { display: none; }
+html:not([data-skin="kimi"]) .hero-cloud-canvas { display: none; }
 
 html[data-skin="kimi"] .hero-scrim {
   z-index: 1;
@@ -383,13 +396,29 @@ html[data-skin="kimi"] .hero-mark-wrap {
   margin: 0;
 }
 
+html[data-skin="kimi"] .kimi-wind-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 html[data-skin="kimi"] .hero-mark {
   position: relative;
   z-index: 1;
-  width: clamp(12rem, 30vw, 25.875rem);
+  width: min(46dvh, 70vw);
   aspect-ratio: 1;
   margin: 0 auto;
   filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.28));
+  transform: translate3d(var(--kimi-wind-x, 0), var(--kimi-wind-y, 0), 0) rotate(var(--kimi-wind-r, 0deg));
+  transform-origin: 50% 58%;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), filter 0.25s ease;
+  will-change: transform, filter;
+}
+
+html[data-skin="kimi"] .hero-mark.is-windy {
+  filter: url(#kimi-mark-wind) drop-shadow(0 8px 32px rgba(0, 0, 0, 0.28));
 }
 
 html[data-skin="kimi"] .hero-mark .mark-svg {
@@ -397,6 +426,19 @@ html[data-skin="kimi"] .hero-mark .mark-svg {
   width: 100%;
   height: 100%;
   overflow: visible;
+}
+
+/* The reference brings the wordmark up through progressively sharper
+   layers; a focus pull on the brush mask approximates that without shipping
+   four 1k PNGs. */
+html[data-skin="kimi"] .hero.is-intro .mark-svg {
+  animation: kimi-mark-focus var(--intro-duration, 3.2s) linear both;
+}
+@keyframes kimi-mark-focus {
+  0% { filter: blur(11px); opacity: 0.2; }
+  48% { filter: blur(4.5px); opacity: 0.52; }
+  78% { filter: blur(0.7px); opacity: 0.86; }
+  100% { filter: blur(0); opacity: 1; }
 }
 
 html[data-skin="kimi"] .hero-mark-caption {
@@ -1602,7 +1644,7 @@ html[data-skin="kimi"] .hero-media {
 }
 
 html[data-skin="kimi"] .hero-mark-wrap {
-  opacity: var(--hero-ink, 1);
+  opacity: calc(var(--hero-ink, 1) * 0.8);
 }
 
 /* Appearance controls, matched to the reference: four compact glass tiles
