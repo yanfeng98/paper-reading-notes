@@ -90,6 +90,7 @@ class Entry:
     mermaid_count: int = 0
     image_count: int = 0
     cover_rel: str = ""
+    doc_cover_rel: str = ""
     source_hash: str = ""
     pdf_rel: str = ""
     prev_route: str = ""
@@ -441,11 +442,16 @@ KIMI_PLACEHOLDER = (
 
 
 def first_cover_image(source_path: str, images: list[str]) -> str:
-    """Return the first local note asset suitable for a Kimi cover.
+    """Return the first local note asset suitable for a home-card thumbnail.
 
     Only images under the note's own ``assets/`` directory are used: that is
     the directory the builder copies next to the generated page, so the URL is
     guaranteed to resolve on both the home card and the reader page.
+
+    This is intentionally *not* used for the full-screen reader cover: the
+    first figure in a note is usually a white-background chart, which turns
+    into a near-black plate under the cover's dark scrim.  The reader cover
+    only accepts an explicit ``assets/cover.*`` / ``assets/hero.*`` asset.
     """
     asset_prefix = posixpath.join(posixpath.dirname(source_path), "assets") + "/"
     for target in images:
@@ -458,6 +464,31 @@ def first_cover_image(source_path: str, images: list[str]) -> str:
             continue
         if (ROOT / repo_path).is_file():
             return repo_path
+    return ""
+
+
+def explicit_doc_cover(source_path: str) -> str:
+    """Return an explicitly named reader cover, if the note ships one.
+
+    Deliberate names keep arbitrary figures out of the full-screen cover
+    while still letting a note opt in with ``cover.webp`` or ``hero.jpg``.
+    """
+    asset_dir = ROOT / posixpath.dirname(source_path) / "assets"
+    if not asset_dir.is_dir():
+        return ""
+    suffix_order = (".webp", ".jpg", ".jpeg", ".png", ".avif", ".gif", ".svg")
+    for stem in ("cover", "hero"):
+        for suffix in suffix_order:
+            candidate = asset_dir / f"{stem}{suffix}"
+            if candidate.is_file():
+                return candidate.relative_to(ROOT).as_posix()
+    for candidate in sorted(asset_dir.iterdir()):
+        if not candidate.is_file():
+            continue
+        if candidate.suffix.lower() not in COVER_SUFFIXES:
+            continue
+        if candidate.stem.lower().startswith(("cover-", "cover_", "hero-", "hero_")):
+            return candidate.relative_to(ROOT).as_posix()
     return ""
 
 
@@ -498,6 +529,7 @@ def analyze(
         mermaid_count=mermaid_count,
         image_count=len(images),
         cover_rel=first_cover_image(source_path, images) if kind != "summary" else "",
+        doc_cover_rel=explicit_doc_cover(source_path) if kind != "summary" else "",
         source_hash=file_hash(source),
         pdf_rel=pdf_rel,
     )
@@ -867,7 +899,7 @@ def render_card(entry: Entry, root: str = "") -> str:
     if entry.cover_rel:
         media = (
             f'<div class="card-media kimi-only"><img data-kimi-src="{html.escape(root + entry.cover_rel)}" '
-            f'src="{KIMI_PLACEHOLDER}" alt="" loading="lazy" decoding="async"></div>'
+            f'data-kimi-defer src="{KIMI_PLACEHOLDER}" alt="" loading="lazy" decoding="async"></div>'
         )
     else:
         glyph = {"paper": "文", "blog": "博", "summary": "汇"}.get(entry.kind, "记")
@@ -897,7 +929,7 @@ def render_featured(summaries: list[Entry]) -> str:
         cover = summary.cover_rel or "assets/hero-kimi-1600.webp"
         cards.append(
             f"""<article class="featured-card" data-kind="summary" data-title="{html.escape(summary.title)}" data-year="" data-read-date="" data-search="{html.escape(card_search_text(summary))}">
-  <div class="featured-media kimi-only" aria-hidden="true"><img data-kimi-src="{html.escape(cover)}" src="{KIMI_PLACEHOLDER}" alt="" loading="lazy" decoding="async"></div>
+  <div class="featured-media kimi-only" aria-hidden="true"><img data-kimi-src="{html.escape(cover)}" data-kimi-defer src="{KIMI_PLACEHOLDER}" alt="" loading="lazy" decoding="async"></div>
   <div class="featured-main">
     <div class="card-top"><span class="card-id">专题</span><span class="card-kind">主题汇总</span><span class="featured-count">跨篇方法汇总</span></div>
     <h2><a href="{html.escape(summary.route)}">{html.escape(summary.title)}</a></h2>
@@ -1037,12 +1069,14 @@ def build_site(out_dir: Path) -> None:
         if entry.original_url:
             original_link = f'<a class="doc-link" href="{html.escape(entry.original_url)}" target="_blank" rel="noopener">原文 ↗</a>'
         source_link = f'<a class="doc-link" href="{html.escape(source_url)}" target="_blank" rel="noopener">GitHub 源 ↗</a>'
-        if entry.cover_rel:
+        if entry.doc_cover_rel:
             cover_image = posixpath.relpath(
-                entry.cover_rel, posixpath.dirname(entry.source_path)
+                entry.doc_cover_rel, posixpath.dirname(entry.source_path)
             )
+            cover_class = " is-custom"
         else:
             cover_image = entry.root + "assets/hero-kimi-1600.webp"
+            cover_class = ""
         route_map = {item.source_path: item.route for item in entries}
         doc_data = {
             "source": entry.source_path,
@@ -1091,7 +1125,8 @@ def build_site(out_dir: Path) -> None:
                 "ORIGINAL_LINK": original_link,
                 "SOURCE_LINK": source_link,
                 "COVER_IMAGE": html.escape(cover_image),
-                "COVER_CLASS": " is-custom" if entry.cover_rel else "",
+                "COVER_IMAGE_JS": json.dumps(cover_image).replace("<", "\\u003c"),
+                "COVER_CLASS": cover_class,
                 "SOURCE_PATH": html.escape(entry.source_path),
                 "SOURCE_HASH": entry.source_hash,
                 "MD_URL": f"./{html.escape(Path(entry.source_path).name)}?v={entry.source_hash}",

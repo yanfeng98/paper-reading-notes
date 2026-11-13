@@ -154,6 +154,18 @@
   var time = 30;
   var inView = true;
   var running = false;
+  var bootPending = false;
+  var bootScheduled = false;
+  var cloudRetried = false;
+
+  function isKimi() {
+    return document.documentElement.dataset.skin === 'kimi';
+  }
+
+  function photoReady() {
+    return !!photo.complete && photo.naturalWidth > 0 &&
+      !!photo.currentSrc && photo.currentSrc.indexOf('data:image') !== 0;
+  }
 
   function compile(gl, type, source) {
     var shader = gl.createShader(type);
@@ -189,29 +201,81 @@
   }
 
   function init() {
-    if (reduce.matches) return;
-    // site.js hydrates the real hero photograph after this defer script has
-    // run, so decode the Kimi source explicitly instead of sampling the 1x1
-    // transparent placeholder.
-    var sourceImage = photo;
-    if (photo.dataset.kimiSrc && (!photo.currentSrc || photo.currentSrc.indexOf('data:image') === 0)) {
-      sourceImage = new Image();
-      sourceImage.decoding = 'async';
-      sourceImage.src = photo.dataset.kimiSrc;
+    if (reduce.matches || !isKimi()) return;
+    if (canvas && state) {
+      start();
+      return;
     }
-    var boot = function () {
-      if (reduce.matches) return;
-      bootRenderer(sourceImage);
+    if (bootPending) return;
+    if (!photoReady()) {
+      // site.js hydrates the hero photograph after this deferred script runs.
+      // Sampling the displayed <img> once it loads (instead of fetching
+      // data-kimi-src separately) keeps one request for both the visible hero
+      // and the cloud texture, and lets classic skin opt out entirely.
+      bootPending = true;
+      var onLoad = function () {
+        photo.removeEventListener('load', onLoad);
+        bootPending = false;
+        init();
+      };
+      photo.addEventListener('load', onLoad);
+      if (photoReady()) onLoad();
+      return;
+    }
+    // Shader compilation and the first 64-step frame are expensive on slow
+    // GPUs; run them after the first paint so the photograph shows immediately.
+    if (!bootScheduled) {
+      bootScheduled = true;
+      var boot = function () {
+        bootScheduled = false;
+        if (reduce.matches || !isKimi()) return;
+        if (!photoReady()) {
+          init();
+          return;
+        }
+        bootRenderer(photo);
+      };
+      if (window.requestIdleCallback) window.requestIdleCallback(boot, { timeout: 900 });
+      else window.setTimeout(boot, 120);
+    }
+  }
+
+  var listenersBound = false;
+
+  function bindHeroListeners() {
+    if (listenersBound) return;
+    listenersBound = true;
+    var renderNow = function () {
+      if (!state || !isKimi() || reduce.matches) return;
+      state.resizeDirty = true;
+      try { state.draw(0); markCloudReady(); } catch (error) { /* keep the last frame */ }
     };
-    if (sourceImage.complete && sourceImage.naturalWidth) {
-      boot();
-    } else if (sourceImage.decode) {
-      sourceImage.decode().then(boot).catch(function () {
-        if (sourceImage.naturalWidth) boot();
-      });
-    } else {
-      sourceImage.addEventListener('load', boot, { once: true });
+    var resizeObserver = null;
+    if ('ResizeObserver' in window) {
+      resizeObserver = new ResizeObserver(renderNow);
+      resizeObserver.observe(hero);
     }
+    window.addEventListener('resize', renderNow, { passive: true });
+    var intersection = null;
+    if ('IntersectionObserver' in window) {
+      intersection = new IntersectionObserver(function (entries) {
+        inView = entries[0].isIntersecting;
+        if (inView) start(); else stop();
+      }, { threshold: 0 });
+      intersection.observe(hero);
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop(); else if (inView) start();
+    });
+    hero.addEventListener('pointermove', function (event) {
+      var rect = hero.getBoundingClientRect();
+      pointer.tx = ((event.clientX - rect.left) / Math.max(1, rect.width) - .5) * 2;
+      pointer.ty = ((event.clientY - rect.top) / Math.max(1, rect.height) - .5) * 2;
+    }, { passive: true });
+    hero.addEventListener('pointerleave', function () {
+      pointer.tx = 0;
+      pointer.ty = 0;
+    }, { passive: true });
   }
 
   function bootRenderer(sourceImage) {
@@ -242,52 +306,27 @@
     }
 
     api.ready = true;
-
-    var renderNow = function () {
-      if (!state) return;
-      state.resizeDirty = true;
-      try { state.draw(0); markCloudReady(); } catch (error) { /* keep the last frame */ }
-    };
-    var resizeObserver = new ResizeObserver(renderNow);
-    resizeObserver.observe(hero);
-    window.addEventListener('resize', renderNow, { passive: true });
-    var intersection = new IntersectionObserver(function (entries) {
-      inView = entries[0].isIntersecting;
-      if (inView) start(); else stop();
-    }, { threshold: 0 });
-    intersection.observe(hero);
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) stop(); else if (inView) start();
-    });
-    new MutationObserver(function () {
-      if (document.documentElement.dataset.skin === 'kimi') {
-        if (inView) start();
-      } else {
-        stop();
-      }
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] });
-    hero.addEventListener('pointermove', function (event) {
-      var rect = hero.getBoundingClientRect();
-      pointer.tx = ((event.clientX - rect.left) / Math.max(1, rect.width) - .5) * 2;
-      pointer.ty = ((event.clientY - rect.top) / Math.max(1, rect.height) - .5) * 2;
-    }, { passive: true });
-    hero.addEventListener('pointerleave', function () {
-      pointer.tx = 0;
-      pointer.ty = 0;
-    }, { passive: true });
-    hero.addEventListener('webglcontextlost', function (event) {
+    bindHeroListeners();
+    // webglcontextlost does not bubble, so it must be bound to the canvas
+    // itself rather than the hero section.
+    canvas.addEventListener('webglcontextlost', function (event) {
       event.preventDefault();
       stop();
       api.ready = false;
       hero.classList.remove('hero-cloud-ready');
-    });
-    hero.addEventListener('webglcontextrestored', function () {
-      if (state) { state = null; }
-      try {
-        state = createRenderer(gl, sourceImage);
-        api.ready = true;
-        start();
-      } catch (error) { /* keep photograph */ }
+      state = null;
+      if (canvas) {
+        canvas.remove();
+        canvas = null;
+      }
+      // Context loss is usually transient; rebuild the pass once instead of
+      // leaving the photograph as a permanent fallback for the session.
+      if (!cloudRetried) {
+        cloudRetried = true;
+        window.setTimeout(function () {
+          if (isKimi() && !reduce.matches) init();
+        }, 300);
+      }
     });
     start();
   }
@@ -364,7 +403,16 @@
         Math.min(2, Math.max(1, dpr)),
         maxTexture
       );
-      var cloud = fitSize(composite[0], composite[1], 450000, 0.5, maxTexture);
+      // Phones pay the same 64-step raymarch per pixel; a smaller cloud target
+      // keeps the pass affordable without touching the composite resolution.
+      var compact = window.matchMedia('(max-width: 760px)').matches;
+      var cloud = fitSize(
+        composite[0],
+        composite[1],
+        compact ? 240000 : 450000,
+        compact ? 0.4 : 0.5,
+        maxTexture
+      );
       canvas.width = composite[0];
       canvas.height = composite[1];
       if (output.cloudWidth !== cloud[0] || output.cloudHeight !== cloud[1]) {
@@ -450,7 +498,7 @@
 
   function frame(now) {
     raf = 0;
-    if (!state || reduce.matches) return;
+    if (!state || reduce.matches || !isKimi()) return;
     var dt = last ? Math.min(0.1, (now - last) / 1000) : 0.033;
     last = now;
     var ease = 1 - Math.pow(0.94, 60 * dt);
@@ -470,7 +518,7 @@
 
   function start() {
     if (!canvas || !state || reduce.matches) return;
-    if (document.documentElement.dataset.skin !== 'kimi') return;
+    if (!isKimi()) return;
     if (running && raf) return;
     running = true;
     last = 0;
@@ -489,15 +537,25 @@
   reduce.addEventListener && reduce.addEventListener('change', function () {
     if (reduce.matches) {
       stop();
-      if (canvas) canvas.remove();
-      canvas = null;
-      state = null;
-      api.ready = false;
       hero.classList.remove('hero-cloud-ready');
     } else {
       init();
     }
   });
+
+  // The skin can be toggled long after this script runs. Boot lazily on the
+  // first Kimi view and park the renderer when the classic skin comes back.
+  if ('MutationObserver' in window) {
+    new MutationObserver(function () {
+      if (isKimi()) {
+        init();
+        if (canvas && state) start();
+      } else {
+        stop();
+        hero.classList.remove('hero-cloud-ready');
+      }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] });
+  }
 
   init();
 })();

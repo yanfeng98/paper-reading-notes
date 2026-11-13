@@ -2,8 +2,9 @@
 """Prepare the Kimi-skin hero from the K3.1 editorial cloud-sea photograph.
 
 One-off asset script (not part of the stdlib-only site build). The editable
-source lives at site/tools/hero-source.jpg; this script crops it to 16:9 and
-writes the 1600/2400 WebP + JPEG derivatives used by skin-kimi.css.
+source lives at site/tools/hero-source.jpg; this script keeps the source's
+4:3 aspect ratio and writes the 1600/2400 WebP + JPEG derivatives used by
+skin-kimi.css.
 
 The source is the cloud-sea photograph used by the K3.1 Pro article hero
 (https://www.kimi.ai/blog/kimi-k3-1-pro), archived locally so the offline site

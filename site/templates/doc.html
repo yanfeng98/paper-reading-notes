@@ -23,6 +23,15 @@
         document.documentElement.dataset.skin = skin;
         document.documentElement.dataset.theme = resolved;
         document.documentElement.dataset.themeMode = mode;
+        if (skin === 'kimi') {
+          // The reader cover is a full-height visual; start it before the
+          // deferred scripts hydrate the placeholder <img>.
+          var cover = document.createElement('link');
+          cover.rel = 'preload';
+          cover.as = 'image';
+          cover.href = {{COVER_IMAGE_JS}};
+          document.head.appendChild(cover);
+        }
       } catch (error) {
         document.documentElement.dataset.theme = 'light';
         document.documentElement.dataset.skin = 'kimi';
@@ -112,6 +121,7 @@
 
       <footer class="doc-footer">
         <span>版本与核对信息见正文中的「来源信息」。</span>
+        <span class="doc-credit">封面参考 <a href="https://www.kimi.ai/blog/kimi-k3-1-pro" target="_blank" rel="noopener noreferrer">Kimi K3.1 Pro</a></span>
         <a href="{{SOURCE_URL}}" target="_blank" rel="noopener noreferrer">查看 GitHub 源 ↗</a>
       </footer>
     </article>

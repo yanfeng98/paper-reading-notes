@@ -148,7 +148,7 @@
 
   function playHeroIntro() {
     var hero = document.querySelector('.hero');
-    if (!hero || page !== 'home') return;
+    if (!hero || page !== 'home' || currentSkin() !== 'kimi') return;
     var layer = document.querySelector('.hero-code-layer');
     var svg = document.querySelector('.mark-svg');
     hero.classList.remove('is-intro', 'is-intro-done');
@@ -279,7 +279,8 @@
     });
 
     apply();
-    if (currentSkin() === 'kimi') playHeroIntro();
+    // applySkin() already started the intro; replaying it here reset the
+    // wordmark animation a second time on every home-page load.
   }
 
   function createMarkWindRenderer(canvas) {
@@ -345,30 +346,30 @@
       '  float sway = 0.5 + 0.5 * sin(uTime * 1.45 + uv.y * 4.3 + uv.x * 1.2);',
       // Sample upstream and draw downstream so the brush leans and smears in
       // the direction the air is moving.
-      '  vec2 warp = uWind * (0.006 + 0.13 * gust + 0.008 * sway) * (0.30 + 0.95 * anchor);',
-      '  warp.x += (uv.y - 0.15) * 0.09 * gust;',
+      '  vec2 warp = uWind * (0.004 + 0.075 * gust + 0.006 * sway) * (0.30 + 0.95 * anchor);',
+      '  warp.x += (uv.y - 0.15) * 0.05 * gust;',
       '  vec2 n = vec2(',
       '    fbm(uv * vec2(5.0, 7.0) + vec2(uTime * 0.50, 0.0)),',
       '    fbm(uv * vec2(5.0, 7.0) + vec2(3.7, -uTime * 0.38))',
       '  );',
-      '  warp += (n - 0.5) * (0.004 + 0.035 * gust) * (0.25 + anchor);',
+      '  warp += (n - 0.5) * (0.004 + 0.022 * gust) * (0.25 + anchor);',
       '  float core = glyph(uv - warp);',
-      '  core *= 1.0 - smoothstep(0.62, 1.0, uv.y) * gust * 0.45;',
-      '  float trail = 0.015 + 0.34 * gust * (0.30 + anchor);',
+      '  core *= 1.0 - smoothstep(0.62, 1.0, uv.y) * gust * 0.38;',
+      '  float trail = 0.01 + 0.20 * gust * (0.30 + anchor);',
       '  float streaks = 0.0;',
-      '  for (int i = 1; i <= 20; i++){',
-      '    float t = float(i) / 20.0;',
+      '  for (int i = 1; i <= 16; i++){',
+      '    float t = float(i) / 16.0;',
       '    vec2 suv = uv - warp * (1.0 + t * 0.35) - uWind * trail * t;',
       '    float s = glyph(suv);',
       '    float bands = fbm(vec2(suv.x * 8.0 - uTime * 0.55, suv.y * 30.0));',
       '    s *= smoothstep(0.30, 0.74, bands + 0.30 - t * 0.17);',
-      '    streaks += s * pow(1.0 - t, 1.75) * 0.135;',
+      '    streaks += s * pow(1.0 - t, 1.75) * 0.105;',
       '  }',
-      '  float a = max(core, clamp(streaks, 0.0, 0.95) * (1.0 - core * 0.72) * 0.94);',
+      '  float a = max(core, clamp(streaks, 0.0, 0.95) * (1.0 - core * 0.72) * 0.85);',
       '  vec2 fuv = uv - warp * 1.7 - uWind * trail * 1.25;',
       '  float flake = glyph(fuv);',
       '  float mask = fbm(fuv * vec2(15.0, 36.0) + vec2(-uTime * 0.8, uTime * 0.12));',
-      '  a = max(a, flake * smoothstep(0.60, 0.84, mask) * 0.42 * uStrength);',
+      '  a = max(a, flake * smoothstep(0.60, 0.84, mask) * 0.32 * uStrength);',
       '  a *= smoothstep(0.0, 0.16, uStrength);',
       '  vec3 ink = mix(vec3(0.975, 0.963, 0.925), vec3(0.88, 0.91, 0.89), clamp(streaks, 0.0, 1.0) * 0.5);',
       '  outColor = vec4(ink * a, a);',
@@ -483,6 +484,7 @@
   }
 
   function initHeroCode() {
+    if (currentSkin() !== 'kimi' || motionMedia.matches) return;
     var hero = document.querySelector('.hero');
     var layer = document.querySelector('.hero-code-layer');
     var canvas = layer && layer.querySelector('[data-kimi-code-canvas]');
@@ -552,21 +554,46 @@
     var windY = -0.16;
     var markSvg = mark && mark.querySelector('.mark-svg');
     var windCanvas = mark && mark.querySelector('[data-kimi-mark-wind]');
-    var windRenderer = windCanvas ? createMarkWindRenderer(windCanvas) : null;
+    var windRenderer = null;
+    var windRetried = false;
     var windNoise = document.getElementById('kimi-wind-noise');
     var windDisplace = document.getElementById('kimi-wind-displace');
-    if (mark && windRenderer) {
-      mark.classList.add('has-wind-canvas');
-      windCanvas.addEventListener('webglcontextlost', function (event) {
-        event.preventDefault();
-        windRenderer = null;
-        windCanvas.style.display = 'none';
-        mark.classList.remove('has-wind-canvas');
-        mark.classList.add('is-svg-wind');
-        if (markSvg) markSvg.style.opacity = '';
-      });
-    } else if (mark) {
-      mark.classList.add('is-svg-wind');
+
+    function setupWindRenderer() {
+      if (!windCanvas) return false;
+      windRenderer = createMarkWindRenderer(windCanvas);
+      if (!windRenderer) {
+        if (mark) mark.classList.add('is-svg-wind');
+        return false;
+      }
+      if (mark) {
+        mark.classList.add('has-wind-canvas');
+        mark.classList.remove('is-svg-wind');
+      }
+      windCanvas.style.display = '';
+      return true;
+    }
+
+    if (mark) {
+      setupWindRenderer();
+      if (windCanvas) {
+        windCanvas.addEventListener('webglcontextlost', function (event) {
+          event.preventDefault();
+          windRenderer = null;
+          windCanvas.style.display = 'none';
+          mark.classList.remove('has-wind-canvas');
+          mark.classList.add('is-svg-wind');
+          if (markSvg) markSvg.style.opacity = '';
+          // Rebuild the tiny wind pass once instead of falling back to the
+          // SVG filter for the rest of the session.
+          if (!windRetried) {
+            windRetried = true;
+            window.setTimeout(function () {
+              if (currentSkin() === 'kimi' && !motionMedia.matches) setupWindRenderer();
+            }, 300);
+          }
+        });
+      }
     }
 
     canvas.dataset.codeSource = 'https://github.com/NVIDIA/Megatron-LM';
@@ -637,6 +664,7 @@
     }
 
     function resize() {
+      if (currentSkin() !== 'kimi') return;
       var rect = hero.getBoundingClientRect();
       width = Math.max(1, rect.width);
       height = Math.max(1, rect.height);
@@ -799,7 +827,10 @@
         var uvy = 1 - (pointerY - (markRect.top - pad)) / Math.max(1, span);
         windRenderer.render(markWind, clock, uvx, uvy, windX, -windY);
         windCanvas.style.opacity = String(clamp((markWind - 0.02) * 7.5, 0, 1));
-        if (markSvg) markSvg.style.opacity = String(clamp(1 - markWind * 7.5, 0, 1));
+        // Keep a faint SVG silhouette under the shader: at full gust the
+        // displacement alone used to turn the wordmark into an unreadable
+        // white smear.
+        if (markSvg) markSvg.style.opacity = String(clamp(1 - markWind * 3.2, 0.28, 1));
       } else {
         if (windCanvas) windCanvas.style.opacity = '0';
         if (markSvg) markSvg.style.opacity = '';
@@ -929,13 +960,36 @@
       }
     }
 
+    // Window resizes fire dozens of times per second while dragging; the
+    // 16x6 glyph atlas and 10k-cell grid are too expensive to rebuild each
+    // time, so coalesce them into one frame.
+    var resizeScheduled = false;
+    function requestResize() {
+      if (resizeScheduled) return;
+      resizeScheduled = true;
+      window.requestAnimationFrame(function () {
+        resizeScheduled = false;
+        resize();
+      });
+    }
+
     hero.addEventListener('pointermove', move, { passive: true });
     hero.addEventListener('pointerdown', move, { passive: true });
     hero.addEventListener('pointerleave', leave);
     hero.addEventListener('pointercancel', leave);
-    window.addEventListener('resize', resize, { passive: true });
+    window.addEventListener('resize', requestResize, { passive: true });
     window.__heroCodeReset = reset;
     resize();
+  }
+
+  var lazyImageObserver = null;
+
+  function loadDeferredImage(image) {
+    if (image.dataset.kimiDeferLoaded === '1') return;
+    var target = image.dataset.kimiSrc;
+    if (!target) return;
+    image.dataset.kimiDeferLoaded = '1';
+    image.setAttribute('src', target);
   }
 
   function hydrateKimiImages() {
@@ -948,9 +1002,35 @@
       }
     });
     document.querySelectorAll('img[data-kimi-src]').forEach(function (image) {
+      // Hero/reader covers hydrate immediately; card thumbnails wait until
+      // they approach the viewport. Assigning src eagerly (even with
+      // loading="lazy") makes Chrome fetch every off-screen cover.
+      if (image.hasAttribute('data-kimi-defer')) {
+        if (!kimi) return;
+        if (image.dataset.kimiDeferLoaded === '1') return;
+        if (!('IntersectionObserver' in window)) {
+          loadDeferredImage(image);
+          return;
+        }
+        if (!lazyImageObserver) {
+          lazyImageObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+              if (!entry.isIntersecting) return;
+              if (lazyImageObserver) lazyImageObserver.unobserve(entry.target);
+              if (currentSkin() === 'kimi') loadDeferredImage(entry.target);
+            });
+          }, { rootMargin: '600px 0px', threshold: 0 });
+        }
+        lazyImageObserver.observe(image);
+        return;
+      }
       var target = kimi ? image.dataset.kimiSrc : KIMI_PLACEHOLDER;
       if (image.getAttribute('src') !== target) image.setAttribute('src', target);
     });
+    if (!kimi && lazyImageObserver) {
+      lazyImageObserver.disconnect();
+      lazyImageObserver = null;
+    }
   }
 
   function positionDocCover() {
@@ -1055,6 +1135,22 @@
     frame();
   }
 
+  var heroCodeScheduled = false;
+
+  function scheduleHeroCode() {
+    if (heroCodeScheduled || window.__heroCodeBound) return;
+    heroCodeScheduled = true;
+    var run = function () {
+      heroCodeScheduled = false;
+      initHeroCode();
+    };
+    // The intro is CSS-only and starts immediately; building the atlas and
+    // wind pass is a short task but should not delay the first paint. A timer
+    // (rather than requestIdleCallback) keeps it ahead of the much heavier,
+    // idle-scheduled cloud boot on slow devices.
+    window.setTimeout(run, 120);
+  }
+
   function applySkin(skin, persist) {
     var next = skin === 'kimi' ? 'kimi' : 'classic';
     document.documentElement.dataset.skin = next;
@@ -1077,6 +1173,7 @@
       }
     }
     layoutHomeSections();
+    if (next === 'kimi' && page === 'home' && !motionMedia.matches) scheduleHeroCode();
     applyTheme(document.documentElement.dataset.themeMode || 'auto', false);
     updateSkinControls();
     syncTopbar();
@@ -2254,8 +2351,23 @@
 
   initTheme();
   initSkin();
-  initHeroCode();
   initKimiControls();
+  window.addEventListener('beforeprint', function () {
+    // The reveal-on-scroll classes keep off-screen cards at opacity 0; print
+    // is not a scroll, so show them before the deferred images load.
+    document.querySelectorAll('.kimi-reveal').forEach(function (node) {
+      node.classList.add('is-visible');
+    });
+    if (currentSkin() !== 'kimi') return;
+    document.querySelectorAll('img[data-kimi-defer]').forEach(loadDeferredImage);
+  });
+  motionMedia.addEventListener && motionMedia.addEventListener('change', function () {
+    if (motionMedia.matches) {
+      if (window.__heroCodeReset) window.__heroCodeReset();
+    } else if (currentSkin() === 'kimi' && page === 'home') {
+      scheduleHeroCode();
+    }
+  });
   if (page === 'home') {
     initContribution();
     initHome();

@@ -1666,6 +1666,9 @@ html[data-skin="kimi"] .hero-media img {
   html[data-skin="kimi"] .reading-progress { display: none !important; }
   html[data-skin="kimi"] .doc-header h1 { margin-top: 0; }
   html[data-skin="kimi"] .doc-kicker { margin-top: 0; }
+  /* Scroll-reveal is a screen interaction; print must show every card even if
+     it was never scrolled into view. */
+  html[data-skin="kimi"] .kimi-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
 
 /* ---------- static cloud haze + hero appearance controls ---------- */

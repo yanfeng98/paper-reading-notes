@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="{{ROOT}}assets/site.css?v={{ASSET_VERSION}}">
   <link rel="stylesheet" href="{{ROOT}}assets/fonts.css?v={{ASSET_VERSION}}">
   <link rel="stylesheet" href="{{ROOT}}assets/skin-kimi.css?v={{ASSET_VERSION}}">
-  <link rel="preload" href="{{ROOT}}assets/vendor/fonts/mashanzheng/ma-shan-zheng-slice.woff2" as="font" type="font/woff2" crossorigin>
   <script>
     (function () {
       try {
@@ -24,6 +23,26 @@
         document.documentElement.dataset.skin = skin;
         document.documentElement.dataset.theme = resolved;
         document.documentElement.dataset.themeMode = mode;
+        if (skin === 'kimi') {
+          // Only the Kimi skin needs the hero photograph and the brush font.
+          // Starting the hero request in <head> lets the photograph preload
+          // before the deferred scripts hydrate its placeholder <img>.
+          var hero = document.createElement('link');
+          hero.rel = 'preload';
+          hero.as = 'image';
+          hero.type = 'image/webp';
+          hero.href = '{{ROOT}}assets/hero-kimi-1600.webp';
+          hero.setAttribute('imagesrcset', '{{ROOT}}assets/hero-kimi-1600.webp 1600w, {{ROOT}}assets/hero-kimi-2400.webp 2400w');
+          hero.setAttribute('imagesizes', '100vw');
+          document.head.appendChild(hero);
+          var brush = document.createElement('link');
+          brush.rel = 'preload';
+          brush.as = 'font';
+          brush.type = 'font/woff2';
+          brush.crossOrigin = 'anonymous';
+          brush.href = '{{ROOT}}assets/vendor/fonts/mashanzheng/ma-shan-zheng-slice.woff2';
+          document.head.appendChild(brush);
+        }
       } catch (error) {
         document.documentElement.dataset.theme = 'light';
         document.documentElement.dataset.skin = 'kimi';
@@ -230,6 +249,7 @@
     <div>
       <strong>Paper Reading Notes</strong>
       <p>论文精读笔记与主题汇总。站点由 GitHub Pages 从 repo 内容构建。</p>
+      <p class="footer-credit">首屏云海照片与版式参考 <a href="https://www.kimi.ai/blog/kimi-k3-1-pro" target="_blank" rel="noopener noreferrer">Kimi K3.1 Pro</a>，照片版权归原作者。</p>
     </div>
     <nav class="footer-links" aria-label="页脚链接">
       <a href="{{REPO_URL}}" target="_blank" rel="noopener noreferrer">仓库</a>

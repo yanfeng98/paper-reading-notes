@@ -935,6 +935,8 @@ main { width: 100%; }
 }
 .site-footer strong { color: var(--text); }
 .site-footer p { margin: 6px 0 0; }
+.site-footer .footer-credit { color: var(--faint); }
+.site-footer .footer-credit a { color: var(--muted); }
 .footer-links { display: flex; gap: 16px; white-space: nowrap; }
 .nojs {
   max-width: 1180px;
@@ -1506,6 +1508,7 @@ html.toc-open body { overflow: hidden; }
   font-size: 11px;
 }
 .doc-footer a { color: var(--muted); }
+.doc-footer .doc-credit { color: var(--faint); }
 
 .to-top {
   position: fixed;
