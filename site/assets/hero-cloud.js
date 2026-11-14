@@ -1436,15 +1436,20 @@
         code.advance(dt);
         wash.advance(dt);
         surface.advance(dt);
-        // Keep the SVG wordmark as the only visible title. The WebGL title
-        // is a separate canvas rasterisation; crossfading to it made the
-        // glyph jump/flicker and look different from the DOM wordmark.
-        titleTarget = 0;
+        var now = performance.now();
+        if (!introDone()) {
+          titleTarget = 0;
+        } else if (overMark || now < titleHoldUntil || washTouchesTitle()) {
+          titleTarget = 1;
+        } else {
+          titleTarget = 0;
+        }
       }
       titleActive += (titleTarget - titleActive) * Math.min(1, dt * 14);
       if (titleActive < 0.01) titleActive = 0;
-      if (mark && mark.classList.contains('is-webgl-title')) {
-        mark.classList.remove('is-webgl-title');
+      if (mark) {
+        if (titleActive > 0.985) mark.classList.add('is-webgl-title');
+        else if (titleActive < 0.85) mark.classList.remove('is-webgl-title');
       }
 
       uploadCodeGrid();
@@ -1507,7 +1512,7 @@
       gl.uniform1f(uniforms.codeSize, code.state.size);
       gl.uniform1f(uniforms.T, time);
       gl.uniform4fv(uniforms.titleRect, titleRect);
-      gl.uniform1f(uniforms.titleOpacity, 0.9 * settings.ink);
+      gl.uniform1f(uniforms.titleOpacity, 0.8 * settings.ink);
       gl.uniform1f(uniforms.titleStrength, 0.22);
       gl.uniform1f(uniforms.writingProgress, introDone() ? 1 : 0);
       gl.uniform1f(uniforms.ink, settings.ink);
@@ -1516,7 +1521,7 @@
       gl.uniform1f(uniforms.washSolidity, 1);
       // Our foreground-cloud layer is denser than the reference's; scale it
       // with Coverage so the wordmark keeps a crisp core at the default.
-      gl.uniform1f(uniforms.titleCloudPresence, 0.3 * settings.coverage);
+      gl.uniform1f(uniforms.titleCloudPresence, 0.0);
       gl.uniform4fv(uniforms.inkBounds, wash.state.bounds);
       gl.uniform4fv(uniforms.inkTipStart, wash.state.tipStart);
       gl.uniform4fv(uniforms.inkTipEnd, wash.state.tipEnd);

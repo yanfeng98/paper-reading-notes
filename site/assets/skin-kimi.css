@@ -427,20 +427,13 @@ html[data-skin="kimi"] .hero-mark .mark-svg {
   width: 100%;
   height: 100%;
   overflow: visible;
-  transform: translate3d(var(--mark-x, 0px), var(--mark-y, 0px), 0)
-    perspective(900px)
-    rotateX(var(--mark-rot-x, 0deg))
-    rotateY(var(--mark-rot-y, 0deg))
-    skewY(var(--mark-skew, 0deg))
-    scale(var(--mark-scale, 1));
-  transform-origin: 50% 50%;
   transition: opacity 0.14s ease;
-  will-change: transform;
 }
 
 /* The WebGL composite is the same glyph.  Crossfade to it while the ink
    wash is live, then fall back to the SVG so the intro stays crisp. */
 html[data-skin="kimi"] .hero-mark.is-webgl-title .mark-svg {
+  animation: none !important;
   opacity: 0 !important;
 }
 

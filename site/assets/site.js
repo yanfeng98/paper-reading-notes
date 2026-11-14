@@ -179,50 +179,6 @@
     }, Math.max(introEnd, 3650));
   }
 
-  function initMarkWobble() {
-    var mark = document.querySelector('.hero-mark');
-    var svg = mark && mark.querySelector('.mark-svg');
-    if (!mark || !svg || motionMedia.matches) return;
-    var settleTimer = 0;
-
-    function set(rx, ry, skew, x, y, scale) {
-      svg.style.setProperty('--mark-rot-x', rx.toFixed(2) + 'deg');
-      svg.style.setProperty('--mark-rot-y', ry.toFixed(2) + 'deg');
-      svg.style.setProperty('--mark-skew', skew.toFixed(2) + 'deg');
-      svg.style.setProperty('--mark-x', x.toFixed(2) + 'px');
-      svg.style.setProperty('--mark-y', y.toFixed(2) + 'px');
-      svg.style.setProperty('--mark-scale', scale.toFixed(3));
-    }
-
-    function reset() {
-      if (settleTimer) {
-        window.clearTimeout(settleTimer);
-        settleTimer = 0;
-      }
-      set(0, 0, 0, 0, 0, 1);
-    }
-
-    function move(event) {
-      if (currentSkin() !== 'kimi' || motionMedia.matches ||
-          !document.documentElement.classList.contains('kimi-intro-done')) return;
-      var rect = mark.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      var nx = (event.clientX - rect.left) / rect.width - 0.5;
-      var ny = (event.clientY - rect.top) / rect.height - 0.5;
-      set(-ny * 14, nx * 14, nx * 5, nx * 10, ny * 10, 1.02);
-      if (settleTimer) window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(reset, 1000);
-    }
-
-    mark.addEventListener('pointermove', move, { passive: true });
-    mark.addEventListener('pointerdown', move, { passive: true });
-    mark.addEventListener('pointerleave', reset, { passive: true });
-    mark.addEventListener('pointercancel', reset, { passive: true });
-    motionMedia.addEventListener && motionMedia.addEventListener('change', function () {
-      if (motionMedia.matches) reset();
-    });
-  }
-
   function initKimiControls() {
     var root = document.querySelector('[data-kimi-controls]');
     var hero = document.querySelector('.hero');
@@ -1807,7 +1763,6 @@
   initTheme();
   initSkin();
   initKimiControls();
-  initMarkWobble();
   window.addEventListener('beforeprint', function () {
     // The reveal-on-scroll classes keep off-screen cards at opacity 0; print
     // is not a scroll, so show them before the deferred images load.
