@@ -889,11 +889,11 @@
   }
 
   function enableMaskFallback() {
-    if (fallbackBound || !isKimi() || !mark || !markSvg || reduce.matches || api.ready) return;
+    if (fallbackBound || !isKimi() || !mark || !markSvg || reduce.matches) return;
     fallbackBound = true;
     mark.classList.remove('is-webgl-title');
     function applyMask(event) {
-      if (api.ready || !introDone() || settings.ink <= 0 || reduce.matches) return;
+      if (!introDone() || settings.ink <= 0 || reduce.matches) return;
       var rect = mark.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right ||
           event.clientY < rect.top || event.clientY > rect.bottom) return;
@@ -1436,23 +1436,16 @@
         code.advance(dt);
         wash.advance(dt);
         surface.advance(dt);
-        var now = performance.now();
-        if (!introDone()) {
-          titleTarget = 0;
-        } else if (overMark || now < titleHoldUntil || washTouchesTitle()) {
-          titleTarget = 1;
-        } else {
-          titleTarget = 0;
-        }
+        // Keep the SVG wordmark as the only visible title. The WebGL title
+        // is a separate canvas rasterisation; crossfading to it made the
+        // glyph jump/flicker and look different from the DOM wordmark.
+        titleTarget = 0;
       }
       titleActive += (titleTarget - titleActive) * Math.min(1, dt * 14);
       if (titleActive < 0.01) titleActive = 0;
-      if (titleTarget > 0) {
-        if (titleActive > 0.01) svgHidden = true;
-      } else if (titleActive < 0.4) {
-        svgHidden = false;
+      if (mark && mark.classList.contains('is-webgl-title')) {
+        mark.classList.remove('is-webgl-title');
       }
-      if (mark) mark.classList.toggle('is-webgl-title', svgHidden);
 
       uploadCodeGrid();
       uploadSurface();
