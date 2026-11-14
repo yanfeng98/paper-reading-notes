@@ -149,12 +149,10 @@
   function playHeroIntro() {
     var hero = document.querySelector('.hero');
     if (!hero || page !== 'home' || currentSkin() !== 'kimi') return;
-    var layer = document.querySelector('.hero-code-layer');
     var svg = document.querySelector('.mark-svg');
     hero.classList.remove('is-intro', 'is-intro-done');
     document.documentElement.classList.remove('kimi-intro-done');
-    if (layer) layer.classList.remove('is-visible');
-    if (window.__heroCodeReset) window.__heroCodeReset();
+    if (window.__heroCloud) window.__heroCloud.resetMark();
     void hero.offsetWidth;
     hero.classList.add('is-intro');
     if (svg) {
@@ -163,15 +161,22 @@
       svg.classList.add('is-writing');
     }
     clearTimeout(window.__heroIntroTimer);
+    clearTimeout(window.__heroIntroClassTimer);
     var speed = parseFloat(hero.style.getPropertyValue('--hero-speed')) || 3;
     speed = Math.max(0.2, Math.min(15, speed));
     var factor = speed / 3;
     var duration = motionMedia.matches ? 1.2 : 3.2 / factor;
     hero.style.setProperty('--intro-duration', duration + 's');
+    var introEnd = (duration + 0.45) * 1000;
     window.__heroIntroTimer = setTimeout(function () {
       hero.classList.add('is-intro-done');
       document.documentElement.classList.add('kimi-intro-done');
-    }, (duration + 0.45) * 1000);
+    }, introEnd);
+    // Keep the caption's fixed 2.7s + 0.9s fade intact even when Speed makes
+    // the wordmark intro finish earlier.
+    window.__heroIntroClassTimer = setTimeout(function () {
+      hero.classList.remove('is-intro');
+    }, Math.max(introEnd, 3650));
   }
 
   function initKimiControls() {
@@ -185,7 +190,9 @@
       var stored = JSON.parse(localStorage.getItem('prn-hero-settings') || 'null');
       if (stored && typeof stored === 'object') {
         ['cloud', 'speed', 'ink', 'coverage'].forEach(function (key) {
-          if (typeof stored[key] === 'number' && isFinite(stored[key])) settings[key] = stored[key];
+          if (typeof stored[key] !== 'number' || !isFinite(stored[key])) return;
+          var range = key === 'cloud' ? [0.65, 5] : key === 'speed' ? [0.2, 15] : [0, 1];
+          settings[key] = Math.max(range[0], Math.min(range[1], stored[key]));
         });
       }
     } catch (error) { /* ignore */ }
@@ -221,7 +228,8 @@
         window.__heroCloud.setSettings({
           cloud: settings.cloud,
           speed: settings.speed,
-          coverage: settings.coverage
+          coverage: settings.coverage,
+          ink: settings.ink
         });
       }
       controls.forEach(function (control) {
@@ -281,705 +289,6 @@
     apply();
     // applySkin() already started the intro; replaying it here reset the
     // wordmark animation a second time on every home-page load.
-  }
-
-  function createMarkWindRenderer(canvas) {
-    var gl = canvas.getContext('webgl2', {
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      powerPreference: 'low-power'
-    });
-    if (!gl) return null;
-
-    var vertex = '#version 300 es\n' +
-      'in vec2 p; out vec2 vUv;\n' +
-      'void main(){ vUv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }';
-
-    var fragment = [
-      '#version 300 es',
-      'precision highp float;',
-      'in vec2 vUv;',
-      'out vec4 outColor;',
-      'uniform sampler2D uGlyph;',
-      'uniform vec2 uPointer;',
-      'uniform vec2 uWind;',
-      'uniform float uStrength;',
-      'uniform float uTime;',
-      'float hash(vec2 p){',
-      '  p = fract(p * vec2(123.34, 456.21));',
-      '  p += dot(p, p + 45.32);',
-      '  return fract(p.x * p.y);',
-      '}',
-      'float noise(vec2 p){',
-      '  vec2 i = floor(p), f = fract(p);',
-      '  f = f * f * (3.0 - 2.0 * f);',
-      '  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),',
-      '             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);',
-      '}',
-      'float fbm(vec2 p){',
-      '  float sum = 0.0, amp = 0.5;',
-      '  for (int i = 0; i < 4; i++){',
-      '    sum += amp * noise(p);',
-      '    p = p * 2.03 + vec2(1.7, 9.2);',
-      '    amp *= 0.5;',
-      '  }',
-      '  return sum / 0.9375;',
-      '}',
-      'float glyph(vec2 uv){',
-      '  if (uv.x < -0.02 || uv.x > 1.02 || uv.y < -0.02 || uv.y > 1.02) return 0.0;',
-      '  return texture(uGlyph, clamp(uv, 0.0, 1.0)).a;',
-      '}',
-      'void main(){',
-      '  vec2 uv = vUv;',
-      '  float anchor = smoothstep(0.02, 0.98, uv.y);',
-      '  vec2 p = uv - uPointer;',
-      '  float along = dot(p, uWind);',
-      '  float across = dot(p, vec2(-uWind.y, uWind.x));',
-      // A downwind ellipse with a long tail, not a circle: the gust centre
-      // sits at the pointer and the wake trails behind it.
-      '  float nearGust = exp(-(along * along * 8.0 + across * across * 20.0));',
-      '  float tail = exp(-(max(along, 0.0) * max(along, 0.0) * 2.0 + across * across * 26.0));',
-      '  float gust = uStrength * (0.26 + 0.78 * nearGust + 0.68 * tail);',
-      '  float sway = 0.5 + 0.5 * sin(uTime * 1.45 + uv.y * 4.3 + uv.x * 1.2);',
-      // Sample upstream and draw downstream so the brush leans and smears in
-      // the direction the air is moving.
-      '  vec2 warp = uWind * (0.004 + 0.075 * gust + 0.006 * sway) * (0.30 + 0.95 * anchor);',
-      '  warp.x += (uv.y - 0.15) * 0.05 * gust;',
-      '  vec2 n = vec2(',
-      '    fbm(uv * vec2(5.0, 7.0) + vec2(uTime * 0.50, 0.0)),',
-      '    fbm(uv * vec2(5.0, 7.0) + vec2(3.7, -uTime * 0.38))',
-      '  );',
-      '  warp += (n - 0.5) * (0.004 + 0.022 * gust) * (0.25 + anchor);',
-      '  float core = glyph(uv - warp);',
-      '  core *= 1.0 - smoothstep(0.62, 1.0, uv.y) * gust * 0.38;',
-      '  float trail = 0.01 + 0.20 * gust * (0.30 + anchor);',
-      '  float streaks = 0.0;',
-      '  for (int i = 1; i <= 16; i++){',
-      '    float t = float(i) / 16.0;',
-      '    vec2 suv = uv - warp * (1.0 + t * 0.35) - uWind * trail * t;',
-      '    float s = glyph(suv);',
-      '    float bands = fbm(vec2(suv.x * 8.0 - uTime * 0.55, suv.y * 30.0));',
-      '    s *= smoothstep(0.30, 0.74, bands + 0.30 - t * 0.17);',
-      '    streaks += s * pow(1.0 - t, 1.75) * 0.105;',
-      '  }',
-      '  float a = max(core, clamp(streaks, 0.0, 0.95) * (1.0 - core * 0.72) * 0.85);',
-      '  vec2 fuv = uv - warp * 1.7 - uWind * trail * 1.25;',
-      '  float flake = glyph(fuv);',
-      '  float mask = fbm(fuv * vec2(15.0, 36.0) + vec2(-uTime * 0.8, uTime * 0.12));',
-      '  a = max(a, flake * smoothstep(0.60, 0.84, mask) * 0.32 * uStrength);',
-      '  a *= smoothstep(0.0, 0.16, uStrength);',
-      '  vec3 ink = mix(vec3(0.975, 0.963, 0.925), vec3(0.88, 0.91, 0.89), clamp(streaks, 0.0, 1.0) * 0.5);',
-      '  outColor = vec4(ink * a, a);',
-      '}'
-    ].join('\n');
-
-    function compile(type, source) {
-      var shader = gl.createShader(type);
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        throw new Error(gl.getShaderInfoLog(shader) || 'mark wind shader compile failed');
-      }
-      return shader;
-    }
-
-    var program;
-    try {
-      program = gl.createProgram();
-      gl.attachShader(program, compile(gl.VERTEX_SHADER, vertex));
-      gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragment));
-      gl.bindAttribLocation(program, 0, 'p');
-      gl.linkProgram(program);
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        throw new Error(gl.getProgramInfoLog(program) || 'mark wind link failed');
-      }
-    } catch (error) {
-      console.warn('Mark wind renderer unavailable:', error);
-      return null;
-    }
-
-    var uniforms = {};
-    var count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-    for (var u = 0; u < count; u++) {
-      var name = gl.getActiveUniform(program, u).name;
-      uniforms[name] = gl.getUniformLocation(program, name);
-    }
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-    gl.disable(gl.DEPTH_TEST);
-    gl.disable(gl.BLEND);
-
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-    var textureReady = false;
-    function paintTexture() {
-      var source = document.createElement('canvas');
-      source.width = source.height = 1024;
-      var sourceCtx = source.getContext('2d');
-      if (!sourceCtx) return;
-      sourceCtx.clearRect(0, 0, 1024, 1024);
-      sourceCtx.fillStyle = '#fff';
-      sourceCtx.font = '400 731px "Ma Shan Zheng", "Noto Serif SC", serif';
-      sourceCtx.textAlign = 'center';
-      sourceCtx.textBaseline = 'alphabetic';
-      sourceCtx.fillText('读', 512, 789);
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-      textureReady = true;
-    }
-    paintTexture();
-    if (document.fonts && document.fonts.load) {
-      document.fonts.load('400 512px "Ma Shan Zheng"').then(paintTexture).catch(function () {});
-    }
-
-    var width = 1;
-    var height = 1;
-
-    var api = {
-      canvas: canvas,
-      resize: function (w, h) {
-        var dpr = Math.min(window.devicePixelRatio || 1, 2);
-        var nw = Math.max(1, Math.round(w * dpr));
-        var nh = Math.max(1, Math.round(h * dpr));
-        if (nw === canvas.width && nh === canvas.height) return;
-        canvas.width = nw;
-        canvas.height = nh;
-        width = nw;
-        height = nh;
-      },
-      render: function (strength, time, pointerX, pointerY, windX, windY) {
-        if (!textureReady || !width) return;
-        gl.viewport(0, 0, width, height);
-        gl.clearColor(0, 0, 0, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.useProgram(program);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.uniform1i(uniforms.uGlyph, 0);
-        gl.uniform2f(uniforms.uPointer, pointerX, pointerY);
-        gl.uniform2f(uniforms.uWind, windX, windY);
-        gl.uniform1f(uniforms.uStrength, strength);
-        gl.uniform1f(uniforms.uTime, time);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      },
-      destroy: function () {
-        gl.deleteTexture(texture);
-        gl.deleteProgram(program);
-      }
-    };
-    return api;
-  }
-
-  function initHeroCode() {
-    if (currentSkin() !== 'kimi' || motionMedia.matches) return;
-    var hero = document.querySelector('.hero');
-    var layer = document.querySelector('.hero-code-layer');
-    var canvas = layer && layer.querySelector('[data-kimi-code-canvas]');
-    var mark = document.querySelector('[data-kimi-mark]');
-    if (!hero || !layer || !canvas || window.__heroCodeBound) return;
-    window.__heroCodeBound = true;
-    var ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Real lines from NVIDIA/Megatron-LM core (main @ 7a01f00). The original
-    // K3.1 hero draws a glyph grid from a code atlas; using actual training
-    // source here keeps the same "wind-blown code" language.
-    // https://github.com/NVIDIA/Megatron-LM
-    var snippets = [
-      'from megatron.core import parallel_state',
-      'def initialize_model_parallel(',
-      'tensor_model_parallel_size: int = 1,',
-      'pipeline_model_parallel_size: int = 1,',
-      'def get_tensor_model_parallel_group(check_initialized=True):',
-      'return _TENSOR_MODEL_PARALLEL_GROUP',
-      'def get_tensor_model_parallel_world_size():',
-      'return get_tensor_model_parallel_group().size()',
-      'class ColumnParallelLinear(torch.nn.Module):',
-      'output_parallel = self._forward_impl(',
-      'class RowParallelLinear(torch.nn.Module):',
-      'input_parallel = scatter_to_tensor_model_parallel_region(input_, group=self.tp_group)',
-      'def forward_backward_pipelining_with_interleaving(',
-      'forward_backward_func = forward_backward_pipelining_with_interleaving',
-      'loss = torch.sum(losses.view(-1) * loss_mask) / loss_mask.sum()',
-      'averaged_loss = average_losses_across_data_parallel_group([loss])',
-      'def forward_step_helper(virtual_microbatch_id, checkpoint_activations_microbatch):',
-      'output_tensor, loss_func = forward_step_func(data_iterator, model)',
-      'torch.distributed.all_reduce(grad_input, group=ctx.tp_group)',
-      'handle = torch.distributed.all_reduce(grad_input, group=tp_group, async_op=True)',
-      'self.force_all_reduce = False',
-      'def finish_grad_sync(self, force_all_reduce: Optional[bool] = False):'
-    ];
-
-    var width = 1;
-    var height = 1;
-    var cols = 1;
-    var rows = 1;
-    var size = 12;
-    var stepX = 9.6;
-    var stepY = 13.8;
-    var grid = new Uint8Array(2);
-    var ribbons = [];
-    var bodyAtlas = null;
-    var hotAtlas = null;
-    var atlasCellW = 1;
-    var atlasCellH = 1;
-    var raf = 0;
-    var last = 0;
-    var clock = 0;
-    var pointerX = -9999;
-    var pointerY = -9999;
-    var prevX = -9999;
-    var prevY = -9999;
-    var pointerSpeed = 0;
-    var active = false;
-    var lastPoint = null;
-    var markRect = null;
-    var markWind = 0;
-    var markTarget = 0;
-    var markHover = false;
-    var windX = -1;
-    var windY = -0.16;
-    var markSvg = mark && mark.querySelector('.mark-svg');
-    var windCanvas = mark && mark.querySelector('[data-kimi-mark-wind]');
-    var windRenderer = null;
-    var windRetried = false;
-    var windNoise = document.getElementById('kimi-wind-noise');
-    var windDisplace = document.getElementById('kimi-wind-displace');
-
-    function setupWindRenderer() {
-      if (!windCanvas) return false;
-      windRenderer = createMarkWindRenderer(windCanvas);
-      if (!windRenderer) {
-        if (mark) mark.classList.add('is-svg-wind');
-        return false;
-      }
-      if (mark) {
-        mark.classList.add('has-wind-canvas');
-        mark.classList.remove('is-svg-wind');
-      }
-      windCanvas.style.display = '';
-      return true;
-    }
-
-    if (mark) {
-      setupWindRenderer();
-      if (windCanvas) {
-        windCanvas.addEventListener('webglcontextlost', function (event) {
-          event.preventDefault();
-          windRenderer = null;
-          windCanvas.style.display = 'none';
-          mark.classList.remove('has-wind-canvas');
-          mark.classList.add('is-svg-wind');
-          if (markSvg) markSvg.style.opacity = '';
-          // Rebuild the tiny wind pass once instead of falling back to the
-          // SVG filter for the rest of the session.
-          if (!windRetried) {
-            windRetried = true;
-            window.setTimeout(function () {
-              if (currentSkin() === 'kimi' && !motionMedia.matches) setupWindRenderer();
-            }, 300);
-          }
-        });
-      }
-    }
-
-    canvas.dataset.codeSource = 'https://github.com/NVIDIA/Megatron-LM';
-    canvas.dataset.codeRevision = '7a01f00';
-
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
-    }
-
-    function buildGrid() {
-      // Same density law as the original hero: ~12px cells that grow only on
-      // unusually large or tall viewports, so the field reads as dense data
-      // rather than a few oversized letters.
-      size = Math.max(13.5, width / 340, height / 250);
-      stepX = size * 0.8;
-      stepY = size * 1.15;
-      cols = Math.ceil(width / stepX);
-      rows = Math.ceil(height / stepY);
-      grid = new Uint8Array(cols * rows * 2);
-      for (var row = 0; row < rows; row++) {
-        var text = '';
-        var cursor = 0;
-        while (text.length < cols + 2) {
-          text += snippets[(row * 7 + 11 * cursor++) % snippets.length] + '   ';
-        }
-        for (var col = 0; col < cols; col++) {
-          grid[(row * cols + col) * 2] = text.charCodeAt(col) - 32;
-        }
-      }
-      ribbons.length = 0;
-      lastPoint = null;
-    }
-
-    function buildAtlases() {
-      // The original hero samples one 16x6 glyph atlas in a shader. Canvas 2D
-      // is far slower per glyph, so bake the same atlas once (green body and
-      // near-white head, both with a dark contour) and blit sprites per cell.
-      var colsAtlas = 16;
-      var rowsAtlas = 6;
-      atlasCellW = Math.ceil(stepX * 1.55);
-      atlasCellH = Math.ceil(stepY * 1.55);
-      bodyAtlas = document.createElement('canvas');
-      hotAtlas = document.createElement('canvas');
-      bodyAtlas.width = hotAtlas.width = colsAtlas * atlasCellW;
-      bodyAtlas.height = hotAtlas.height = rowsAtlas * atlasCellH;
-      var body = bodyAtlas.getContext('2d');
-      var hot = hotAtlas.getContext('2d');
-      [body, hot].forEach(function (g) {
-        g.font = '600 ' + size.toFixed(2) + 'px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-        g.textAlign = 'center';
-        g.textBaseline = 'middle';
-        g.lineJoin = 'round';
-        g.lineWidth = Math.max(1.2, size * 0.11);
-        g.strokeStyle = 'rgba(2, 16, 6, 0.94)';
-      });
-      for (var code = 32; code < 127; code++) {
-        var ch = String.fromCharCode(code);
-        var slot = code - 32;
-        var x = (slot % colsAtlas + 0.5) * atlasCellW;
-        var y = (Math.floor(slot / colsAtlas) + 0.5) * atlasCellH;
-        body.strokeText(ch, x, y);
-        body.fillStyle = '#45e04d';
-        body.fillText(ch, x, y);
-        hot.strokeText(ch, x, y);
-        hot.fillStyle = '#eeffdc';
-        hot.fillText(ch, x, y);
-      }
-    }
-
-    function resize() {
-      if (currentSkin() !== 'kimi') return;
-      var rect = hero.getBoundingClientRect();
-      width = Math.max(1, rect.width);
-      height = Math.max(1, rect.height);
-      var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      buildGrid();
-      buildAtlases();
-      syncMarkRect();
-    }
-
-    function syncMarkRect() {
-      if (!mark) return;
-      var heroRect = hero.getBoundingClientRect();
-      var rect = mark.getBoundingClientRect();
-      markRect = {
-        left: rect.left - heroRect.left,
-        top: rect.top - heroRect.top,
-        width: rect.width,
-        height: rect.height,
-        cx: rect.left - heroRect.left + rect.width / 2,
-        cy: rect.top - heroRect.top + rect.height / 2
-      };
-      if (windRenderer) windRenderer.resize(rect.width * 1.4, rect.height * 1.4);
-    }
-
-    // A ribbon is the original's unit of wind: a horizontal run of 18-40
-    // glyphs whose head sits at the pointer and whose tail streams upwind.
-    function addRibbon(x, y) {
-      var row = clamp(Math.floor(y / stepY), 0, rows - 1);
-      var col = clamp(Math.floor(x / stepX), 0, cols - 1);
-      ribbons.push({
-        row: row,
-        head: col + 0.5,
-        cols: 22 + 30 * Math.random(),
-        age: 0,
-        duration: 5.2 * (0.85 + 0.4 * Math.random()),
-        speed: 95 * (0.55 + 0.7 * Math.random())
-      });
-      if (ribbons.length > 220) ribbons.shift();
-      active = true;
-    }
-
-    function addRibbonsAlong(x0, y0, x1, y1) {
-      var distance = Math.hypot(x1 - x0, y1 - y0);
-      if (!isFinite(distance) || distance >= 180) {
-        addRibbon(x1, y1);
-        return;
-      }
-      if (distance < 1) return;
-      var steps = Math.ceil(distance / Math.max(7, 1.45 * size));
-      for (var i = 1; i <= steps; i++) {
-        if (Math.random() > 0.84) continue;
-        var px = x0 + (x1 - x0) * i / steps;
-        var py = y0 + (y1 - y0) * i / steps;
-        addRibbon(px, py);
-        // A light vertical spread turns a single mouse row into a band of
-        // data without falling back to a circular patch.
-        for (var k = 1; k <= 3; k++) {
-          if (Math.random() < 0.52) {
-            var offset = (Math.random() < 0.5 ? -1 : 1) * stepY * (1.4 + Math.random() * 4.2);
-            addRibbon(px, py + offset);
-          }
-        }
-      }
-    }
-
-    function advance(dt) {
-      if (!active && !ribbons.length) return false;
-      for (var i = 1; i < grid.length; i += 2) grid[i] = 0;
-      var alive = false;
-      for (var r = ribbons.length - 1; r >= 0; r--) {
-        var ribbon = ribbons[r];
-        ribbon.age += Math.max(0, dt);
-        var head = ribbon.head - ribbon.age * ribbon.speed / stepX;
-        var fade = Math.pow(clamp(1 - ribbon.age / ribbon.duration, 0, 1), 1.42);
-        if (fade > 0) {
-          var start = Math.max(0, Math.ceil(head - ribbon.cols - 0.5));
-          var end = Math.min(cols - 1, Math.floor(head + 0.05));
-          for (var col = start; col <= end; col++) {
-            var near = clamp(1 - (head - col - 0.5) / ribbon.cols, 0, 1);
-            var value = Math.min(255, Math.max(0,
-              Math.round(255 * fade * (0.24 + 1.32 * Math.pow(near, 0.72)) / 1.38)));
-            var index = (ribbon.row * cols + col) * 2 + 1;
-            if (value > grid[index]) grid[index] = value;
-          }
-        }
-        if (ribbon.age < ribbon.duration && ribbon.head * stepX - ribbon.age * ribbon.speed > -stepX) {
-          alive = true;
-        } else {
-          ribbons.splice(r, 1);
-        }
-      }
-      if (!ribbons.length) active = false;
-      return alive;
-    }
-
-    function paintCode() {
-      ctx.clearRect(0, 0, width, height);
-      var visible = false;
-      for (var row = 0; row < rows; row++) {
-        var y = row * stepY + stepY / 2 - atlasCellH / 2;
-        for (var col = 0; col < cols; col++) {
-          var index = (row * cols + col) * 2;
-          var raw = grid[index + 1];
-          if (raw < 3) continue;
-          var value = Math.min(1, raw / 255 * 1.38);
-          var code = grid[index];
-          if (!code || code === 0) continue;
-          visible = true;
-          var x = col * stepX + stepX / 2 - atlasCellW / 2;
-          var sx = (code % 16) * atlasCellW;
-          var sy = Math.floor(code / 16) * atlasCellH;
-          var head = value > 0.66;
-          ctx.globalAlpha = head ? 1 : Math.min(1, 0.78 + value * 0.38);
-          ctx.drawImage(head ? hotAtlas : bodyAtlas,
-            sx, sy, atlasCellW, atlasCellH,
-            x, y, atlasCellW, atlasCellH);
-        }
-      }
-      ctx.globalAlpha = 1;
-      return visible;
-    }
-
-    function updateMark(delta) {
-      if (!mark) return;
-      if (!active || !markHover) {
-        markTarget *= Math.pow(0.84, delta * 60);
-      } else {
-        // Hovering alone bends the brush; pointer speed drives a harder gust.
-        markTarget = Math.max(markTarget, clamp(0.66 + pointerSpeed / 620, 0.66, 1));
-        markTarget *= 0.92 + 0.08 * Math.sin(clock * 1.9);
-      }
-      markWind += (markTarget - markWind) * Math.min(1, delta * 9);
-      if (markWind < 0.012) {
-        if (mark.classList.contains('is-windy')) {
-          mark.classList.remove('is-windy');
-          mark.style.removeProperty('--kimi-wind-x');
-          mark.style.removeProperty('--kimi-wind-y');
-          mark.style.removeProperty('--kimi-wind-r');
-        }
-        if (windRenderer) windCanvas.style.opacity = '0';
-        if (markSvg) markSvg.style.opacity = '';
-        if (windDisplace) windDisplace.setAttribute('scale', '0');
-        return;
-      }
-      mark.classList.add('is-windy');
-      var swayX = Math.sin(clock * 1.9) * (0.8 + markWind * 1.8);
-      var swayY = Math.sin(clock * 1.45 + 0.9) * (0.5 + markWind * 1.1);
-      mark.style.setProperty('--kimi-wind-x', clamp(windX * markWind * 4.2 + swayX, -4.5, 4.5).toFixed(2) + 'px');
-      mark.style.setProperty('--kimi-wind-y', clamp(windY * markWind * 4.2 + swayY, -3.2, 3.2).toFixed(2) + 'px');
-      mark.style.setProperty('--kimi-wind-r', clamp(Math.sin(clock * 1.6) * 0.45 + windX * 0.35, -1.1, 1.1).toFixed(2) + 'deg');
-      if (windRenderer && markRect) {
-        var pad = markRect.width * 0.2;
-        var span = markRect.width * 1.4;
-        var uvx = (pointerX - (markRect.left - pad)) / Math.max(1, span);
-        var uvy = 1 - (pointerY - (markRect.top - pad)) / Math.max(1, span);
-        windRenderer.render(markWind, clock, uvx, uvy, windX, -windY);
-        windCanvas.style.opacity = String(clamp((markWind - 0.02) * 7.5, 0, 1));
-        // Keep a faint SVG silhouette under the shader: at full gust the
-        // displacement alone used to turn the wordmark into an unreadable
-        // white smear.
-        if (markSvg) markSvg.style.opacity = String(clamp(1 - markWind * 3.2, 0.28, 1));
-      } else {
-        if (windCanvas) windCanvas.style.opacity = '0';
-        if (markSvg) markSvg.style.opacity = '';
-        if (windDisplace) windDisplace.setAttribute('scale', (markWind * 18).toFixed(2));
-        if (windNoise) {
-          var grain = Math.sin(clock * 1.3) * 0.0006;
-          windNoise.setAttribute(
-            'baseFrequency',
-            (0.008 + markWind * 0.003 + grain).toFixed(4) + ' ' +
-            (0.014 + markWind * 0.006 + grain).toFixed(4)
-          );
-        }
-      }
-    }
-
-    function draw(time) {
-      raf = 0;
-      if (currentSkin() !== 'kimi' || motionMedia.matches) {
-        ctx.clearRect(0, 0, width, height);
-        layer.classList.remove('is-visible');
-        return;
-      }
-      var delta = last ? Math.min(0.08, (time - last) / 1000) : 0.033;
-      last = time;
-      clock += delta;
-      pointerSpeed *= Math.pow(0.95, delta * 60);
-      advance(delta);
-      var visible = paintCode();
-      updateMark(delta);
-      if (visible) {
-        layer.classList.add('is-visible');
-      } else {
-        layer.classList.remove('is-visible');
-      }
-      if (!visible && markWind < 0.012) return;
-      raf = window.requestAnimationFrame(draw);
-    }
-
-    function start() {
-      if (raf || motionMedia.matches) return;
-      last = 0;
-      raf = window.requestAnimationFrame(draw);
-    }
-
-    function move(event) {
-      if (currentSkin() !== 'kimi' || event.pointerType === 'touch' || motionMedia.matches) return;
-      if (!document.documentElement.classList.contains('kimi-intro-done')) return;
-      if (parseFloat(hero.style.getPropertyValue('--hero-ink') || '1') <= 0) return;
-      var rect = hero.getBoundingClientRect();
-      var x = event.clientX - rect.left;
-      var y = event.clientY - rect.top;
-      var dx = prevX > -9000 ? x - prevX : 0;
-      var dy = prevY > -9000 ? y - prevY : 0;
-      var speed = Math.hypot(dx, dy);
-      pointerSpeed = Math.max(pointerSpeed, speed);
-      // Keep the ambient gale blowing left (the way the code ribbons stream)
-      // while vertical flicks tilt it a little.
-      windY = clamp(-0.16 + dy * 0.0028, -0.48, 0.4);
-      windX = -1;
-      var windLength = Math.hypot(windX, windY) || 1;
-      windX /= windLength;
-      windY /= windLength;
-      prevX = x;
-      prevY = y;
-      pointerX = x;
-      pointerY = y;
-      syncMarkRect();
-      if (lastPoint) addRibbonsAlong(lastPoint.x, lastPoint.y, x, y);
-      else addRibbon(x, y);
-      lastPoint = { x: x, y: y };
-      markHover = !!(markRect &&
-        Math.abs(x - markRect.cx) < markRect.width * 0.62 &&
-        Math.abs(y - markRect.cy) < markRect.height * 0.62);
-      hero.style.setProperty('--hero-pan-x', (x / width - 0.5).toFixed(3));
-      hero.style.setProperty('--hero-pan-y', (y / height - 0.5).toFixed(3));
-      start();
-    }
-
-    function leave() {
-      active = false;
-      lastPoint = null;
-      prevX = prevY = -9999;
-      markTarget = 0;
-      markHover = false;
-      pointerSpeed = 0;
-      hero.style.setProperty('--hero-pan-x', '0');
-      hero.style.setProperty('--hero-pan-y', '0');
-      if (windDisplace) windDisplace.setAttribute('scale', '0');
-      if (mark) {
-        mark.classList.remove('is-windy');
-        mark.style.removeProperty('--kimi-wind-x');
-        mark.style.removeProperty('--kimi-wind-y');
-        mark.style.removeProperty('--kimi-wind-r');
-      }
-      if (windRenderer) windCanvas.style.opacity = '0';
-      if (markSvg) markSvg.style.opacity = '';
-    }
-
-    function reset() {
-      active = false;
-      lastPoint = null;
-      prevX = prevY = -9999;
-      markTarget = 0;
-      markHover = false;
-      markWind = 0;
-      pointerSpeed = 0;
-      last = 0;
-      clock = 0;
-      ribbons.length = 0;
-      for (var i = 1; i < grid.length; i += 2) grid[i] = 0;
-      hero.style.setProperty('--hero-pan-x', '0');
-      hero.style.setProperty('--hero-pan-y', '0');
-      if (raf) {
-        window.cancelAnimationFrame(raf);
-        raf = 0;
-      }
-      ctx.clearRect(0, 0, width, height);
-      layer.classList.remove('is-visible');
-      if (windDisplace) windDisplace.setAttribute('scale', '0');
-      if (windRenderer) windCanvas.style.opacity = '0';
-      if (markSvg) markSvg.style.opacity = '';
-      if (mark) {
-        mark.classList.remove('is-windy');
-        mark.style.removeProperty('--kimi-wind-x');
-        mark.style.removeProperty('--kimi-wind-y');
-        mark.style.removeProperty('--kimi-wind-r');
-      }
-    }
-
-    // Window resizes fire dozens of times per second while dragging; the
-    // 16x6 glyph atlas and 10k-cell grid are too expensive to rebuild each
-    // time, so coalesce them into one frame.
-    var resizeScheduled = false;
-    function requestResize() {
-      if (resizeScheduled) return;
-      resizeScheduled = true;
-      window.requestAnimationFrame(function () {
-        resizeScheduled = false;
-        resize();
-      });
-    }
-
-    hero.addEventListener('pointermove', move, { passive: true });
-    hero.addEventListener('pointerdown', move, { passive: true });
-    hero.addEventListener('pointerleave', leave);
-    hero.addEventListener('pointercancel', leave);
-    window.addEventListener('resize', requestResize, { passive: true });
-    window.__heroCodeReset = reset;
-    resize();
   }
 
   var lazyImageObserver = null;
@@ -1135,22 +444,6 @@
     frame();
   }
 
-  var heroCodeScheduled = false;
-
-  function scheduleHeroCode() {
-    if (heroCodeScheduled || window.__heroCodeBound) return;
-    heroCodeScheduled = true;
-    var run = function () {
-      heroCodeScheduled = false;
-      initHeroCode();
-    };
-    // The intro is CSS-only and starts immediately; building the atlas and
-    // wind pass is a short task but should not delay the first paint. A timer
-    // (rather than requestIdleCallback) keeps it ahead of the much heavier,
-    // idle-scheduled cloud boot on slow devices.
-    window.setTimeout(run, 120);
-  }
-
   function applySkin(skin, persist) {
     var next = skin === 'kimi' ? 'kimi' : 'classic';
     document.documentElement.dataset.skin = next;
@@ -1164,16 +457,14 @@
         playHeroIntro();
       } else {
         clearTimeout(window.__heroIntroTimer);
+        clearTimeout(window.__heroIntroClassTimer);
         var hero = document.querySelector('.hero');
-        var layer = document.querySelector('.hero-code-layer');
         if (hero) hero.classList.remove('is-intro', 'is-intro-done');
         document.documentElement.classList.remove('kimi-intro-done');
-        if (layer) layer.classList.remove('is-visible');
-        if (window.__heroCodeReset) window.__heroCodeReset();
+        if (window.__heroCloud) window.__heroCloud.resetMark();
       }
     }
     layoutHomeSections();
-    if (next === 'kimi' && page === 'home' && !motionMedia.matches) scheduleHeroCode();
     applyTheme(document.documentElement.dataset.themeMode || 'auto', false);
     updateSkinControls();
     syncTopbar();
@@ -2362,10 +1653,8 @@
     document.querySelectorAll('img[data-kimi-defer]').forEach(loadDeferredImage);
   });
   motionMedia.addEventListener && motionMedia.addEventListener('change', function () {
-    if (motionMedia.matches) {
-      if (window.__heroCodeReset) window.__heroCodeReset();
-    } else if (currentSkin() === 'kimi' && page === 'home') {
-      scheduleHeroCode();
+    if (motionMedia.matches && window.__heroCloud) {
+      window.__heroCloud.resetMark();
     }
   });
   if (page === 'home') {

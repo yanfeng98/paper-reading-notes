@@ -99,17 +99,8 @@
       <div class="hero-glow" aria-hidden="true"></div>
       <div class="hero-inner">
         <div class="hero-copy">
-          <svg class="kimi-wind-defs" width="0" height="0" aria-hidden="true" focusable="false">
-            <defs>
-              <filter id="kimi-mark-wind" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
-                <feTurbulence id="kimi-wind-noise" type="fractalNoise" baseFrequency="0.009 0.016" numOctaves="2" seed="11" result="kimi-wind-field"/>
-                <feDisplacementMap id="kimi-wind-displace" in="SourceGraphic" in2="kimi-wind-field" scale="0" xChannelSelector="R" yChannelSelector="G"/>
-              </filter>
-            </defs>
-          </svg>
           <div class="hero-mark-wrap kimi-only" aria-hidden="true">
             <div class="hero-mark" data-kimi-mark>
-            <canvas class="kimi-mark-wind" data-kimi-mark-wind aria-hidden="true"></canvas>
             <svg class="mark-svg is-writing" viewBox="0 0 1024 1024" width="100%" height="100%" aria-hidden="true" focusable="false">
             <style>
             .mark-svg .ink-mask { stroke-dasharray: 1; stroke-dashoffset: 1; }
@@ -164,10 +155,6 @@
         </div>
         <button type="button" class="hero-scroll kimi-only" data-kimi-scroll aria-label="Scroll to explore"><span class="hero-scroll-caret" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true" focusable="false"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.3912 8.46132C11.743 8.11202 12.3111 8.11304 12.6617 8.46362L19.6364 15.4383C19.9879 15.7898 19.9879 16.3597 19.6364 16.7111C19.2849 17.0626 18.7151 17.0626 18.3636 16.7111L12.023 10.3705L5.63409 16.7134C5.28135 17.0636 4.71151 17.0616 4.36131 16.7088C4.01111 16.3561 4.01317 15.7862 4.36591 15.436L11.3912 8.46132Z"/></svg></span><span class="hero-scroll-label">Scroll to explore</span></button>
       </div>
-      <!-- Drifting code quotes real lines from NVIDIA/Megatron-LM core
-           (megatron/core/parallel_state.py, tensor_parallel/layers.py,
-           pipeline_parallel/schedules.py, distributed/distributed_data_parallel.py). -->
-      <div class="hero-code-layer kimi-only" aria-hidden="true"><canvas class="hero-code-canvas" data-kimi-code-canvas></canvas></div>
     </section>
 
     <section class="kimi-hero-lower kimi-only" aria-label="搜索与统计">
