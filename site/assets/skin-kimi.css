@@ -14,6 +14,9 @@ html[data-skin="kimi"] {
   --body: rgba(0, 0, 0, 0.60);
   --muted: rgba(0, 0, 0, 0.55);
   --faint: rgba(0, 0, 0, 0.40);
+  /* Long-form reading ink: darker than --body so 17px CJK stays crisp. */
+  --reading-body: rgba(0, 0, 0, 0.78);
+  --reading-meta: rgba(0, 0, 0, 0.56);
   --border: rgba(0, 0, 0, 0.10);
   --border-strong: rgba(0, 0, 0, 0.20);
   --primary: #0057FF;
@@ -56,6 +59,8 @@ html[data-skin="kimi"][data-theme="dark"] {
   --body: #C9D0D6;
   --muted: #A7B0B8;
   --faint: #7A858E;
+  --reading-body: #D6DCE2;
+  --reading-meta: #A9B3BB;
   --border: rgba(255, 255, 255, 0.10);
   --border-strong: rgba(255, 255, 255, 0.18);
   --primary: #4C8DFF;
@@ -1044,28 +1049,30 @@ html[data-skin="kimi"] .doc-layout {
 }
 
 html[data-skin="kimi"] .doc {
-  width: min(800px, calc(100vw - 48px));
+  width: min(720px, calc(100vw - 48px));
   margin: 0 auto;
 }
 
 html[data-skin="kimi"] .doc-header {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
-  margin: 0 0 48px;
+  margin: 0 0 56px;
   padding: 0;
   border: 0;
   isolation: isolate;
 }
 
 html[data-skin="kimi"] .doc-cover {
+  order: -2;
   display: block;
   position: relative;
   top: auto;
   bottom: auto;
   left: auto;
   width: 100vw;
-  height: 100svh;
+  height: clamp(380px, 64svh, 760px);
   margin-left: calc(50% - 50vw);
   margin-bottom: 0;
   overflow: hidden;
@@ -1149,11 +1156,13 @@ html[data-skin="kimi"] .doc-header > *:not(.doc-cover) {
 }
 
 html[data-skin="kimi"] .doc-kicker {
+  order: -1;
   gap: 10px 14px;
-  margin-top: 18px;
-  color: var(--muted);
+  margin: 96px 0 18px;
+  color: var(--reading-meta);
   font-size: 11px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 html[data-skin="kimi"] .doc-id { color: var(--text); font-weight: 500; }
@@ -1173,38 +1182,40 @@ html[data-skin="kimi"] .kind-summary {
 }
 
 html[data-skin="kimi"] .doc-header h1 {
-  max-width: 800px;
-  margin: 176px 0 24px;
+  max-width: 720px;
+  margin: 0 0 18px;
   color: var(--text);
   font-family: var(--reading);
-  font-size: 32px;
+  font-size: clamp(2rem, 3vw, 2.5rem);
   font-weight: 450;
-  line-height: 1.19;
-  letter-spacing: -0.04em;
+  line-height: 1.18;
+  letter-spacing: -0.035em;
   text-wrap: balance;
   text-shadow: none;
 }
 
 html[data-skin="kimi"] .doc-paper-title {
-  max-width: 800px;
-  margin: 0 0 24px;
-  color: var(--body);
+  max-width: 720px;
+  margin: 0 0 18px;
+  color: var(--reading-meta);
   font-family: var(--reading);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.65;
 }
 
 html[data-skin="kimi"] .doc-meta {
-  margin-top: 18px;
-  color: var(--muted);
-  font-size: 12px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--reading-meta);
+  font-size: 12.5px;
   letter-spacing: 0.02em;
 }
 
 html[data-skin="kimi"] .doc-meta span + span::before { color: var(--faint); }
 
-html[data-skin="kimi"] .doc-links { gap: 16px; margin-top: 18px; }
-html[data-skin="kimi"] .doc-link { color: var(--muted); }
+html[data-skin="kimi"] .doc-links { gap: 16px; margin-top: 14px; }
+html[data-skin="kimi"] .doc-link { color: var(--reading-meta); }
 html[data-skin="kimi"] .doc-link:hover { color: var(--text); }
 
 html[data-skin="kimi"] .doc-scroll { display: none; }
@@ -1212,13 +1223,22 @@ html[data-skin="kimi"] .doc-scroll { display: none; }
 /* ---------- prose ---------- */
 
 html[data-skin="kimi"] .prose {
-  color: var(--body);
+  color: var(--reading-body);
   font-family: var(--reading);
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  text-align: justify;
+  text-justify: inter-ideograph;
+  overflow-wrap: break-word;
 }
 
 html[data-skin="kimi"] .prose p { margin: 0 0 24px; text-wrap: pretty; }
+
+/* Inline code and long Latin tokens cannot stretch; justifying those
+   paragraphs opens ugly rivers, so keep them ragged-right. */
+html[data-skin="kimi"] .prose p:has(code),
+html[data-skin="kimi"] .prose li:has(code) { text-align: left; }
 
 html[data-skin="kimi"] .prose h2,
 html[data-skin="kimi"] .prose h3,
@@ -1226,62 +1246,68 @@ html[data-skin="kimi"] .prose h4 {
   font-family: var(--reading);
   color: var(--text);
   letter-spacing: -0.03em;
-  scroll-margin-top: 110px;
+  scroll-margin-top: 100px;
+  text-wrap: balance;
 }
 
 html[data-skin="kimi"] .prose h2 {
-  margin: 112px 0 24px;
+  margin: 76px 0 22px;
   padding-left: 0;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 450;
-  line-height: 36px;
+  line-height: 1.25;
 }
 html[data-skin="kimi"] .prose h2::before { content: none; }
 
 html[data-skin="kimi"] .prose h3 {
-  margin: 48px 0 16px;
+  margin: 44px 0 14px;
   font-size: 22px;
   font-weight: 450;
-  line-height: 28px;
+  line-height: 1.32;
 }
 
 html[data-skin="kimi"] .prose h4 {
   margin: 32px 0 12px;
   font-size: 18px;
   font-weight: 500;
-  line-height: 24px;
-  color: var(--body);
+  line-height: 1.4;
+  color: var(--reading-body);
 }
 
 html[data-skin="kimi"] .prose > :first-child { margin-top: 0; }
 
 html[data-skin="kimi"] .prose a {
   color: var(--text);
-  text-decoration: none;
-  text-decoration-color: color-mix(in srgb, var(--accent) 48%, transparent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--text) 24%, transparent);
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 html[data-skin="kimi"] .prose a:hover {
   color: var(--accent);
-  text-decoration: underline;
   text-decoration-color: var(--accent);
 }
 
 html[data-skin="kimi"] .prose strong { color: var(--text); font-weight: 600; }
 
 html[data-skin="kimi"] .prose ul,
-html[data-skin="kimi"] .prose ol { margin: 0 0 1.4em; padding-left: 1.5em; }
-html[data-skin="kimi"] .prose li { margin: 0.34em 0; }
+html[data-skin="kimi"] .prose ol { margin: 0 0 26px; padding-left: 1.45em; }
+html[data-skin="kimi"] .prose li { margin: 0.5em 0; line-height: 1.75; }
+html[data-skin="kimi"] .prose li > p { margin: 0.4em 0; }
+html[data-skin="kimi"] .prose ul ul,
+html[data-skin="kimi"] .prose ol ol,
+html[data-skin="kimi"] .prose ul ol,
+html[data-skin="kimi"] .prose ol ul { margin-top: 0.4em; margin-bottom: 0.4em; }
 html[data-skin="kimi"] .prose li::marker { color: var(--faint); }
 
 html[data-skin="kimi"] .prose blockquote {
   margin: 2.2rem 0;
-  padding: 0.2em 0 0.2em 1.5rem;
-  border-left: 1px solid var(--border-strong);
+  padding: 0.9em 0 0.9em 1.4rem;
+  border-left: 2px solid var(--border-strong);
   border-radius: 0;
   background: transparent;
-  color: var(--muted);
+  color: var(--reading-meta);
 }
 html[data-skin="kimi"] .prose blockquote p:last-child { margin-bottom: 0; }
 
@@ -1296,7 +1322,7 @@ html[data-skin="kimi"] .prose code {
   border-radius: 4px;
   background: var(--code-bg);
   color: var(--text);
-  font-size: 0.82em;
+  font-size: 0.84em;
 }
 
 html[data-skin="kimi"] .prose pre {
@@ -1305,8 +1331,9 @@ html[data-skin="kimi"] .prose pre {
   border: 1px solid var(--code-border);
   border-radius: 10px;
   background: var(--code-bg);
-  font-size: 12.5px;
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.75;
+  text-align: left;
 }
 
 html[data-skin="kimi"] .code-copy {
@@ -1317,28 +1344,146 @@ html[data-skin="kimi"] .code-copy {
 html[data-skin="kimi"] .code-copy:hover { color: var(--text); border-color: var(--border-strong); }
 
 html[data-skin="kimi"] .table-wrap {
-  margin: 2.2rem 0;
-  border: 0;
-  border-top: 1px solid var(--border-strong);
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
+  margin: 30px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
-html[data-skin="kimi"] .prose table { font-size: 12.5px; line-height: 1.65; }
+html[data-skin="kimi"] .prose table {
+  width: 100%;
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: left;
+}
 html[data-skin="kimi"] .prose th,
 html[data-skin="kimi"] .prose td {
-  padding: 11px 12px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   border-right: 0;
+  text-align: left;
+  vertical-align: top;
 }
 html[data-skin="kimi"] .prose th {
-  background: var(--bg);
+  background: var(--surface-2);
   color: var(--text);
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
 }
-html[data-skin="kimi"] .prose tbody tr:nth-child(even) td { background: transparent; }
+html[data-skin="kimi"] .prose tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
 html[data-skin="kimi"] .prose tr:last-child td { border-bottom: 0; }
+html[data-skin="kimi"] .prose td:first-child { color: var(--reading-body); }
+
+/* The opening "来源信息" table becomes a compact paper card. Short fields
+   stay visible; long provenance fields clamp to five lines and expand on
+   demand. The note's Markdown is untouched. */
+html[data-skin="kimi"] .source-card {
+  display: block;
+  margin: 26px 0 8px;
+  padding: 2px 22px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font-family: var(--ui);
+  text-align: left;
+}
+
+html[data-skin="kimi"] .source-list { margin: 0; }
+
+html[data-skin="kimi"] .source-item {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  column-gap: 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+html[data-skin="kimi"] .source-item:first-child { border-top: 0; }
+html[data-skin="kimi"] .source-item.is-extra { display: none; }
+html[data-skin="kimi"] .source-card.is-open .source-item.is-extra { display: grid; }
+
+html[data-skin="kimi"] .source-all {
+  display: block;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 11px 0 2px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: none;
+  color: var(--reading-meta);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.7;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--text) 22%, transparent);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+html[data-skin="kimi"] .source-all:hover { color: var(--text); }
+
+html[data-skin="kimi"] .source-item dt {
+  color: var(--reading-meta);
+  font-size: 11.5px;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+}
+
+html[data-skin="kimi"] .source-item dd {
+  margin: 0;
+  color: var(--reading-body);
+  font-size: 13.5px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+html[data-skin="kimi"] .source-item dd a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--text) 24%, transparent);
+  text-underline-offset: 3px;
+}
+html[data-skin="kimi"] .source-item dd a:hover { color: var(--accent); }
+html[data-skin="kimi"] .source-item dd code {
+  padding: 0.1em 0.32em;
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  background: var(--code-bg);
+  color: var(--text);
+  font-size: 0.9em;
+}
+
+html[data-skin="kimi"] .source-item .source-value.is-clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+html[data-skin="kimi"] .source-expand {
+  display: block;
+  margin-top: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--reading-meta);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+  text-decoration: underline dotted;
+  cursor: pointer;
+}
+html[data-skin="kimi"] .source-expand:hover { color: var(--text); }
+
+html[data-skin="kimi"] .source-table { display: none; }
+
+/* The Markdown keeps a `---` after the opening table; the card already closes
+   the section, so the extra rule only adds vertical noise. */
+html[data-skin="kimi"] .source-card + .source-table + hr,
+html[data-skin="kimi"] .source-card + hr { display: none; }
 
 html[data-skin="kimi"] .prose figure,
 html[data-skin="kimi"] .prose p:has(> img:only-child) {
@@ -1351,18 +1496,30 @@ html[data-skin="kimi"] .prose p:has(> img:only-child) {
   background: transparent;
 }
 
-/* Only break media out of the 800px measure when the fixed TOC is hidden, or
-   when the viewport is wide enough that the 1040px plate cannot reach it. */
+/* Only break media out of the 720px measure when the fixed TOC is hidden, or
+   when the viewport is wide enough that a 960px plate clears the 176px rail.
+   1040px would put the plate's left edge under the rail's longest labels. */
 @media (min-width: 1360px) {
   html[data-skin="kimi"] .prose figure,
   html[data-skin="kimi"] .prose p:has(> img:only-child) {
-    width: min(1040px, calc(100vw - 96px));
+    width: min(960px, calc(100vw - 96px));
     margin-left: 50%;
     transform: translateX(-50%);
   }
 }
 
-@media (max-width: 1359px) {
+/* 1280–1359px has just enough room for the rail and a reduced media plate:
+   the plate's left edge stays at 200px, 8px right of the rail. */
+@media (min-width: 1280px) and (max-width: 1359px) {
+  html[data-skin="kimi"] .prose figure,
+  html[data-skin="kimi"] .prose p:has(> img:only-child) {
+    width: calc(100vw - 400px);
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 1279px) {
   html[data-skin="kimi"] .prose figure,
   html[data-skin="kimi"] .prose p:has(> img:only-child) {
     width: min(1040px, calc(100vw - 48px));
@@ -1383,16 +1540,21 @@ html[data-skin="kimi"] .prose p:has(> img:only-child) img {
 html[data-skin="kimi"] .prose img { border-radius: 12px; }
 
 html[data-skin="kimi"] .prose figcaption {
-  max-width: 800px;
+  max-width: 720px;
   margin: 12px auto 0;
   color: var(--faint);
   font-family: var(--reading);
-  font-size: 14px;
-  line-height: 22px;
+  font-size: 13.5px;
+  line-height: 1.65;
   text-align: center;
 }
 
-html[data-skin="kimi"] .math-display { margin: 2rem 0; }
+html[data-skin="kimi"] .math-display {
+  margin: 2rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+}
 
 html[data-skin="kimi"] .mermaid {
   margin: 2.4rem 0;
@@ -1417,11 +1579,17 @@ html[data-skin="kimi"] .noscript-note { color: var(--muted); font-family: var(--
 
 html[data-skin="kimi"] .toc {
   position: fixed;
-  top: 200px;
-  left: 24px;
+  top: 128px;
+  /* Follow the reading column without stepping on the 1040px figure plate:
+     the rail slides right with the column as the viewport grows. */
+  /* The rail's right edge lands safely before the media plate's left edge
+     (200px in the 1280–1360 range, then 120px left of the text column), so
+     long labels never paint over a figure; the spare pixels absorb a native
+     scrollbar's width. */
+  left: max(24px, calc(50vw - 656px));
   right: auto;
-  width: 236px;
-  max-height: calc(100vh - 250px);
+  width: 164px;
+  max-height: calc(100vh - 180px);
   padding: 0 0 16px;
   border-left: 0;
   z-index: 10;
@@ -1446,11 +1614,17 @@ html[data-skin="kimi"] .toc-title {
 
 html[data-skin="kimi"] .toc nav { gap: 1px; }
 html[data-skin="kimi"] .toc a {
-  padding: 9px 0 9px 12px;
+  padding: 8px 0 8px 12px;
   border-left: 1px solid transparent;
   color: color-mix(in srgb, var(--text) 45%, transparent);
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.55;
+  /* Wrap instead of ellipsizing: the rail ends at the media plate, so a
+     two-line label is still fully readable and never paints over a figure. */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
 }
 html[data-skin="kimi"] .toc a:hover { color: var(--text); text-decoration: none; }
 html[data-skin="kimi"] .toc a.is-active {
@@ -1544,7 +1718,7 @@ html[data-skin="kimi"] .hero-media img {
 
 /* ---------- responsive ---------- */
 
-@media (max-width: 1359px) {
+@media (max-width: 1279px) {
   html[data-skin="kimi"] .toc { display: none; }
   html[data-skin="kimi"] .toc-fab { display: inline-flex; }
 }
@@ -1579,23 +1753,88 @@ html[data-skin="kimi"] .hero-media img {
   html[data-skin="kimi"] .library-heading { margin-top: 40px; }
   html[data-skin="kimi"] .cards { grid-template-columns: 1fr; gap: 30px; }
   html[data-skin="kimi"] .doc-layout { padding-bottom: 84px; }
-  html[data-skin="kimi"] .doc { width: calc(100vw - 32px); }
+  html[data-skin="kimi"] .doc { width: calc(100vw - 40px); }
   html[data-skin="kimi"] .doc-header {
     min-height: 0;
     padding: 0;
-    margin-bottom: 32px;
+    margin-bottom: 40px;
   }
-  html[data-skin="kimi"] .doc-kicker { margin-top: 18px; }
-  html[data-skin="kimi"] .doc-header h1 { font-size: 28px; line-height: 1.2; margin-top: 96px; }
+  html[data-skin="kimi"] .doc-cover { height: clamp(340px, 52svh, 560px); }
+  html[data-skin="kimi"] .doc-kicker { margin: 64px 0 14px; }
+  html[data-skin="kimi"] .doc-header h1 { font-size: 29px; line-height: 1.22; margin: 0 0 14px; }
+  html[data-skin="kimi"] .doc-meta { margin-top: 20px; padding-top: 14px; }
   html[data-skin="kimi"] .doc-cover::before { font-size: clamp(1.7rem, 7vw, 2.4rem); }
-  html[data-skin="kimi"] .prose { font-size: 16px; line-height: 1.55; }
-  html[data-skin="kimi"] .prose h2 { font-size: 24px; line-height: 31px; margin-top: 64px; }
-  html[data-skin="kimi"] .prose h3 { font-size: 20px; line-height: 26px; margin-top: 40px; }
+  html[data-skin="kimi"] .prose { font-size: 16.5px; line-height: 1.82; text-align: left; }
+  html[data-skin="kimi"] .prose p { margin-bottom: 22px; }
+  html[data-skin="kimi"] .doc-meta { gap: 6px 14px; }
+  html[data-skin="kimi"] .doc-meta span + span::before { display: none; }
+  html[data-skin="kimi"] .prose h2 { font-size: 24px; line-height: 1.3; margin-top: 60px; }
+  html[data-skin="kimi"] .prose h3 { font-size: 19px; line-height: 1.4; margin-top: 38px; }
   html[data-skin="kimi"] .prose figure,
   html[data-skin="kimi"] .prose p:has(> img:only-child) {
-    width: calc(100vw - 32px);
+    width: calc(100vw - 40px);
   }
   html[data-skin="kimi"] .page-navs { margin-top: 60px; }
+}
+
+/* On phones a wide comparison table is unreadable as a horizontal scroll:
+   turn every row into a labelled card instead. */
+@media (max-width: 700px) {
+  html[data-skin="kimi"] .table-wrap {
+    margin: 24px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  html[data-skin="kimi"] .prose table,
+  html[data-skin="kimi"] .prose tbody,
+  html[data-skin="kimi"] .prose tr,
+  html[data-skin="kimi"] .prose td {
+    display: block;
+    width: 100%;
+  }
+  html[data-skin="kimi"] .prose thead { display: none; }
+  html[data-skin="kimi"] .prose tr {
+    margin: 0 0 12px;
+    padding: 3px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  html[data-skin="kimi"] .prose td,
+  html[data-skin="kimi"] .prose tbody tr:nth-child(even) td {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+  }
+  html[data-skin="kimi"] .prose td:last-child { border-bottom: 0; }
+  html[data-skin="kimi"] .prose td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    color: var(--reading-meta);
+    font-size: 11px;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+  }
+  html[data-skin="kimi"] .prose td:not([data-label])::before,
+  html[data-skin="kimi"] .prose td[data-label=""]::before { display: none; }
+  html[data-skin="kimi"] .prose td:first-child { color: var(--text); }
+  html[data-skin="kimi"] .prose table.table-key td:first-child::before { display: none; }
+  html[data-skin="kimi"] .prose table.table-key td:first-child {
+    padding-bottom: 6px;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  html[data-skin="kimi"] .source-card { padding: 2px 16px; }
+  html[data-skin="kimi"] .source-item {
+    grid-template-columns: 1fr;
+    row-gap: 2px;
+    padding: 12px 0;
+  }
+  html[data-skin="kimi"] .source-item dt { font-size: 11px; line-height: 1.7; }
 }
 
 @media (max-width: 520px) {
@@ -1616,6 +1855,15 @@ html[data-skin="kimi"] .hero-media img {
   html[data-skin="kimi"] .reading-progress { display: none !important; }
   html[data-skin="kimi"] .doc-header h1 { margin-top: 0; }
   html[data-skin="kimi"] .doc-kicker { margin-top: 0; }
+  /* Print the whole provenance card, not just the four preview rows. */
+  html[data-skin="kimi"] .source-item.is-extra { display: grid !important; }
+  html[data-skin="kimi"] .source-item .source-value.is-clamped {
+    display: block;
+    overflow: visible;
+    -webkit-line-clamp: unset;
+  }
+  html[data-skin="kimi"] .source-all,
+  html[data-skin="kimi"] .source-expand { display: none !important; }
   /* The WebGL canvas is not printed; never print a transparent wordmark. */
   html[data-skin="kimi"] .hero-mark.is-webgl-title .mark-svg { opacity: 1 !important; }
   /* Scroll-reveal is a screen interaction; print must show every card even if

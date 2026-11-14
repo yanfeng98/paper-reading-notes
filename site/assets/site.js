@@ -372,7 +372,8 @@
     var selectors = page === 'home'
       ? ['.library-heading', '.featured-card', '.card', '.contrib-card']
       : ['.prose > h2', '.prose > h3', '.prose > blockquote',
-         '.prose > .table-wrap', '.prose > pre', '.prose > .mermaid', '.page-navs'];
+         '.prose > .table-wrap', '.prose > .source-card', '.prose > pre',
+         '.prose > .mermaid', '.page-navs'];
     var nodes = [];
     selectors.forEach(function (selector) {
       document.querySelectorAll(selector).forEach(function (node) { nodes.push(node); });
@@ -1020,6 +1021,123 @@
       });
     }
 
+    function labelTableCells() {
+      content.querySelectorAll('table').forEach(function (table) {
+        var heads = [];
+        table.querySelectorAll('thead th').forEach(function (head) {
+          heads.push(head.textContent.trim());
+        });
+        if (!heads.length) return;
+        if (heads[0] === '项' || heads[0] === '项目') table.classList.add('table-key');
+        table.querySelectorAll('tbody tr').forEach(function (row) {
+          Array.prototype.forEach.call(row.children, function (cell, index) {
+            if (index < heads.length && heads[index]) {
+              cell.setAttribute('data-label', heads[index]);
+            }
+          });
+        });
+      });
+    }
+
+    /* The first "来源信息" table is provenance, not prose. Rebuild it as a
+       compact definition card; long rows clamp and can be expanded in place. */
+    function enhanceSourceInfo() {
+      var heading = null;
+      Array.prototype.forEach.call(content.querySelectorAll('h2'), function (node) {
+        if (!heading && node.textContent.trim() === '来源信息') heading = node;
+      });
+      if (!heading) return;
+
+      var next = heading.nextElementSibling;
+      while (next && next.tagName !== 'H2') {
+        if (next.tagName === 'TABLE' || next.classList.contains('table-wrap')) break;
+        next = next.nextElementSibling;
+      }
+      if (!next) return;
+      var table = next.tagName === 'TABLE' ? next : next.querySelector('table');
+      if (!table) return;
+      var rows = table.querySelectorAll('tbody tr');
+      if (!rows.length) return;
+      // Only rebuild the conventional two-column 项/内容 table. A future
+      // three-column source block must keep its table rather than lose a
+      // column in the card.
+      if (table.querySelectorAll('thead th').length !== 2) return;
+      var twoColumn = true;
+      Array.prototype.forEach.call(rows, function (row) {
+        if (row.children.length !== 2) twoColumn = false;
+      });
+      if (!twoColumn) return;
+
+      var card = document.createElement('div');
+      card.className = 'source-card';
+      var list = document.createElement('dl');
+      list.className = 'source-list';
+      var items = [];
+
+      rows.forEach(function (row) {
+        var cells = row.children;
+        if (cells.length < 2) return;
+        var label = cells[0].textContent.trim();
+        var value = cells[1];
+
+        var item = document.createElement('div');
+        item.className = 'source-item';
+        var term = document.createElement('dt');
+        term.textContent = label || '信息';
+        var detail = document.createElement('dd');
+        var valueBox = document.createElement('div');
+        valueBox.className = 'source-value';
+        valueBox.innerHTML = value.innerHTML;
+        detail.appendChild(valueBox);
+
+        item.appendChild(term);
+        item.appendChild(detail);
+
+        if (value.textContent.trim().length > 150) {
+          valueBox.classList.add('is-clamped');
+          var toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'source-expand';
+          toggle.textContent = '展开全文';
+          toggle.setAttribute('aria-expanded', 'false');
+          toggle.addEventListener('click', function () {
+            var clamped = valueBox.classList.toggle('is-clamped');
+            toggle.textContent = clamped ? '展开全文' : '收起';
+            toggle.setAttribute('aria-expanded', clamped ? 'false' : 'true');
+          });
+          detail.appendChild(toggle);
+        }
+
+        items.push(item);
+        list.appendChild(item);
+      });
+
+      if (!items.length) return;
+      card.appendChild(list);
+      // Keep the original table for the classic skin; the Kimi skin hides it
+      // and shows the card instead, so switching skins stays instant.
+      next.classList.add('source-table');
+      next.parentNode.insertBefore(card, next);
+
+      var visible = 4;
+      if (items.length > visible) {
+        items.slice(visible).forEach(function (item) { item.classList.add('is-extra'); });
+        var more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'source-all';
+        more.setAttribute('aria-expanded', 'false');
+        more.textContent = '展开全部信息（' + (items.length - visible) + ' 项）';
+        more.addEventListener('click', function () {
+          var open = card.classList.toggle('is-open');
+          more.setAttribute('aria-expanded', open ? 'true' : 'false');
+          more.textContent = open
+            ? '收起附加信息'
+            : '展开全部信息（' + (items.length - visible) + ' 项）';
+        });
+        card.appendChild(more);
+      }
+    }
+
     function wrapImages() {
       content.querySelectorAll('img').forEach(function (image) {
         var parent = image.parentElement;
@@ -1617,6 +1735,8 @@
       });
 
       wrapTables();
+      labelTableCells();
+      enhanceSourceInfo();
       addHeadingIds();
       buildToc();
       rewriteLinks();

@@ -981,6 +981,9 @@ main { width: 100%; }
 }
 .doc-layout.is-single-column { grid-template-columns: minmax(0, var(--content)); }
 .doc { min-width: 0; }
+/* Kimi-only compact replacement for the opening 来源信息 table. The classic
+   skin keeps the original table, so the card stays hidden here. */
+.source-card { display: none; }
 .doc-header {
   margin-bottom: 30px;
   padding-bottom: 26px;

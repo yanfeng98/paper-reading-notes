@@ -28,7 +28,8 @@ python3 -m http.server 8000 --directory _site
 - 资源按皮肤按需加载：hero 图与 `hero-cloud.js` 的 WebGL composite（云、字标、代码带）只在 Kimi 皮肤初始化；经典皮肤仍加载 `skin-kimi.css` 以便随时切换，但不下载 hero 照片、不预载 Ma Shan Zheng，也不创建这些 WebGL context。Hero 的 WebP 由 `<head>` 里的内联脚本在 Kimi 分支提前 preload，`hero-cloud.js` 等 `<img>` 真正加载后再取它的 `currentSrc` 建纹理，避免同一张图先拉 JPEG 再拉 WebP。
 - 首页卡片缩略图取笔记 `assets/` 下的第一张图，但只有滚动到距视口 600px 内才赋 `src`；不能直接给所有 `data-kimi-src` 赋地址，否则 `loading="lazy"` 会被绕过、手机首屏会一次拉完所有封面。
 - 打印前 `beforeprint` 会展开 scroll-reveal 并把 `data-kimi-defer` 图片全部赋值；`@media print` 里也强制 `.kimi-reveal` 可见，避免打印出空白卡片。
-- 阅读页采用原版文章页结构：整屏封面只放居中的 `Paper Reading Notes` 字标，标题与元信息在封面下方的文章区（32px 标题、800px 正文列、16px/24px 正文、1040px 图片、左侧 section 导航）；整屏封面只认笔记显式提供的 `assets/cover.*` / `assets/hero.*`（或 `cover-*` / `hero-*` 前缀），没有就回退 `hero-kimi-1600`。不要用「第一张图」当整屏封面：多数笔记第一张是白底图表，压暗后只剩近黑一片。卡片缩略图仍可用第一张图。
+- 阅读页采用原版文章页结构：封面（约 64svh）只放居中的 `Paper Reading Notes` 字标，标题与元信息在封面下方的文章区（40px 标题、720px 正文列、17px/1.8 正文、1040px 图片；≥1280px 显示左侧 164px section 导航时图片相应收窄（1280–1359px 880–959px，≥1360px 960px））；封面只认笔记显式提供的 `assets/cover.*` / `assets/hero.*`（或 `cover-*` / `hero-*` 前缀），没有就回退 `hero-kimi-1600`。不要用「第一张图」当整屏封面：多数笔记第一张是白底图表，压暗后只剩近黑一片。卡片缩略图仍可用第一张图。
+- 阅读页的中文密度与原版英文博客不同：正文两端对齐，但含行内代码/长拉丁词的段落保持左对齐，避免 justified 产生的词间大洞。开头的「来源信息」表在 Kimi 皮肤下由 `site.js` 转成定义列表卡片（默认显示前 4 项，长字段折叠，「展开全部信息」展开其余项）；原表保留在 DOM 里供经典皮肤使用。手机（≤700px）的表格按行折成带列名的卡片，不再横向滚动。
 - 字体从 `site/vendor/fonts/` 本地加载：Lora（拉丁）、Noto Serif SC（按 `unicode-range` 分片）与 Ma Shan Zheng（hero「读」字标、控件 K 图标）。新增或替换字体时同时更新 `assets/fonts.css` 与 OFL 许可证。
 - 首页「读」字标是用 Ma Shan Zheng 的 brush 字形填充，再套用 `hanzi-writer-data` 的笔顺 mask（Arphic Public License，许可证在 `vendor/licenses/hanzi-writer-data-ARPHICPL.txt`）逐笔写出；不再是纯 Kai 笔画轮廓。
 - hero 由 `site/tools/prepare_hero.py` 从 `site/tools/hero-source.jpg`（原版 K3.1 hero 的云海照片）生成，导出 1600/2400 的 WebP/JPEG（保留 4:3），并用多倍频噪声生成 `cloud-sprite-1..4.webp` 供 hero 云层漂移。
