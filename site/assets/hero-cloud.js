@@ -1112,7 +1112,10 @@
     var noiseTexture = createNoiseTexture(gl);
     var titleTexture = createTitleTexture(gl);
     if (document.fonts && document.fonts.load) {
-      document.fonts.load('400 1024px "Ma Shan Zheng"').then(function () {
+      // The brush face is a unicode-range slice, so load() must be given the
+      // glyph we actually rasterise; without text it only probes "BESbswy"
+      // and resolves without fetching the CJK subset.
+      document.fonts.load('400 1024px "Ma Shan Zheng"', '读').then(function () {
         if (!alive) return;
         var next = createTitleTexture(gl);
         if (!next) return;

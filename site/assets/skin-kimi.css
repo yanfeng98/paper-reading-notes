@@ -1982,6 +1982,9 @@ html[data-skin="kimi"] .kimi-cloud-track:not(.is-visible) .kimi-cloud {
   html[data-skin="kimi"] .source-expand { display: none !important; }
   /* The WebGL canvas is not printed; never print a transparent wordmark. */
   html[data-skin="kimi"] .hero-mark.is-webgl-title .mark-svg { opacity: 1 !important; }
+  /* The stroke masks do not cover the whole brush glyph; printing before the
+     fill animation ends must still show the complete character. */
+  html[data-skin="kimi"] .hero-mark .mark-full { opacity: 1 !important; animation: none !important; }
   /* Scroll-reveal is a screen interaction; print must show every card even if
      it was never scrolled into view. */
   html[data-skin="kimi"] .kimi-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }

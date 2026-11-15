@@ -106,6 +106,15 @@
             .mark-svg .ink-mask { stroke-dasharray: 1; stroke-dashoffset: 1; }
             .mark-svg.is-writing .ink-mask { animation: mark-draw 0.42s cubic-bezier(0.4, 0, 0.2, 1) var(--delay, 0s) both; }
             @keyframes mark-draw { to { stroke-dashoffset: 0; } }
+            /* The Kai stroke medians under-cover the brush glyph (the bottom
+               sweep of 卖 falls outside every mask).  Once the last stroke has
+               been written, fade in the unmasked glyph so the resting SVG mark
+               is the same shape as the WebGL title texture.  The base state is
+               visible so the mark stays complete when animations are disabled;
+               `both` holds the from-state (hidden) during the delay. */
+            .mark-svg .mark-full { opacity: 1; }
+            .mark-svg.is-writing .mark-full { animation: mark-fill 0.4s 2.95s both; }
+            @keyframes mark-fill { from { opacity: 0; } to { opacity: 1; } }
             </style>
             <defs>
             <text id="du-glyph" x="512" y="900" text-anchor="middle" font-family="'Ma Shan Zheng', 'Noto Serif SC', serif" font-size="1024" fill="#fff">读</text>
@@ -132,6 +141,7 @@
             <use href="#du-glyph" mask="url(#du-m8)"/>
             <use href="#du-glyph" mask="url(#du-m9)"/>
             </g>
+            <use class="mark-full" href="#du-glyph"/>
             </svg>
             </div>
             <p class="hero-mark-caption">PAPER READING NOTES</p>
