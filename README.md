@@ -35,6 +35,7 @@
 |[00191](./papers/00191-DeepSeek_V41.pdf)|[DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/blob/main/DeepSeek_V41_Tech_Report.pdf)|2026|DeepSeek-AI|[笔记](./notes/papers/deepseek-v4.1-flash/note.md)|
 |[00221](https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg)|[Super-agent 设计探索：迈向更自主的 Agent 系统](https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg)|2026|DeepSeek Harness 团队|[笔记](./notes/blogs/deepseek-super-agent/note.md)|
 |[00222](https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg)|[Super-agent 设计探索：迈向更自主的 Agent 系统](https://mp.weixin.qq.com/s/zoS7GlReWPhfCjENGxXCdg)|2026|DeepSeek Harness 团队|[笔记](./notes/blogs/deepseek-super-agent-original/note.md)|
+|[00228](https://arxiv.org/abs/2608.25512)|[A Programming Paradigm for Spatiotemporal Composability](https://arxiv.org/abs/2608.25512)|2026|DeepSeek-AI|[笔记](./notes/papers/2608.25512-v1-cordis/note.md)|
 
 ### KimiTeam
 
