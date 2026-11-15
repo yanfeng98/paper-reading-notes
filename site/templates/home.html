@@ -6,6 +6,10 @@
   <title>{{PAGE_TITLE}}</title>
   <meta name="description" content="{{PAGE_DESCRIPTION}}">
   <meta name="color-scheme" content="light dark">
+  <!-- Start the interaction bundles while the 200KB HTML is still being
+       parsed; the skin script below preloads the hero photo only for Kimi. -->
+  <link rel="preload" as="script" href="{{ROOT}}assets/hero-cloud.js?v={{ASSET_VERSION}}" fetchpriority="high">
+  <link rel="preload" as="script" href="{{ROOT}}assets/site.js?v={{ASSET_VERSION}}" fetchpriority="high">
   <link rel="stylesheet" href="{{ROOT}}assets/site.css?v={{ASSET_VERSION}}">
   <link rel="stylesheet" href="{{ROOT}}assets/fonts.css?v={{ASSET_VERSION}}">
   <link rel="stylesheet" href="{{ROOT}}assets/skin-kimi.css?v={{ASSET_VERSION}}">
@@ -277,7 +281,7 @@
     window.__FILTER_COUNTS__ = {{FILTER_COUNTS_JSON}};
     window.__LEGACY_MAP__ = {{LEGACY_MAP_JSON}};
   </script>
-  <script src="{{ROOT}}assets/hero-cloud.js?v={{ASSET_VERSION}}" defer></script>
-  <script src="{{ROOT}}assets/site.js?v={{ASSET_VERSION}}" defer></script>
+  <script src="{{ROOT}}assets/hero-cloud.js?v={{ASSET_VERSION}}" defer fetchpriority="high"></script>
+  <script src="{{ROOT}}assets/site.js?v={{ASSET_VERSION}}" defer fetchpriority="high"></script>
 </body>
 </html>
