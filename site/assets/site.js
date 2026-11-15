@@ -359,6 +359,42 @@
   }
 
   var revealObserver = null;
+  var readerCloudsRequested = false;
+
+  function syncReaderClouds() {
+    if (page !== 'doc') return;
+    try {
+      if (currentSkin() !== 'kimi') {
+        if (window.__readerClouds) window.__readerClouds.destroy();
+        return;
+      }
+      if (window.__readerClouds) {
+        window.__readerClouds.mount();
+        return;
+      }
+      if (readerCloudsRequested) return;
+      readerCloudsRequested = true;
+      var script = document.createElement('script');
+      script.src = root + 'assets/reader-clouds.js?v=' + (body.dataset.assetVersion || '');
+      script.async = true;
+      script.onload = function () {
+        readerCloudsRequested = false;
+        try {
+          if (window.__readerClouds) window.__readerClouds.mount();
+        } catch (error) {
+          if (window.console && console.warn) console.warn('Reader clouds failed to mount:', error);
+        }
+      };
+      script.onerror = function () {
+        readerCloudsRequested = false;
+      };
+      document.head.appendChild(script);
+    } catch (error) {
+      // Section clouds are decoration; the article must render without them.
+      readerCloudsRequested = false;
+      if (window.console && console.warn) console.warn('Reader clouds failed to load:', error);
+    }
+  }
 
   function setupReveal() {
     if (revealObserver) {
@@ -473,6 +509,7 @@
       positionDocCover();
       setupReveal();
       setupKimiParallax();
+      syncReaderClouds();
       // The classic and Kimi heroes have different dimensions; rebuilding
       // the code field / wind buffer keeps them from stretching on a skin swap.
       window.dispatchEvent(new Event('resize'));
@@ -1753,6 +1790,7 @@
 
       positionDocCover();
       setupReveal();
+      syncReaderClouds();
       window.__renderError = null;
     }
 

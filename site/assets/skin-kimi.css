@@ -1057,6 +1057,7 @@ html[data-skin="kimi"] .doc {
 
 html[data-skin="kimi"] .doc-header {
   position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -1848,12 +1849,125 @@ html[data-skin="kimi"] .hero-media img {
   html[data-skin="kimi"] .doc-layout { padding-left: 16px; padding-right: 16px; }
 }
 
+/* ---------- section clouds (Kimi BlogV2Motion) ---------- */
+
+/* The cloud layer is a full-bleed overlay behind the 720px reading column.
+   `isolation` gives the negative z-index a stacking context that still sits
+   above the page background, so the clouds never cover the text. */
+html[data-skin="kimi"] .prose {
+  position: relative;
+  isolation: isolate;
+}
+
+html[data-skin="kimi"] .doc-layout {
+  /* Older browsers do not support `overflow: clip`; `hidden` keeps the
+     100vw cloud layer from adding a horizontal scrollbar there. */
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+html[data-skin="kimi"] .kimi-clouds {
+  position: absolute;
+  /* Give the first cloud room above the prose: its centre is anchored to the
+     first h2, which sits at the top of #doc-content, so a top:0 layer would
+     cut the cloud in half.  The header paints above the layer (z-index: 1),
+     so the extra 360px only shows the cloud behind the title area. */
+  top: -360px;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html[data-skin="kimi"] .kimi-cloud-track {
+  --cloud-size: min(var(--cloud-width), 70vw);
+  --cloud-reach: min(760px, 64vw);
+  --cloud-peak-opacity: var(--cloud-opacity);
+  --cloud-drift-scale: 1;
+  --cloud-rest-x: calc(var(--cloud-offset) + var(--cloud-direction) * min(var(--cloud-size) * .85, var(--cloud-reach)));
+  position: absolute;
+  top: var(--cloud-y);
+  left: 0;
+  right: 0;
+  height: calc(var(--cloud-size) * 7 / 15);
+  transform: translateY(-50%);
+  visibility: hidden;
+}
+
+html[data-skin="kimi"][data-theme="light"] .kimi-cloud-track {
+  --cloud-peak-opacity: 1;
+}
+
+html[data-skin="kimi"] .kimi-cloud {
+  position: absolute;
+  top: 0;
+  left: var(--cloud-origin);
+  width: var(--cloud-size);
+  aspect-ratio: 15 / 7;
+  opacity: var(--cloud-peak-opacity);
+  transform: translate(var(--cloud-rest-x), calc(var(--cloud-vertical-drift) * var(--cloud-drift-scale) * -.5)) rotate(var(--cloud-rotation));
+  transform-origin: 50%;
+}
+
+html[data-skin="kimi"] .kimi-cloud canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(var(--cloud-direction));
+}
+
+html[data-skin="kimi"] .kimi-cloud-track.is-visible { visibility: visible; }
+html[data-skin="kimi"] .kimi-cloud-track[data-phase="entering"] .kimi-cloud {
+  animation: kimi-cloud-enter .8s ease-in-out both;
+}
+html[data-skin="kimi"] .kimi-cloud-track[data-phase="leaving"] .kimi-cloud {
+  animation: kimi-cloud-leave 2.4s ease-in-out both;
+}
+html[data-skin="kimi"] .kimi-cloud-track:not(.is-visible) .kimi-cloud {
+  animation-play-state: paused;
+}
+
+@keyframes kimi-cloud-enter {
+  0% {
+    opacity: 0;
+    transform: translate(var(--cloud-offset), calc(var(--cloud-vertical-drift) * var(--cloud-drift-scale) * -.5)) rotate(var(--cloud-rotation));
+  }
+}
+
+@keyframes kimi-cloud-leave {
+  to {
+    opacity: 0;
+    transform: translate(
+      calc(var(--cloud-rest-x) + var(--cloud-direction) * min(520px, 42vw)),
+      calc(var(--cloud-vertical-drift) * var(--cloud-drift-scale) * .5)
+    ) rotate(var(--cloud-rotation));
+  }
+}
+
+@media (max-width: 700px) {
+  html[data-skin="kimi"] .kimi-cloud-track {
+    --cloud-size: 420px;
+    --cloud-peak-opacity: calc(var(--cloud-opacity) * .8);
+    --cloud-drift-scale: .6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin="kimi"] .kimi-clouds { display: none; }
+}
+
 /* Print keeps the classic readable palette; the dark skin should not print. */
 @media print {
   html[data-skin="kimi"] .topbar,
   html[data-skin="kimi"] .hero-media,
   html[data-skin="kimi"] .hero-scrim,
   html[data-skin="kimi"] .doc-cover,
+  html[data-skin="kimi"] .kimi-clouds,
   html[data-skin="kimi"] .reading-progress { display: none !important; }
   html[data-skin="kimi"] .doc-header h1 { margin-top: 0; }
   html[data-skin="kimi"] .doc-kicker { margin-top: 0; }
