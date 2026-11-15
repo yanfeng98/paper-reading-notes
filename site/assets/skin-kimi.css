@@ -1988,6 +1988,18 @@ html[data-skin="kimi"] .kimi-cloud-track:not(.is-visible) .kimi-cloud {
   /* Scroll-reveal is a screen interaction; print must show every card even if
      it was never scrolled into view. */
   html[data-skin="kimi"] .kimi-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  /* The handoff is screen-only: restore the document flow so the whole page
+     prints without the pinned stage or the 100svh spacer. */
+  html[data-skin="kimi"] .home-stage[data-reveal-enabled]::after { display: none !important; }
+  html[data-skin="kimi"] .home-stage .home-pin { position: static !important; top: auto !important; }
+  html[data-skin="kimi"] .home-stage[data-reveal-enabled] .hero {
+    position: relative !important;
+    height: auto !important;
+  }
+  html[data-skin="kimi"] .home-stage[data-article-entering] .home-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* ---------- static cloud haze + hero appearance controls ---------- */
@@ -2261,4 +2273,68 @@ html[data-skin="kimi"] .hero-cloud img {
 
 @media (prefers-reduced-motion: reduce) {
   html[data-skin="kimi"] .hero-clouds { display: none; }
+}
+
+/* ---------- hero → library handoff (K3.1 "signal" exit) ----------
+   Mirrors the reference article page: while the renderer is live the hero
+   scene is pinned, the page underneath rises by 50svh with the reveal
+   progress, and the WebGL exit pass tears the scene into displaced
+   horizontal strips with holes onto the real DOM.  Everything is scoped to
+   `.home-stage[data-reveal-enabled]`, which only the home page sets once
+   WebGL2 is ready, so classic skin, reduced motion and the no-WebGL
+   fallback keep the normal document flow. */
+html[data-skin="kimi"] .home-stage[data-reveal-enabled] {
+  position: relative;
+}
+html[data-skin="kimi"] .home-stage[data-reveal-enabled]::after {
+  content: "";
+  display: block;
+  height: 100svh;
+}
+html[data-skin="kimi"] .home-stage[data-reveal-enabled] .home-pin {
+  position: sticky;
+  top: 0;
+}
+html[data-skin="kimi"] .home-stage[data-reveal-enabled]:not([data-article-entering]):not([data-reveal-running]) .home-pin {
+  position: relative;
+  top: 100svh;
+}
+html[data-skin="kimi"] .home-stage[data-reveal-enabled] .hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100svh;
+  min-height: 0;
+  background: transparent;
+}
+html[data-skin="kimi"] .home-stage[data-reveal-enabled] .home-reveal {
+  position: relative;
+  z-index: 1;
+}
+/* The photograph must not show through the exit holes, but it has to stay
+   under the canvas while the canvas crossfades in (0.6s) — hide it only for
+   the duration of the handoff itself. */
+html[data-skin="kimi"] .home-stage[data-reveal-running] .hero-media img {
+  visibility: hidden;
+}
+html[data-skin="kimi"] .home-stage[data-article-entering] .home-reveal {
+  opacity: var(--article-reveal, 0);
+  transform: translateY(calc((1 - var(--article-reveal, 0)) * 50svh));
+}
+html[data-skin="kimi"] .home-stage[data-article-entering] .hero-scrim,
+html[data-skin="kimi"] .home-stage[data-article-entering] .hero-inner {
+  opacity: calc(1 - var(--hero-tear, 0));
+}
+/* Controls live inside the reference scene, so they fade with the same
+   reveal curve instead of popping out at the start of the handoff. */
+html[data-skin="kimi"].kimi-intro-done .home-stage[data-article-entering] .kimi-controls {
+  opacity: calc(1 - var(--article-reveal, 0));
+}
+html[data-skin="kimi"] .home-stage[data-reveal-running] .kimi-controls {
+  pointer-events: none;
+}
+/* The torn scene is decoration; never let it intercept the rising page. */
+html[data-skin="kimi"] .home-stage[data-reveal-enabled] .hero[data-exit-inert] {
+  pointer-events: none;
 }

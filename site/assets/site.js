@@ -442,8 +442,18 @@
       ticking = false;
       var image = document.querySelector('.hero-media img');
       var inner = document.querySelector('.hero-inner');
+      var stage = document.querySelector('.home-stage');
       if (!image || currentSkin() !== 'kimi' || motionMedia.matches) {
         if (image) image.style.transform = '';
+        if (inner) {
+          inner.style.transform = '';
+          inner.style.opacity = '';
+        }
+        return;
+      }
+      // The handoff owns the hero while it is armed: the scene is pinned and
+      // the exit pass drives both its transform and its fade.
+      if (stage && stage.hasAttribute('data-reveal-enabled')) {
         if (inner) {
           inner.style.transform = '';
           inner.style.opacity = '';

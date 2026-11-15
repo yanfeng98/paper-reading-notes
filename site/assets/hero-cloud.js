@@ -250,6 +250,118 @@
     '}'
   ].join('\n');
 
+  /* ---------- exit pass: tear the finished scene into signal strips ----------
+     Verbatim port of the reference `exit` program.  The composite is rendered
+     into an RGBA8 framebuffer, then this pass samples it twice per pixel with
+     row-staggered offsets, paints code glyphs into the coarse ribbons, and
+     punches per-row holes so the document underneath shows through. */
+  var exitFragment = [
+    '#version 300 es',
+    'precision highp float;',
+    'in vec2 viewportUV; out vec4 o;',
+    'uniform sampler2D source, codeAtlas;',
+    'uniform vec2 codeAtlasSize;',
+    'uniform float codeLineHeight;',
+    'uniform float codeCharacterWidth, codeGlyphWidth;',
+    'uniform vec2 sceneSize;',
+    'uniform float exitStrength, exitPhase;',
+    'const float exitAmount = 60.;',
+    'const vec3 exitTint = vec3(157.,187.,199.)/255.;',
+    'float h(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }',
+    'float lum(vec3 c){ return dot(c,vec3(.2126,.7152,.0722)); }',
+    'struct Fragment { vec2 offset; float coverage; float seed; vec2 local; vec2 size; vec2 cell; };',
+    'Fragment fragmentAt(vec2 pixel, float amount, float beat, bool coarse) {',
+    '  float height = coarse ? mix(38.,18.,amount) : mix(9.,3.,amount);',
+    '  float row = floor(pixel.y/height);',
+    '  float rowSeed = h(vec2(row,coarse ? 73. : 19.));',
+    '  float width = (coarse ? mix(100.,280.,rowSeed) : mix(24.,130.,rowSeed));',
+    '  width *= min(1.,sceneSize.x/900.);',
+    '  vec2 size = vec2(width,height);',
+    '  vec2 grid = (pixel+vec2(rowSeed*317.,0.))/size;',
+    '  vec2 cell = floor(grid);',
+    '  float seed = h(cell+vec2(beat,coarse ? 83. : 31.));',
+    '  float cluster = h(floor(pixel/vec2(220.,110.))+floor(beat/3.));',
+    '  float density = (coarse ? .32 : .9)*amount*exitStrength;',
+    '  density *= mix(.4,1.7,cluster);',
+    '  float coverage = 1.-smoothstep(density-.05,density+.05,seed);',
+    '  vec2 edge = min(fract(grid),1.-fract(grid))*size;',
+    '  coverage *= smoothstep(0.,.7,min(edge.x,edge.y));',
+    '  float variation = h(cell+vec2(beat+11.,97.));',
+    '  float direction = variation < .5 ? -1. : 1.;',
+    '  float limit = min(coarse ? 190. : 125.,sceneSize.x*.16);',
+    '  float dx = direction*mix(4.,limit,variation)*mix(.3,1.,amount);',
+    '  dx += (.5-fract(grid.x))*width*.9*step(.76,variation);',
+    '  float dy = (h(cell+47.)-.5)*(coarse ? 14. : 2.);',
+    '  return Fragment(vec2(dx,dy)*coverage*exitStrength,coverage,variation,fract(grid)*size,size,cell);',
+    '}',
+    'vec3 interference(vec3 base, vec3 shifted) {',
+    '  float a = lum(base), b = lum(shifted);',
+    '  float blended = abs(a-b);',
+    '  return exitTint*blended;',
+    '}',
+    'vec3 sampleScene(vec2 uv) { return texture(source,clamp(uv,vec2(0.),vec2(1.))).rgb; }',
+    'vec3 composeCode(vec3 base, Fragment ribbon, float beat) {',
+    '  float selected = step(.3,ribbon.seed);',
+    '  float coverage = ribbon.coverage*selected;',
+    '  if(coverage <= .001) return base;',
+    '  float rows = codeAtlasSize.y/codeLineHeight;',
+    '  float row = floor(h(ribbon.cell+vec2(floor(beat*.5),119.))*rows);',
+    '  float stretch = mix(.9,1.18,ribbon.seed);',
+    '  vec2 textPixel = vec2(',
+    '    ribbon.local.x/stretch+ribbon.offset.x*.45+h(ribbon.cell+67.)*160.,',
+    '    ribbon.size.y-ribbon.local.y-(ribbon.size.y-codeLineHeight)*.5',
+    '  );',
+    '  float inside = smoothstep(0.,1.,textPixel.y)*(1.-smoothstep(codeLineHeight-1.,codeLineHeight,textPixel.y));',
+    '  coverage *= inside;',
+    '  textPixel.x = mod(textPixel.x,codeAtlasSize.x);',
+    '  vec2 glyphSize = vec2(codeGlyphWidth,codeLineHeight*2.);',
+    '  ivec2 entry = ivec2(floor(textPixel.x/codeCharacterWidth),glyphSize.y*6.+row);',
+    '  float character = floor(texelFetch(codeAtlas,entry,0).r*255.+.5);',
+    '  vec2 cell = vec2(mod(character,16.),floor(character/16.));',
+    '  vec2 local = vec2(mod(textPixel.x,codeCharacterWidth)+1.,clamp(textPixel.y,.5,codeLineHeight-.5))*2.;',
+    '  vec2 atlasUV = (cell*glyphSize+local)/vec2(textureSize(codeAtlas,0));',
+    '  float glyph = texture(codeAtlas,atlasUV).r*inside;',
+    '  vec2 center = (viewportUV*sceneSize-ribbon.local+ribbon.size*.5+ribbon.offset)/sceneSize;',
+    '  float light = smoothstep(.28,.7,lum(sampleScene(center)));',
+    '  vec3 plate = exitTint*mix(.18,.94,light);',
+    '  plate = mix(plate,interference(base,plate),step(.6,ribbon.seed)*.12);',
+    '  vec3 ink = mix(vec3(.83,.92,.95),vec3(.055,.15,.20),step(.48,light));',
+    '  vec3 ground = mix(base,plate,.5);',
+    '  vec3 code = mix(ground,ink,glyph*.96);',
+    '  return mix(base,code,coverage*smoothstep(0.,.18,exitStrength));',
+    '}',
+    'float fragmentOpacity(vec2 pixel, float amount) {',
+    '  float height = mix(13.,5.,amount);',
+    '  float row = floor(pixel.y/height);',
+    '  float width = mix(28.,120.,h(vec2(row,71.)))*min(1.,sceneSize.x/900.);',
+    '  vec2 cell = floor(vec2(pixel.x/width+h(vec2(row,8.)),row));',
+    '  float cluster = h(floor(pixel/vec2(180.,90.))+53.);',
+    '  float threshold = mix(.12,.94,.6*h(cell+23.)+.4*cluster);',
+    '  float opening = smoothstep(.4,.97,exitPhase);',
+    '  float hole = smoothstep(threshold-.1,threshold+.1,opening);',
+    '  return 1.-hole*smoothstep(0.,.25,amount);',
+    '}',
+    'void main() {',
+    '  float amount = exitAmount*.01;',
+    '  float beat = floor(exitPhase*36.);',
+    '  vec2 pixel = viewportUV*sceneSize;',
+    '  Fragment fine = fragmentAt(pixel,amount,beat,false);',
+    '  Fragment coarse = fragmentAt(pixel,amount,floor(beat*.5),true);',
+    '  vec2 offset = (fine.offset+coarse.offset)/sceneSize;',
+    '  vec3 col = sampleScene(viewportUV+offset);',
+    '  float coverage = max(fine.coverage,coarse.coverage);',
+    '  if(coverage > .001) {',
+    '    vec3 echo = sampleScene(viewportUV+offset*.42);',
+    '    col = mix(col,echo,coverage*amount*exitStrength*.22);',
+    '    float accent = step(.72,fine.seed)*fine.coverage*exitStrength*.22;',
+    '    col = mix(col,interference(echo,col),accent);',
+    '  }',
+    '  col = composeCode(col,coarse,beat);',
+    '  float alpha = fragmentOpacity(pixel,amount);',
+    '  o = vec4(col*alpha,alpha);',
+    '}'
+  ].join('\n');
+
   /* ---------- code field state (ported from the K3.1 hero) ---------- */
 
   function createCodeState(snippets) {
@@ -763,6 +875,62 @@
     return texture;
   }
 
+  /* The exit pass reads a two-part atlas: the 16x6 glyph grid used by the
+     composite, plus one character-index row per code snippet.  The layout is
+     the reference's: glyph cells are drawn at 2x for the scanline sampling,
+     and rows below y=192 store `charCode - 32` so the shader can pick a whole
+     line from one hash. */
+  function createExitAtlas(gl, snippets) {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    var font = '500 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    ctx.font = font;
+    var characterWidth = ctx.measureText('M').width;
+    var glyphWidth = 2 * Math.ceil(characterWidth + 2);
+    canvas.width = 16 * glyphWidth;
+    canvas.height = 192;
+    ctx.scale(2, 2);
+    ctx.font = font;
+    ctx.fillStyle = '#fff';
+    ctx.textBaseline = 'middle';
+    for (var code = 0; code < 95; code++) {
+      ctx.fillText(
+        String.fromCharCode(code + 32),
+        ((code % 16) * glyphWidth) / 2 + 1,
+        (Math.floor(code / 16) + 0.5) * 16
+      );
+    }
+    var image = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    var width = canvas.width;
+    var height = canvas.height + snippets.length;
+    var pixels = new Uint8Array(width * height);
+    for (var i = 0; i < width * canvas.height; i++) pixels[i] = image[i * 4 + 3];
+    snippets.forEach(function (line, row) {
+      for (var x = 0; x < line.length && x < width; x++) {
+        pixels[(canvas.height + row) * width + x] = line.charCodeAt(x) - 32;
+      }
+    });
+    canvas.width = canvas.height = 1;
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, width, height, 0,
+      gl.RED, gl.UNSIGNED_BYTE, pixels);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return {
+      texture: texture,
+      width: width,
+      height: height,
+      characterWidth: characterWidth,
+      glyphWidth: glyphWidth
+    };
+  }
+
   function createTitleTexture(gl) {
     var canvas = document.createElement('canvas');
     canvas.width = canvas.height = 1024;
@@ -828,6 +996,8 @@
   var fallbackBound = false;
   var fallbackTimer = 0;
   var photoFallbackTimer = 0;
+  // Scroll-driven exit state shared with the renderer (strength/phase/reveal).
+  var exit = { strength: 0, phase: 0, reveal: 0 };
 
   function isKimi() {
     return document.documentElement.dataset.skin === 'kimi';
@@ -1051,8 +1221,8 @@
     canvas.setAttribute('aria-hidden', 'true');
     hero.querySelector('.hero-media').appendChild(canvas);
     var gl = canvas.getContext('webgl2', {
-      alpha: false,
-      premultipliedAlpha: false,
+      alpha: true,
+      premultipliedAlpha: true,
       antialias: false,
       depth: false,
       stencil: false,
@@ -1085,6 +1255,7 @@
       event.preventDefault();
       if (mark) mark.classList.remove('is-webgl-title');
       stop();
+      disableExit();
       api.ready = false;
       hero.classList.remove('hero-cloud-ready');
       state = null;
@@ -1108,6 +1279,7 @@
     var alive = true;
     var cloudProgram = program(gl, vertex, cloudFragment);
     var compositeProgram = program(gl, vertex, compositeFragment);
+    var exitProgram = program(gl, vertex, exitFragment);
     var codeAtlas = createCodeAtlas(gl);
     var noiseTexture = createNoiseTexture(gl);
     var titleTexture = createTitleTexture(gl);
@@ -1222,6 +1394,7 @@
       'input_parallel = scatter_to_tp(input_)'
     ];
     var code = createCodeState(snippets);
+    var exitAtlas = createExitAtlas(gl, snippets);
     var wash = createWashState();
     var surface = createSurfaceState();
     wash.setRadiusScale(0.8);
@@ -1233,6 +1406,24 @@
       cloudWidth: 0,
       cloudHeight: 0
     };
+
+    /* The composite is finished into this texture so the exit pass can treat
+       the whole scene (photo, clouds, code, wordmark) as one signal. */
+    var sceneTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    var sceneFramebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFramebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, sceneTexture, 0);
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+      throw new Error('hero exit framebuffer incomplete');
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    var sceneAllocated = [0, 0];
     var renderer = {
       resizeDirty: true,
       rectDirty: false,
@@ -1298,6 +1489,12 @@
       );
       canvas.width = composite[0];
       canvas.height = composite[1];
+      if (sceneAllocated[0] !== composite[0] || sceneAllocated[1] !== composite[1]) {
+        gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, composite[0], composite[1], 0,
+          gl.RGBA, gl.UNSIGNED_BYTE, null);
+        sceneAllocated = [composite[0], composite[1]];
+      }
       if (output.cloudWidth !== cloud[0] || output.cloudHeight !== cloud[1]) {
         gl.bindTexture(gl.TEXTURE_2D, cloudTexture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, cloud[0], cloud[1], 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -1449,6 +1646,12 @@
         }
       }
       titleActive += (titleTarget - titleActive) * Math.min(1, dt * 14);
+      // During the handoff the DOM wordmark is hidden with the rest of the
+      // hero, so the composite must carry the same glyph through the tear.
+      if (exit.phase > 0.001) {
+        titleTarget = 1;
+        titleActive = 1;
+      }
       if (titleActive < 0.01) titleActive = 0;
       if (mark) {
         if (titleActive > 0.985) mark.classList.add('is-webgl-title');
@@ -1478,7 +1681,7 @@
       );
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFramebuffer);
       gl.viewport(0, 0, output.width, output.height);
       gl.useProgram(compositeProgram.program);
       gl.activeTexture(gl.TEXTURE0);
@@ -1534,6 +1737,28 @@
         gl.uniform4fv(uniforms['inkEnds[0]'], wash.state.ends);
       }
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      // Exit pass → default framebuffer, premultiplied alpha.  Idle frames
+      // pass through at alpha 1, so the canvas still covers the photograph.
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, output.width, output.height);
+      gl.useProgram(exitProgram.program);
+      gl.activeTexture(gl.TEXTURE8);
+      gl.bindTexture(gl.TEXTURE_2D, sceneTexture);
+      gl.activeTexture(gl.TEXTURE9);
+      gl.bindTexture(gl.TEXTURE_2D, exitAtlas ? exitAtlas.texture : null);
+      var exitUniforms = exitProgram.uniforms;
+      gl.uniform1i(exitUniforms.source, 8);
+      gl.uniform1i(exitUniforms.codeAtlas, 9);
+      gl.uniform2f(exitUniforms.codeAtlasSize,
+        exitAtlas ? exitAtlas.width : 1, exitAtlas ? exitAtlas.height : 1);
+      gl.uniform1f(exitUniforms.codeLineHeight, 16);
+      gl.uniform1f(exitUniforms.codeCharacterWidth, exitAtlas ? exitAtlas.characterWidth : 1);
+      gl.uniform1f(exitUniforms.codeGlyphWidth, exitAtlas ? exitAtlas.glyphWidth : 1);
+      gl.uniform2f(exitUniforms.sceneSize, sceneSize[0], sceneSize[1]);
+      gl.uniform1f(exitUniforms.exitStrength, exit.strength);
+      gl.uniform1f(exitUniforms.exitPhase, exit.phase);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
 
     renderer.refreshRect = function () {
@@ -1550,6 +1775,9 @@
     renderer.destroy = function () {
       alive = false;
       gl.deleteFramebuffer(framebuffer);
+      gl.deleteFramebuffer(sceneFramebuffer);
+      gl.deleteTexture(sceneTexture);
+      if (exitAtlas) gl.deleteTexture(exitAtlas.texture);
       gl.deleteTexture(cloudTexture);
       gl.deleteTexture(frontTexture);
       gl.deleteTexture(photoTexture);
@@ -1562,12 +1790,14 @@
       gl.deleteVertexArray(vao);
       gl.deleteProgram(cloudProgram.program);
       gl.deleteProgram(compositeProgram.program);
+      gl.deleteProgram(exitProgram.program);
     };
     return renderer;
   }
 
   function failRenderer() {
     stop();
+    disableExit();
     api.ready = false;
     hero.classList.remove('hero-cloud-ready');
     if (mark) {
@@ -1586,10 +1816,286 @@
     enableMaskFallback();
   }
 
+  /* ---------- scroll-driven hero exit (K3.1 handoff) ---------- */
+
+  var stage = document.querySelector('.home-stage');
+  var revealLayer = stage ? stage.querySelector('.home-reveal') : null;
+  var exitController = null;
+
+  function clamp01(value) { return Math.max(0, Math.min(1, value)); }
+
+  function smooth01(a, b, x) {
+    var t = clamp01((x - a) / (b - a));
+    return t * t * (3 - 2 * t);
+  }
+
+  // The reference's progress → strength/reveal mapping, verbatim.
+  function applyExit(progress) {
+    if (!stage) return;
+    var phase = clamp01(progress);
+    var strength = smooth01(0, 0.12, phase) *
+      (0.42 + 0.58 * smooth01(0.08, 0.5, phase)) *
+      (1 - smooth01(0.72, 1, phase));
+    var wave = 0.72 + 0.28 * Math.pow(Math.sin(phase * Math.PI * 7.5 + Math.sin(9 * phase)), 2);
+    exit.phase = phase;
+    exit.strength = phase > 0 && phase < 1 ? strength * wave : 0;
+    exit.reveal = smooth01(0.28, 1, phase);
+    stage.style.setProperty('--article-reveal', exit.reveal.toFixed(4));
+    stage.style.setProperty('--hero-tear', smooth01(0, 0.05, phase).toFixed(4));
+    hero.style.opacity = String(1 - exit.reveal);
+    var running = !!(exitController && exitController.running());
+    stage.toggleAttribute('data-article-entering', phase < 1 || running);
+    stage.toggleAttribute('data-reveal-running', running);
+    hero.inert = exit.reveal > 0.999;
+    if (revealLayer) revealLayer.inert = exit.reveal < 0.999;
+    if (exit.reveal > 0.999) hero.setAttribute('data-exit-inert', '');
+    else hero.removeAttribute('data-exit-inert');
+    start();
+  }
+
+  function createExitController() {
+    var DURATION = 800;
+    var COOLDOWN = 100;
+    var state = { progress: 0, target: 0, running: false };
+    var startedAt = 0;
+    var readyAt = 0;
+    var frameId = 0;
+    var bound = false;
+    var afterRun = null;
+
+    function geometry() {
+      var rect = stage.getBoundingClientRect();
+      return {
+        top: rect.top + window.scrollY,
+        offset: -rect.top,
+        height: Math.max(1, hero.getBoundingClientRect().height)
+      };
+    }
+
+    function locked(now) { return state.running || now < readyAt; }
+
+    // The reference holds the scroll at the starting anchor for the whole
+    // animation and only jumps to the far anchor once progress lands.
+    function syncScroll() {
+      var g = geometry();
+      var y = g.top + (state.running ? 1 - state.target : state.target) * g.height;
+      if (Math.abs(window.scrollY - y) > 0.5) {
+        // The site sets `scroll-behavior: smooth`; an in-flight smooth scroll
+        // would otherwise keep fighting the hold.  `instant` also aborts it.
+        var root = document.documentElement;
+        var previous = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto';
+        try {
+          window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+        } catch (error) {
+          window.scrollTo(0, y);
+        }
+        root.style.scrollBehavior = previous;
+      }
+    }
+
+    function advance(now) {
+      if (!state.running) return;
+      var t = clamp01((now - startedAt) / DURATION);
+      state.progress = state.target ? t : 1 - t;
+      if (t >= 1) {
+        state.running = false;
+        readyAt = now + COOLDOWN;
+      }
+    }
+
+    function tick(now) {
+      frameId = 0;
+      if (!state.running) return;
+      advance(now);
+      syncScroll();
+      applyExit(state.progress);
+      if (state.running) {
+        frameId = window.requestAnimationFrame(tick);
+      } else {
+        syncScroll();
+        applyExit(state.progress);
+        if (afterRun) {
+          // An explicit destination (anchor click) should scroll freely; the
+          // momentum cooldown would otherwise snap it back to the anchor.
+          readyAt = 0;
+          var callback = afterRun;
+          afterRun = null;
+          callback();
+        }
+      }
+    }
+
+    function run(target, after) {
+      state.target = target ? 1 : 0;
+      state.running = true;
+      afterRun = typeof after === 'function' ? after : null;
+      startedAt = performance.now();
+      applyExit(state.progress);
+      // Hold the starting anchor immediately; the first animation frame may
+      // be a full frame away and the gesture has already scrolled a few px.
+      syncScroll();
+      if (!frameId) frameId = window.requestAnimationFrame(tick);
+    }
+
+    function observe(now) {
+      if (locked(now)) return false;
+      var g = geometry();
+      var down = state.progress === 0 && g.offset >= 8;
+      var up = state.progress === 1 && g.offset <= g.height - 8;
+      if (!down && !up) return false;
+      run(down ? 1 : 0);
+      return true;
+    }
+
+    function onScroll() {
+      var now = performance.now();
+      if (locked(now)) { syncScroll(); return; }
+      observe(now);
+    }
+
+    // A hidden tab may never deliver another frame; land the handoff on its
+    // target instead of leaving the scroll pinned mid-transition.
+    function release() {
+      if (!state.running) return;
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+      state.progress = state.target;
+      state.running = false;
+      readyAt = 0;
+      syncScroll();
+      applyExit(state.progress);
+    }
+
+    function onVisibility() {
+      if (document.hidden) release();
+    }
+
+    function onGesture(event) {
+      if (!locked(performance.now())) return;
+      if (event.ctrlKey || event.metaKey) return;
+      if (event.target instanceof Element &&
+          event.target.closest('input, select, textarea, button, [contenteditable="true"]')) return;
+      if (event instanceof KeyboardEvent &&
+          ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].indexOf(event.key) < 0) return;
+      if (!event.cancelable) return;
+      event.preventDefault();
+    }
+
+    function onScrollHint(event) {
+      if (!(event.target instanceof Element)) return;
+      var button = event.target.closest('[data-kimi-scroll]');
+      var anchor = event.target.closest('a[href^="#"]');
+      if (!button && !anchor) return;
+      var target = null;
+      if (anchor) {
+        try {
+          target = document.querySelector(anchor.getAttribute('href'));
+        } catch (error) {
+          return;
+        }
+      }
+      if (!button && !(target && target.closest('.home-reveal'))) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (state.progress >= 1 && !state.running) {
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      run(1, function () {
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    return {
+      bind: function () {
+        if (bound) return;
+        bound = true;
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('wheel', onGesture, { passive: false, capture: true });
+        window.addEventListener('touchmove', onGesture, { passive: false, capture: true });
+        window.addEventListener('keydown', onGesture, { passive: false, capture: true });
+        document.addEventListener('click', onScrollHint, true);
+        document.addEventListener('visibilitychange', onVisibility);
+        window.addEventListener('pagehide', release);
+      },
+      destroy: function () {
+        if (!bound) return;
+        bound = false;
+        window.removeEventListener('scroll', onScroll, { passive: true });
+        window.removeEventListener('wheel', onGesture, { capture: true });
+        window.removeEventListener('touchmove', onGesture, { capture: true });
+        window.removeEventListener('keydown', onGesture, { capture: true });
+        document.removeEventListener('click', onScrollHint, true);
+        document.removeEventListener('visibilitychange', onVisibility);
+        window.removeEventListener('pagehide', release);
+        if (frameId) window.cancelAnimationFrame(frameId);
+        frameId = 0;
+      },
+      reset: function () {
+        var g = geometry();
+        var p = clamp01(g.offset / g.height);
+        state.progress = state.target = p >= 0.5 ? 1 : 0;
+        state.running = false;
+        readyAt = 0;
+        applyExit(state.progress);
+        if (g.offset > 0 && g.offset < g.height) syncScroll();
+      },
+      run: run,
+      running: function () { return state.running; },
+      progress: function () { return state.progress; }
+    };
+  }
+
+  function enableExit() {
+    if (!stage || !revealLayer || exitController) return;
+    if (reduce.matches || !isKimi() || !state) return;
+    stage.setAttribute('data-reveal-enabled', '');
+    stage.style.setProperty('--article-reveal', '0');
+    stage.style.setProperty('--hero-tear', '0');
+    hero.style.opacity = '1';
+    // The scroll parallax may have left inline styles on the inner layer; the
+    // handoff owns its fade from here on.
+    var inner = hero.querySelector('.hero-inner');
+    if (inner) {
+      inner.style.transform = '';
+      inner.style.opacity = '';
+    }
+    var image = hero.querySelector('.hero-media img');
+    if (image) image.style.transform = '';
+    exitController = createExitController();
+    exitController.bind();
+    exitController.reset();
+    if (state) state.rectDirty = true;
+  }
+
+  function disableExit() {
+    if (!exitController) return;
+    exitController.destroy();
+    exitController = null;
+    if (stage) {
+      stage.removeAttribute('data-reveal-enabled');
+      stage.removeAttribute('data-article-entering');
+      stage.removeAttribute('data-reveal-running');
+      stage.style.removeProperty('--article-reveal');
+      stage.style.removeProperty('--hero-tear');
+    }
+    hero.style.opacity = '';
+    hero.inert = false;
+    if (revealLayer) revealLayer.inert = false;
+    hero.removeAttribute('data-exit-inert');
+    exit.strength = 0;
+    exit.phase = 0;
+    exit.reveal = 0;
+  }
+
   function markCloudReady() {
     if (hero.classList.contains('hero-cloud-ready')) return;
     hero.classList.add('hero-cloud-ready');
     syncMarkAfterBoot();
+    enableExit();
   }
 
   function syncMarkAfterBoot() {
@@ -1639,6 +2145,7 @@
     if (reduce.matches) {
       stop();
       resetMark();
+      disableExit();
       hero.classList.remove('hero-cloud-ready');
     } else {
       init();
@@ -1653,6 +2160,7 @@
       } else {
         stop();
         resetMark();
+        disableExit();
         hero.classList.remove('hero-cloud-ready');
       }
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-skin'] });
