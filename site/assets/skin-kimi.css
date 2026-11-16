@@ -451,33 +451,24 @@ html[data-skin="kimi"] .hero.is-intro .mark-svg {
 }
 
 html[data-skin="kimi"] .hero-mark-caption {
-  max-width: min(94vw, 820px);
+  max-width: min(94vw, 640px);
   margin: 20px auto 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
   font-family: var(--reading);
-  font-size: clamp(1.75rem, 3.1vw, 2.75rem);
+  /* The original "Kimi K3.1 Pro" title is 32px; keep the caption at that size
+     and let the WebGL wordmark texture carry it into the liquid pass. */
+  font-size: 2rem;
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: 0.16em;
-  text-indent: 0.16em;
   text-align: center;
+  white-space: nowrap;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5), 0 1px 10px rgba(0, 0, 0, 0.35);
 }
 
-html[data-skin="kimi"] .hero-mark-caption-text { display: inline-block; }
-
-/* The reference warps its brush wordmark under the pointer.  The caption is
-   DOM text, so each glyph gets its own transform and site.js drives a damped
-   wave through them; the line stays readable when the pointer rests. */
-html[data-skin="kimi"] .hero-mark-char {
-  display: inline-block;
-  transform-origin: 50% 72%;
-  backface-visibility: hidden;
-}
-
-html[data-skin="kimi"] .hero-mark-caption.is-wobbling .hero-mark-char {
-  will-change: transform;
-}
+/* The composite carries the glyph and caption through the tear; hide the DOM
+   copy only once the WebGL title is fully on. */
+html[data-skin="kimi"] .hero-mark-caption.is-webgl-title { opacity: 0 !important; }
 
 html[data-skin="kimi"] .hero.is-intro .hero-mark-caption {
   animation: kimi-fade-in 0.9s 2.7s both;
@@ -1768,7 +1759,7 @@ html[data-skin="kimi"] .hero-media img {
   html[data-skin="kimi"] .hero-mark-caption {
     max-width: 92vw;
     margin-top: 16px;
-    font-size: clamp(1.15rem, 4.9vw, 1.8rem);
+    font-size: clamp(1rem, 4.4vw, 2rem);
   }
   html[data-skin="kimi"] .kimi-hero-lower { padding-top: 96px; }
   html[data-skin="kimi"] .hero-scroll { bottom: 80px; font-size: 16px; }
@@ -1875,7 +1866,6 @@ html[data-skin="kimi"] .hero-media img {
 }
 
 @media (max-width: 520px) {
-  html[data-skin="kimi"] .hero-mark-caption { font-size: clamp(1rem, 4.9vw, 1.6rem); }
   html[data-skin="kimi"] .hero h1 { font-size: 1rem; letter-spacing: 0.1em; text-indent: 0.1em; }
   html[data-skin="kimi"] .kimi-hero-lower .hero-stats { gap: 8px 16px; font-size: 11px; }
   html[data-skin="kimi"] .kimi-hero-lower .hero-stats strong { font-size: 19px; }
@@ -1885,7 +1875,7 @@ html[data-skin="kimi"] .hero-media img {
 }
 
 @media (max-width: 400px) {
-  html[data-skin="kimi"] .hero-mark-caption { letter-spacing: 0.14em; text-indent: 0.14em; }
+  html[data-skin="kimi"] .hero-mark-caption { letter-spacing: 0.14em; }
 }
 
 /* 320px phones have no room for a wrapped caption above the scroll hint. */
@@ -1893,7 +1883,6 @@ html[data-skin="kimi"] .hero-media img {
   html[data-skin="kimi"] .hero-mark-caption {
     font-size: clamp(0.9rem, 4.7vw, 1.5rem);
     letter-spacing: 0.12em;
-    text-indent: 0.12em;
   }
 }
 

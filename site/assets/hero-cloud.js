@@ -20,6 +20,8 @@
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   var mark = hero.querySelector('[data-kimi-mark]');
   var markSvg = mark && mark.querySelector('.mark-svg');
+  var titleHost = mark && mark.closest('.hero-mark-wrap');
+  var caption = titleHost && titleHost.querySelector('.hero-mark-caption');
   var settings = { cloud: 0.65, speed: 3, coverage: 1, ink: 0.9 };
   var api = {
     ready: false,
@@ -138,7 +140,7 @@
     'uniform sampler2D img, clouds, frontClouds, codeGrid, codeAtlas, titleGlyph, titleSurface, inkNoise;',
     'uniform vec2 res, imgSize, mouse, sceneSize, codeStep;',
     'uniform float T, coverage, codeSize, titleOpacity, titleStrength;',
-    'uniform float writingProgress, ink, particles, titleActive, washSolidity, titleCloudPresence;',
+    'uniform float writingProgress, ink, particles, titleActive, washSolidity, titleCloudPresence, titleWashFloor;',
     'uniform vec4 titleRect, inkBounds, inkStarts[16], inkEnds[16], inkTipStart, inkTipEnd;',
     'uniform int inkCount;',
     'float h(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }',
@@ -236,7 +238,8 @@
     '  vec3 landscape = base*(1.-c.a)+c.rgb;',
     '  vec3 col = composeGlyphs(landscape,landscape);',
     '  vec3 withTitle = composeTitle(col,cleanRear,front);',
-    '  float titleCover = (titleActive > .001 && writingProgress >= 1.) ? clamp(designReveal(),0.,1.) : 0.;',
+    '  float washReveal = designReveal()*smoothstep(titleWashFloor,titleWashFloor+.02,v.y);',
+    '  float titleCover = (titleActive > .001 && writingProgress >= 1.) ? clamp(washReveal,0.,1.) : 0.;',
     '  col = mix(withTitle,col,titleCover);',
     '  return col;',
     '}',
@@ -931,17 +934,69 @@
     };
   }
 
+  function titleSignature() {
+    if (!titleHost) return '';
+    var rect = titleHost.getBoundingClientRect();
+    var style = caption ? getComputedStyle(caption) : null;
+    return [Math.round(rect.width), Math.round(rect.height),
+      style ? style.fontSize + '/' + style.letterSpacing : '',
+      caption ? caption.textContent : ''].join('|');
+  }
+
+  /* Rasterise the wordmark and its caption into one texture.  Both then go
+     through the same titleSurface displacement in the composite shader, so
+     the caption warps exactly like the brush glyph instead of using a CSS
+     approximation. */
   function createTitleTexture(gl) {
+    var host = titleHost || mark;
+    if (!host) return null;
+    var hostRect = host.getBoundingClientRect();
+    var markRect = mark ? mark.getBoundingClientRect() : hostRect;
+    var captionRect = caption ? caption.getBoundingClientRect() : null;
+    var captionStyle = caption ? getComputedStyle(caption) : null;
+    var copy = caption ? (caption.textContent || '').trim() : '';
+    var unit = markRect.width > 0 ? 1024 / markRect.width : 1;
+    var width = Math.max(1, Math.round(hostRect.width * unit));
+    var height = Math.max(1, Math.round(hostRect.height * unit));
     var canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 1024;
+    canvas.width = width;
+    canvas.height = height;
     var ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    ctx.clearRect(0, 0, 1024, 1024);
+    ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = '#fff';
     ctx.font = '400 1024px "Ma Shan Zheng", "Noto Serif SC", serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText('读', 512, 900);
+    ctx.fillText('读',
+      (markRect.left - hostRect.left + markRect.width / 2) * unit,
+      (markRect.top - hostRect.top) * unit + 900);
+
+    if (copy && captionRect && captionStyle && captionRect.width > 0) {
+      var fontSize = parseFloat(captionStyle.fontSize) * unit;
+      var spacing = parseFloat(captionStyle.letterSpacing);
+      if (!isFinite(spacing)) spacing = parseFloat(captionStyle.fontSize) * 0.16;
+      spacing *= unit;
+      ctx.font = '500 ' + fontSize.toFixed(2) +
+        'px Lora, "Noto Serif SC", Georgia, serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      var widths = [];
+      var total = 0;
+      for (var i = 0; i < copy.length; i++) {
+        var charWidth = ctx.measureText(copy.charAt(i)).width;
+        widths.push(charWidth);
+        total += charWidth;
+      }
+      total += spacing * Math.max(0, copy.length - 1);
+      var x = (width - total) / 2;
+      var y = (captionRect.top - hostRect.top + captionRect.height / 2) * unit;
+      for (var j = 0; j < copy.length; j++) {
+        ctx.fillText(copy.charAt(j), x, y);
+        x += widths[j] + spacing;
+      }
+    }
+
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -1048,6 +1103,7 @@
   function resetMark() {
     if (state) state.reset();
     if (mark) mark.classList.remove('is-webgl-title', 'is-mask-erase');
+    if (caption) caption.classList.remove('is-webgl-title');
     if (mark) {
       mark.style.webkitMaskImage = '';
       mark.style.maskImage = '';
@@ -1062,6 +1118,7 @@
     if (fallbackBound || !isKimi() || !mark || !markSvg || reduce.matches) return;
     fallbackBound = true;
     mark.classList.remove('is-webgl-title');
+    if (caption) caption.classList.remove('is-webgl-title');
     function applyMask(event) {
       if (!introDone() || settings.ink <= 0 || reduce.matches) return;
       var rect = mark.getBoundingClientRect();
@@ -1254,6 +1311,7 @@
     canvas.addEventListener('webglcontextlost', function (event) {
       event.preventDefault();
       if (mark) mark.classList.remove('is-webgl-title');
+      if (caption) caption.classList.remove('is-webgl-title');
       stop();
       disableExit();
       api.ready = false;
@@ -1283,16 +1341,27 @@
     var codeAtlas = createCodeAtlas(gl);
     var noiseTexture = createNoiseTexture(gl);
     var titleTexture = createTitleTexture(gl);
+    var titleKey = titleSignature();
+    function refreshTitleTexture(force) {
+      var key = titleSignature();
+      if (!force && key === titleKey) return;
+      var next = createTitleTexture(gl);
+      if (!next) return;
+      if (titleTexture) gl.deleteTexture(titleTexture);
+      titleTexture = next;
+      titleKey = key;
+    }
     if (document.fonts && document.fonts.load) {
       // The brush face is a unicode-range slice, so load() must be given the
       // glyph we actually rasterise; without text it only probes "BESbswy"
-      // and resolves without fetching the CJK subset.
-      document.fonts.load('400 1024px "Ma Shan Zheng"', '读').then(function () {
+      // and resolves without fetching the CJK subset.  The caption texture
+      // also needs the Lora face before it is rasterised.
+      Promise.all([
+        document.fonts.load('400 1024px "Ma Shan Zheng"', '读'),
+        document.fonts.load('500 32px Lora', caption ? caption.textContent : 'PAPER READING NOTES')
+      ]).then(function () {
         if (!alive) return;
-        var next = createTitleTexture(gl);
-        if (!next) return;
-        if (titleTexture) gl.deleteTexture(titleTexture);
-        titleTexture = next;
+        refreshTitleTexture(true);
       }).catch(function () { /* keep the initial texture */ });
     }
 
@@ -1432,8 +1501,9 @@
     var titleRect = [0, 0, 1, 1];
     var sceneSize = [1, 1];
     var lastDpr = 0;
-    var markBox = { left: 0, top: 0, width: 1, height: 1 };
+    var titleBox = { left: 0, top: 0, width: 1, height: 1 };
     var titleActive = 0;
+    var titleWashFloor = 0;
     var titleTarget = 0;
     var titleHoldUntil = 0;
     var overMark = false;
@@ -1443,9 +1513,10 @@
     var codeGridSize = [0, 0];
 
     function syncMarkRect() {
-      if (!mark || !isKimi()) return;
+      var host = titleHost || mark;
+      if (!host || !isKimi()) return;
       var heroRect = hero.getBoundingClientRect();
-      var rect = mark.getBoundingClientRect();
+      var rect = host.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return;
       heroBox = {
         left: heroRect.left,
@@ -1453,18 +1524,22 @@
         width: heroRect.width,
         height: heroRect.height
       };
-      markBox = {
+      titleBox = {
         left: rect.left - heroRect.left,
         top: rect.top - heroRect.top,
         width: rect.width,
         height: rect.height
       };
       titleRect = [
-        markBox.left,
-        heroRect.height - markBox.top - markBox.height,
-        markBox.width,
-        markBox.height
+        titleBox.left,
+        heroRect.height - titleBox.top - titleBox.height,
+        titleBox.width,
+        titleBox.height
       ];
+      var capRect = caption ? caption.getBoundingClientRect() : null;
+      titleWashFloor = capRect && capRect.height
+        ? 1 - (capRect.top - heroRect.top - 2) / Math.max(1, heroRect.height)
+        : 0;
       sceneSize = [Math.max(1, heroRect.width), Math.max(1, heroRect.height)];
     }
 
@@ -1506,6 +1581,7 @@
       output.cloudWidth = cloud[0];
       output.cloudHeight = cloud[1];
       syncMarkRect();
+      refreshTitleTexture();
       code.resize(rect.width, rect.height);
       wash.resize(rect.width, rect.height);
       surface.reset();
@@ -1585,16 +1661,16 @@
     renderer.move = function (x, y) {
       if (!introDone() || settings.ink <= 0 || reduce.matches) return;
       if (renderer.rectDirty) renderer.refreshRect();
-      overMark = x >= markBox.left && x <= markBox.left + markBox.width &&
-        y >= markBox.top && y <= markBox.top + markBox.height;
+      overMark = x >= titleBox.left && x <= titleBox.left + titleBox.width &&
+        y >= titleBox.top && y <= titleBox.top + titleBox.height;
       var now = performance.now();
       if (overMark) titleHoldUntil = now + 700;
       code.move(x, y);
       // The wash shader works in the same bottom-up scene space as WebGL.
       wash.move(x, sceneSize[1] - y);
-      if (markBox.width > 0) {
-        var tx = (x - markBox.left) / markBox.width;
-        var ty = 1 - (y - markBox.top) / markBox.height;
+      if (titleBox.width > 0) {
+        var tx = (x - titleBox.left) / titleBox.width;
+        var ty = 1 - (y - titleBox.top) / titleBox.height;
         if (tx > -0.2 && tx < 1.2 && ty > -0.2 && ty < 1.2) surface.move(tx, ty);
       }
     };
@@ -1618,6 +1694,7 @@
       wash.reset();
       surface.reset();
       if (mark) mark.classList.remove('is-webgl-title');
+      if (caption) caption.classList.remove('is-webgl-title');
     };
 
     renderer.draw = function (dt) {
@@ -1656,6 +1733,10 @@
       if (mark) {
         if (titleActive > 0.985) mark.classList.add('is-webgl-title');
         else if (titleActive < 0.85) mark.classList.remove('is-webgl-title');
+      }
+      if (caption) {
+        if (titleActive > 0.985) caption.classList.add('is-webgl-title');
+        else if (titleActive < 0.85) caption.classList.remove('is-webgl-title');
       }
 
       uploadCodeGrid();
@@ -1728,6 +1809,7 @@
       // Our foreground-cloud layer is denser than the reference's; scale it
       // with Coverage so the wordmark keeps a crisp core at the default.
       gl.uniform1f(uniforms.titleCloudPresence, 0.0);
+      gl.uniform1f(uniforms.titleWashFloor, titleWashFloor);
       gl.uniform4fv(uniforms.inkBounds, wash.state.bounds);
       gl.uniform4fv(uniforms.inkTipStart, wash.state.tipStart);
       gl.uniform4fv(uniforms.inkTipEnd, wash.state.tipEnd);
@@ -1763,12 +1845,15 @@
 
     renderer.refreshRect = function () {
       syncMarkRect();
+      refreshTitleTexture();
       renderer.rectDirty = false;
     };
     syncMarkRect();
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () {
+        if (!alive) return;
         syncMarkRect();
+        refreshTitleTexture(true);
       }).catch(function () { /* ignore */ });
     }
 
@@ -1802,6 +1887,7 @@
     hero.classList.remove('hero-cloud-ready');
     if (mark) {
       mark.classList.remove('is-webgl-title');
+      if (caption) caption.classList.remove('is-webgl-title');
       mark.style.webkitMaskImage = '';
       mark.style.maskImage = '';
     }
@@ -2101,6 +2187,7 @@
   function syncMarkAfterBoot() {
     if (state && state.resizeDirty) return;
     if (mark) mark.classList.remove('is-webgl-title');
+    if (caption) caption.classList.remove('is-webgl-title');
   }
 
   function frame(now) {
