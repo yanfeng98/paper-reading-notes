@@ -22,6 +22,7 @@
   var markSvg = mark && mark.querySelector('.mark-svg');
   var titleHost = mark && mark.closest('.hero-mark-wrap');
   var caption = titleHost && titleHost.querySelector('.hero-mark-caption');
+  var CAPTION_PAD = 12;
   var settings = { cloud: 0.65, speed: 3, coverage: 1, ink: 0.9 };
   var api = {
     ready: false,
@@ -989,7 +990,7 @@
     if (!rect.width || !rect.height) return null;
     var style = getComputedStyle(caption);
     var width = 1024;
-    var height = Math.max(1, Math.round(width * rect.height / rect.width));
+    var height = Math.max(1, Math.round(width * (rect.height + CAPTION_PAD * 2) / rect.width));
     var canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -1511,7 +1512,7 @@
     var exitAtlas = createExitAtlas(gl, snippets);
     var wash = createWashState();
     var surface = createSurfaceState();
-    var captionSurface = createSurfaceState(0.08);
+    var captionSurface = createSurfaceState(0.12);
     wash.setRadiusScale(0.8);
     wash.setDamping(1000);
 
@@ -1590,9 +1591,9 @@
       };
       captionBox = capRect && capRect.width > 0 && capRect.height > 0 ? {
         left: capRect.left - heroRect.left,
-        top: capRect.top - heroRect.top,
+        top: capRect.top - heroRect.top - CAPTION_PAD,
         width: capRect.width,
-        height: capRect.height
+        height: capRect.height + CAPTION_PAD * 2
       } : { left: 0, top: 0, width: 0, height: 0 };
       titleRect = [
         titleBox.left,
@@ -1901,7 +1902,7 @@
       gl.uniform4fv(uniforms.captionRect, captionRect);
       gl.uniform1f(uniforms.titleOpacity, 0.8 * settings.ink);
       gl.uniform1f(uniforms.titleStrength, 0.22);
-      gl.uniform1f(uniforms.captionStrength, 0.2);
+      gl.uniform1f(uniforms.captionStrength, 0.16);
       gl.uniform1f(uniforms.captionOpacity, 1.0);
       gl.uniform1f(uniforms.writingProgress, introDone() ? 1 : 0);
       gl.uniform1f(uniforms.ink, settings.ink);
