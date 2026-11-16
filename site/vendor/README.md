@@ -10,6 +10,7 @@
 | `fonts/lora/*.woff2` | Lora variable（latin / latin-ext） | Google Fonts | [OFL](fonts/licenses/Lora-OFL.txt) |
 | `fonts/noto-serif-sc/*.woff2` | Noto Serif SC variable 分片 | Google Fonts | [OFL](fonts/licenses/NotoSerifSC-OFL.txt) |
 | `fonts/mashanzheng/*.woff2` | Ma Shan Zheng（控件 K 图标分片） | Google Fonts | [OFL](fonts/licenses/MaShanZheng-OFL.txt) |
+| `fonts/sentient/Sentient-Regular.woff2` | Sentient Regular（Kimi 皮肤 hero 副标） | [Fontshare](https://www.fontshare.com/fonts/sentient) | [ITF FFL](fonts/licenses/Sentient-FFL.txt) |
 | `licenses/hanzi-writer-data-ARPHICPL.txt` | 字标笔顺数据（内联进首页 SVG） | [hanzi-writer-data](https://github.com/chanind/hanzi-writer-data) | Arphic Public License |
 
 升级时替换对应文件并更新本表（含 `licenses/` 下的许可证全文）。MathJax 使用 `tex-svg` 组合包（SVG 输出，无额外字体文件）。Mermaid 只在存在 `mermaid` 围栏的页面加载，MathJax 只在存在 `math` 围栏的页面加载。字体只在 Kimi 皮肤真正用到对应字符时按 `unicode-range` 分片加载；经典皮肤不会请求字体文件。

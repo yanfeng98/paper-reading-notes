@@ -405,6 +405,7 @@ html[data-skin="kimi"] .hero-copy {
 }
 
 html[data-skin="kimi"] .hero-mark-wrap {
+  --hero-mark-size: min(46dvh, 70vw);
   position: relative;
   display: block;
   margin: 0;
@@ -413,7 +414,7 @@ html[data-skin="kimi"] .hero-mark-wrap {
 html[data-skin="kimi"] .hero-mark {
   position: relative;
   z-index: 1;
-  width: min(46dvh, 70vw);
+  width: var(--hero-mark-size);
   aspect-ratio: 1;
   margin: 0 auto;
   filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.28));
@@ -451,19 +452,25 @@ html[data-skin="kimi"] .hero.is-intro .mark-svg {
 }
 
 html[data-skin="kimi"] .hero-mark-caption {
-  max-width: min(94vw, 640px);
+  max-width: min(96vw, 960px);
   margin: 20px auto 0;
   color: #fff;
-  font-family: var(--reading);
-  /* The original "Kimi K3.1 Pro" title is 32px; keep the caption at that size
-     and let the WebGL wordmark texture carry it into the liquid pass. */
-  font-size: 2rem;
-  font-weight: 500;
+  font-family: "Sentient", var(--reading);
+  /* The reference bakes this caption into its title artwork, so it scales with
+     the wordmark: cap height ≈ 0.0745 × mark width (≈ 34px at a 322px mark).
+     Small caps are 0.833em, matching the original lettering. */
+  font-size: clamp(0.9rem, calc(var(--hero-mark-size) * 0.1085), 6rem);
+  font-weight: 400;
   line-height: 1.2;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.01em;
   text-align: center;
   white-space: nowrap;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5), 0 1px 10px rgba(0, 0, 0, 0.35);
+}
+
+html[data-skin="kimi"] .hero-mark-caption .hc-small {
+  font-size: 0.833em;
+  text-transform: uppercase;
 }
 
 /* The composite carries the glyph and caption through the tear; hide the DOM
@@ -1755,11 +1762,10 @@ html[data-skin="kimi"] .hero-media img {
   html[data-skin="kimi"] .topbar { min-height: 61px; padding: 10px 20px; }
   html[data-skin="kimi"] .hero-inner { padding: 112px 20px 64px; }
   html[data-skin="kimi"] .hero-copy { padding-top: calc(18vh + 20px); }
-  html[data-skin="kimi"] .hero-mark { width: min(70vw, 273px); }
+  html[data-skin="kimi"] .hero-mark-wrap { --hero-mark-size: min(70vw, 273px); }
   html[data-skin="kimi"] .hero-mark-caption {
     max-width: 92vw;
     margin-top: 16px;
-    font-size: clamp(1rem, 4.4vw, 2rem);
   }
   html[data-skin="kimi"] .kimi-hero-lower { padding-top: 96px; }
   html[data-skin="kimi"] .hero-scroll { bottom: 80px; font-size: 16px; }
@@ -1875,14 +1881,13 @@ html[data-skin="kimi"] .hero-media img {
 }
 
 @media (max-width: 400px) {
-  html[data-skin="kimi"] .hero-mark-caption { letter-spacing: 0.14em; }
+  html[data-skin="kimi"] .hero-mark-caption { letter-spacing: 0.01em; }
 }
 
 /* 320px phones have no room for a wrapped caption above the scroll hint. */
 @media (max-width: 340px) {
   html[data-skin="kimi"] .hero-mark-caption {
-    font-size: clamp(0.9rem, 4.7vw, 1.5rem);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.01em;
   }
 }
 

@@ -28,7 +28,8 @@
         document.documentElement.dataset.theme = resolved;
         document.documentElement.dataset.themeMode = mode;
         if (skin === 'kimi') {
-          // Only the Kimi skin needs the hero photograph and the brush font.
+          // Only the Kimi skin needs the hero photograph, the brush font and
+          // the Sentient caption face.
           // Starting the hero request in <head> lets the photograph preload
           // before the deferred scripts hydrate its placeholder <img>.
           var hero = document.createElement('link');
@@ -46,6 +47,13 @@
           brush.crossOrigin = 'anonymous';
           brush.href = '{{ROOT}}assets/vendor/fonts/mashanzheng/ma-shan-zheng-slice.woff2';
           document.head.appendChild(brush);
+          var captionFace = document.createElement('link');
+          captionFace.rel = 'preload';
+          captionFace.as = 'font';
+          captionFace.type = 'font/woff2';
+          captionFace.crossOrigin = 'anonymous';
+          captionFace.href = '{{ROOT}}assets/vendor/fonts/sentient/Sentient-Regular.woff2';
+          document.head.appendChild(captionFace);
         }
       } catch (error) {
         document.documentElement.dataset.theme = 'light';
@@ -165,7 +173,7 @@
             <use class="mark-full" href="#du-glyph"/>
             </svg>
             </div>
-            <p class="hero-mark-caption">PAPER READING NOTES</p>
+            <p class="hero-mark-caption"><span class="hc-cap">P</span><span class="hc-small">aper</span> <span class="hc-cap">R</span><span class="hc-small">eading</span> <span class="hc-cap">N</span><span class="hc-small">otes</span></p>
           </div>
           <p class="eyebrow">PAPER READING NOTES</p>
           <h1>论文阅读笔记</h1>

@@ -23,6 +23,7 @@
   var titleHost = mark && mark.closest('.hero-mark-wrap');
   var caption = titleHost && titleHost.querySelector('.hero-mark-caption');
   var CAPTION_PAD = 12;
+  var TITLE_PAD = 28;
   var settings = { cloud: 0.65, speed: 3, coverage: 1, ink: 0.9 };
   var api = {
     ready: false,
@@ -138,11 +139,11 @@
     'precision highp float;',
     'in vec2 viewportUV; out vec4 o;',
     'vec2 v;',
-    'uniform sampler2D img, clouds, frontClouds, codeGrid, codeAtlas, titleGlyph, titleSurface, captionGlyph, captionSurface, inkNoise;',
+    'uniform sampler2D img, clouds, frontClouds, codeGrid, codeAtlas, titleGlyph, titleSurface, inkNoise;',
     'uniform vec2 res, imgSize, mouse, sceneSize, codeStep;',
     'uniform float T, coverage, codeSize, titleOpacity, titleStrength;',
-    'uniform float writingProgress, ink, particles, titleActive, washSolidity, titleCloudPresence, captionStrength, captionOpacity;',
-    'uniform vec4 titleRect, captionRect, inkBounds, inkStarts[16], inkEnds[16], inkTipStart, inkTipEnd;',
+    'uniform float writingProgress, ink, particles, titleActive, washSolidity, titleCloudPresence;',
+    'uniform vec4 titleRect, inkBounds, inkStarts[16], inkEnds[16], inkTipStart, inkTipEnd;',
     'uniform int inkCount;',
     'float h(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }',
     'float lum(vec3 c){ return dot(c,vec3(.299,.587,.114)); }',
@@ -225,19 +226,6 @@
     '  lettering = lettering*(1.-front.a)+front.rgb*title.a;',
     '  return color*(1.-title.a)+lettering;',
     '}',
-    'vec3 composeCaption(vec3 color){',
-    '  if(titleActive <= .001 || captionRect.z <= 0. || captionRect.w <= 0.) return color;',
-    '  vec2 uv = (v*sceneSize-captionRect.xy)/captionRect.zw;',
-    '  if(any(lessThan(uv,vec2(-.12))) || any(greaterThan(uv,vec2(1.12)))) return color;',
-    '  vec4 encoded = texture(captionSurface,clamp(uv,vec2(0.),vec2(1.)));',
-    '  vec2 displacement = (encoded.rg-.5)*0.32;',
-    '  displacement.y *= 3.5;',
-    '  vec2 source = writingProgress >= 1. ? uv-displacement*captionStrength : uv;',
-    '  vec4 cap = texture(captionGlyph,clamp(source,vec2(0.),vec2(1.)));',
-    '  cap *= titleActive;',
-    '  if(cap.a <= .001) return color;',
-    '  return color*(1.-cap.a)+cap.rgb*captionOpacity;',
-    '}',
     'vec3 sceneAt(vec2 screen){',
     '  v = screen;',
     '  vec2 uv = photoUV(v);',
@@ -254,7 +242,6 @@
     '  vec3 withTitle = composeTitle(col,cleanRear,front);',
     '  float titleCover = (titleActive > .001 && writingProgress >= 1.) ? clamp(designReveal(),0.,1.) : 0.;',
     '  col = mix(withTitle,col,titleCover);',
-    '  col = composeCaption(col);',
     '  return col;',
     '}',
     'void main(){',
@@ -747,9 +734,11 @@
 
   /* ---------- 32x32 displacement surface (ported from the K3.1 hero) ---------- */
 
-  function createSurfaceState(radius) {
-    var sigma = radius && radius > 0 ? radius : 0.22;
-    var sigma2 = sigma * sigma;
+  function createSurfaceState(sigmaX, sigmaY) {
+    var sx = sigmaX && sigmaX > 0 ? sigmaX : 0.22;
+    var sy = sigmaY && sigmaY > 0 ? sigmaY : sx;
+    var sx2 = sx * sx;
+    var sy2 = sy * sy;
     var displacement = new Float32Array(2048);
     var velocity = new Float32Array(2048);
     var pixels = new Uint8Array(4096);
@@ -785,9 +774,9 @@
         if (cx < -0.2 || cx > 1.2 || cy < -0.2 || cy > 1.2) return;
         for (var row = 1; row < 31; row++) {
           for (var col = 1; col < 31; col++) {
-            var ox = (col + 0.5) / 32 - cx;
-            var oy = (row + 0.5) / 32 - cy;
-            var weight = Math.exp((-(ox * ox + oy * oy) / sigma2) * 2);
+            var ox = col / 31 - cx;
+            var oy = row / 31 - cy;
+            var weight = Math.exp(-(ox * ox / sx2 + oy * oy / sy2) * 2);
             if (weight < 0.001) continue;
             var index = (32 * row + col) * 2;
             displacement[index] += vx * weight * 0.8;
@@ -834,6 +823,11 @@
           active = false;
         }
         revision++;
+      },
+      setSigma: function (x, y) {
+        if (!(x > 0) || !(y > 0)) return;
+        sx2 = x * x;
+        sy2 = y * y;
       },
       pixels: function () {
         if (encodedRevision === revision) return pixels;
@@ -950,83 +944,62 @@
     };
   }
 
-  function createTitleTexture(gl) {
+  /* The reference bakes its wordmark and caption into one title artwork, so a
+     single wash/displacement pass covers both.  We reproduce that structure:
+     the 读 glyph and the Sentient small-caps caption are rasterised into one
+     texture whose rect is the union of the two DOM boxes. */
+  var SMALL_CAP_SCALE = 0.833;
+
+  function drawSmallCapsCaption(ctx, geo) {
+    var box = geo.caption;
+    var full = geo.fontSize * geo.scale;
+    var spacing = (isFinite(geo.letterSpacing) ? geo.letterSpacing : 0) * geo.scale;
+    var family = '"Sentient", "Lora", "Noto Serif SC", Georgia, serif';
+    ctx.font = '400 ' + full.toFixed(2) + 'px ' + family;
+    var capHeight = ctx.measureText('H').actualBoundingBoxAscent || full * 0.7;
+    var baseline = box.top + box.height / 2 + capHeight / 2;
+    var chars = geo.text.split('');
+    var glyphs = [];
+    var total = 0;
+    for (var i = 0; i < chars.length; i++) {
+      var upper = chars[i].toUpperCase();
+      var size = chars[i] === upper ? full : full * SMALL_CAP_SCALE;
+      ctx.font = '400 ' + size.toFixed(2) + 'px ' + family;
+      var width = ctx.measureText(upper).width;
+      glyphs.push({ char: upper, width: width, size: size });
+      total += width;
+    }
+    total += spacing * Math.max(0, chars.length - 1);
+    var x = box.left + (box.width - total) / 2;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    for (var j = 0; j < glyphs.length; j++) {
+      var glyph = glyphs[j];
+      if (glyph.char !== ' ') {
+        ctx.font = '400 ' + glyph.size.toFixed(2) + 'px ' + family;
+        ctx.fillText(glyph.char, x, baseline);
+      }
+      x += glyph.width + spacing;
+    }
+  }
+
+  function createTitleTexture(gl, geo) {
+    if (!geo) return null;
     var canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 1024;
+    canvas.width = geo.width;
+    canvas.height = geo.height;
     var ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    ctx.clearRect(0, 0, 1024, 1024);
+    ctx.clearRect(0, 0, geo.width, geo.height);
     ctx.fillStyle = '#fff';
-    ctx.font = '400 1024px "Ma Shan Zheng", "Noto Serif SC", serif';
+    // Same 1024-unit em and 900/1024 baseline as the intro SVG.
+    ctx.font = '400 ' + geo.mark.width.toFixed(2) +
+      'px "Ma Shan Zheng", "Noto Serif SC", serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText('读', 512, 900);
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    return texture;
-  }
-
-  function captionSignature() {
-    if (!caption) return '';
-    var rect = caption.getBoundingClientRect();
-    var style = getComputedStyle(caption);
-    return [Math.round(rect.width), Math.round(rect.height),
-      style.fontSize, style.letterSpacing, caption.textContent].join('|');
-  }
-
-  function createCaptionTexture(gl) {
-    if (!caption) return null;
-    var rect = caption.getBoundingClientRect();
-    if (!rect.width || !rect.height) return null;
-    var style = getComputedStyle(caption);
-    var width = 1024;
-    var height = Math.max(1, Math.round(width * (rect.height + CAPTION_PAD * 2) / rect.width));
-    var canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    var ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-    var scale = width / rect.width;
-    var fontSize = parseFloat(style.fontSize) * scale;
-    var spacing = parseFloat(style.letterSpacing);
-    if (!isFinite(spacing)) spacing = parseFloat(style.fontSize) * 0.16;
-    spacing *= scale;
-    var copy = (caption.textContent || '').trim();
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#fff';
-    ctx.font = '500 ' + fontSize.toFixed(2) +
-      'px Lora, "Noto Serif SC", Georgia, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    // The hero photo is bright in places; keep the caption readable with the
-    // same soft shadow the DOM copy uses.
-    ctx.shadowColor = 'rgba(0,0,0,0.35)';
-    ctx.shadowBlur = Math.max(2, fontSize * 0.16);
-    ctx.shadowOffsetY = 1;
-    var widths = [];
-    var total = 0;
-    for (var i = 0; i < copy.length; i++) {
-      var charWidth = ctx.measureText(copy.charAt(i)).width;
-      widths.push(charWidth);
-      total += charWidth;
-    }
-    total += spacing * Math.max(0, copy.length - 1);
-    var x = (width - total) / 2;
-    var y = height / 2;
-    for (var j = 0; j < copy.length; j++) {
-      ctx.fillText(copy.charAt(j), x, y);
-      x += widths[j] + spacing;
-    }
+    ctx.fillText('读', geo.mark.left + geo.mark.width / 2,
+      geo.mark.top + geo.mark.height * (900 / 1024));
+    if (geo.caption && geo.text) drawSmallCapsCaption(ctx, geo);
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -1370,36 +1343,64 @@
     var exitProgram = program(gl, vertex, exitFragment);
     var codeAtlas = createCodeAtlas(gl);
     var noiseTexture = createNoiseTexture(gl);
-    var titleTexture = createTitleTexture(gl);
-    var captionTexture = createCaptionTexture(gl);
-    var captionKey = captionSignature();
-    function refreshTitleTexture() {
-      var next = createTitleTexture(gl);
+    var titleTexture = null;
+    var titleKey = '';
+    function titleSignature() {
+      var style = caption ? getComputedStyle(caption) : null;
+      return [
+        Math.round(titleBox.width), Math.round(titleBox.height),
+        Math.round(captionBox.width), Math.round(captionBox.height),
+        style ? style.fontSize : '', style ? style.fontWeight : '',
+        style ? style.letterSpacing : '', caption ? caption.textContent : ''
+      ].join('|');
+    }
+    function titleGeometry() {
+      if (!mark || titleBox.width <= 0 || titleBox.height <= 0) return null;
+      var style = caption ? getComputedStyle(caption) : null;
+      var scale = 1024 / Math.max(1, titleBox.width);
+      return {
+        width: 1024,
+        height: Math.max(1, Math.round(titleBox.height * scale)),
+        scale: scale,
+        mark: {
+          left: (markBox.left - titleBox.left) * scale,
+          top: (markBox.top - titleBox.top) * scale,
+          width: markBox.width * scale,
+          height: markBox.height * scale
+        },
+        caption: captionBox.width > 0 ? {
+          left: (captionBox.left - titleBox.left) * scale,
+          top: (captionBox.top - titleBox.top) * scale,
+          width: captionBox.width * scale,
+          height: captionBox.height * scale
+        } : null,
+        text: caption ? (caption.textContent || '').trim() : '',
+        fontSize: style ? parseFloat(style.fontSize) : 32,
+        letterSpacing: style && isFinite(parseFloat(style.letterSpacing))
+          ? parseFloat(style.letterSpacing) : 0
+      };
+    }
+    function refreshTitleTexture(force) {
+      var key = titleSignature();
+      if (!force && key === titleKey) return;
+      var next = createTitleTexture(gl, titleGeometry());
       if (!next) return;
       if (titleTexture) gl.deleteTexture(titleTexture);
       titleTexture = next;
-    }
-    function refreshCaptionTexture(force) {
-      var key = captionSignature();
-      if (!force && key === captionKey) return;
-      var next = createCaptionTexture(gl);
-      if (!next) return;
-      if (captionTexture) gl.deleteTexture(captionTexture);
-      captionTexture = next;
-      captionKey = key;
+      titleKey = key;
     }
     if (document.fonts && document.fonts.load) {
       // The brush face is a unicode-range slice, so load() must be given the
       // glyph we actually rasterise; without text it only probes "BESbswy"
       // and resolves without fetching the CJK subset.  The caption texture
-      // also needs the Lora face before it is rasterised.
+      // also needs Sentient before it is rasterised into the same bitmap.
       Promise.all([
-        document.fonts.load('400 1024px "Ma Shan Zheng"', '读'),
-        document.fonts.load('500 32px Lora', caption ? caption.textContent : 'PAPER READING NOTES')
+        document.fonts.load('400 32px "Ma Shan Zheng"', '读'),
+        document.fonts.load('400 32px "Sentient"',
+          caption ? caption.textContent : 'Paper Reading Notes')
       ]).then(function () {
         if (!alive) return;
-        refreshTitleTexture();
-        refreshCaptionTexture(true);
+        refreshTitleTexture(true);
       }).catch(function () { /* keep the initial texture */ });
     }
 
@@ -1466,14 +1467,6 @@
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    var captionSurfaceTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, captionSurfaceTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 32, 32, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
     gl.bindTexture(gl.TEXTURE_2D, cloudTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.bindTexture(gl.TEXTURE_2D, frontTexture);
@@ -1512,7 +1505,6 @@
     var exitAtlas = createExitAtlas(gl, snippets);
     var wash = createWashState();
     var surface = createSurfaceState();
-    var captionSurface = createSurfaceState(0.12);
     wash.setRadiusScale(0.8);
     wash.setDamping(1000);
 
@@ -1546,10 +1538,10 @@
       halted: false
     };
     var titleRect = [0, 0, 1, 1];
-    var captionRect = [0, 0, 0, 0];
     var hotRect = [0, 0, 1, 1];
     var sceneSize = [1, 1];
     var lastDpr = 0;
+    var markBox = { left: 0, top: 0, width: 0, height: 0 };
     var titleBox = { left: 0, top: 0, width: 1, height: 1 };
     var captionBox = { left: 0, top: 0, width: 0, height: 0 };
     var hotBox = { left: 0, top: 0, width: 1, height: 1 };
@@ -1560,7 +1552,6 @@
     var svgHidden = false;
     var lastCodeRevision = -1;
     var lastSurfaceRevision = -1;
-    var lastCaptionSurfaceRevision = -1;
     var codeGridSize = [0, 0];
 
     function syncMarkRect() {
@@ -1577,7 +1568,7 @@
         width: heroRect.width,
         height: heroRect.height
       };
-      titleBox = {
+      markBox = {
         left: markRect.left - heroRect.left,
         top: markRect.top - heroRect.top,
         width: markRect.width,
@@ -1595,18 +1586,35 @@
         width: capRect.width,
         height: capRect.height + CAPTION_PAD * 2
       } : { left: 0, top: 0, width: 0, height: 0 };
+      var hasCaption = captionBox.width > 0 && captionBox.height > 0;
+      var left = hasCaption ? Math.min(markBox.left, captionBox.left) : markBox.left;
+      var top = hasCaption ? Math.min(markBox.top, captionBox.top) : markBox.top;
+      var right = hasCaption
+        ? Math.max(markBox.left + markBox.width, captionBox.left + captionBox.width)
+        : markBox.left + markBox.width;
+      var bottom = hasCaption
+        ? Math.max(markBox.top + markBox.height, captionBox.top + captionBox.height)
+        : markBox.top + markBox.height;
+      titleBox = {
+        left: left - TITLE_PAD,
+        top: top - TITLE_PAD,
+        width: right - left + TITLE_PAD * 2,
+        height: bottom - top + TITLE_PAD * 2
+      };
+      // The reference normalises the title surface over its square mark box
+      // (0.22 * 322px at the default hero size).  Our texture also carries the
+      // caption, so compensate per axis to keep the same pixel-space reach
+      // instead of letting the taller union widen the liquid warp.
+      if (surface && markBox.width > 0 && titleBox.width > 0 && titleBox.height > 0) {
+        var sigmaPx = 0.22 * markBox.width;
+        surface.setSigma(sigmaPx / titleBox.width, sigmaPx / titleBox.height);
+      }
       titleRect = [
         titleBox.left,
         heroRect.height - titleBox.top - titleBox.height,
         titleBox.width,
         titleBox.height
       ];
-      captionRect = captionBox.width > 0 ? [
-        captionBox.left,
-        heroRect.height - captionBox.top - captionBox.height,
-        captionBox.width,
-        captionBox.height
-      ] : [0, 0, 0, 0];
       hotRect = [
         hotBox.left,
         heroRect.height - hotBox.top - hotBox.height,
@@ -1654,11 +1662,10 @@
       output.cloudWidth = cloud[0];
       output.cloudHeight = cloud[1];
       syncMarkRect();
-      refreshCaptionTexture();
+      refreshTitleTexture();
       code.resize(rect.width, rect.height);
       wash.resize(rect.width, rect.height);
       surface.reset();
-      captionSurface.reset();
       renderer.resizeDirty = false;
       renderer.rectDirty = false;
     }
@@ -1732,13 +1739,6 @@
       lastSurfaceRevision = surface.revision;
     }
 
-    function uploadCaptionSurface() {
-      if (captionSurface.revision === lastCaptionSurfaceRevision) return;
-      gl.bindTexture(gl.TEXTURE_2D, captionSurfaceTexture);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 32, 32, gl.RGBA, gl.UNSIGNED_BYTE, captionSurface.pixels());
-      lastCaptionSurfaceRevision = captionSurface.revision;
-    }
-
     renderer.move = function (x, y) {
       if (!introDone() || settings.ink <= 0 || reduce.matches) return;
       if (renderer.rectDirty) renderer.refreshRect();
@@ -1756,13 +1756,6 @@
         var ty = 1 - (y - titleBox.top) / titleBox.height;
         surface.move(tx, ty);
       }
-      if (captionBox.width > 0 &&
-          x >= captionBox.left && x <= captionBox.left + captionBox.width &&
-          y >= captionBox.top && y <= captionBox.top + captionBox.height) {
-        var cx = (x - captionBox.left) / captionBox.width;
-        var cy = 1 - (y - captionBox.top) / captionBox.height;
-        captionSurface.move(cx, cy);
-      }
     };
 
     renderer.release = function () {
@@ -1772,7 +1765,6 @@
       code.release();
       wash.release();
       surface.release();
-      captionSurface.release();
     };
 
     renderer.reset = function () {
@@ -1784,7 +1776,6 @@
       code.reset();
       wash.reset();
       surface.reset();
-      captionSurface.reset();
       if (mark) mark.classList.remove('is-webgl-title');
       if (caption) caption.classList.remove('is-webgl-title');
     };
@@ -1805,7 +1796,6 @@
         code.advance(dt);
         wash.advance(dt);
         surface.advance(dt);
-        captionSurface.advance(dt);
         var now = performance.now();
         if (!introDone()) {
           titleTarget = 0;
@@ -1834,7 +1824,6 @@
 
       uploadCodeGrid();
       uploadSurface();
-      uploadCaptionSurface();
 
       var amount = cloudAmount(settings.cloud);
       var cw = output.cloudWidth;
@@ -1875,10 +1864,6 @@
       gl.bindTexture(gl.TEXTURE_2D, titleSurface);
       gl.activeTexture(gl.TEXTURE7);
       gl.bindTexture(gl.TEXTURE_2D, noiseTexture);
-      gl.activeTexture(gl.TEXTURE8);
-      gl.bindTexture(gl.TEXTURE_2D, captionTexture);
-      gl.activeTexture(gl.TEXTURE9);
-      gl.bindTexture(gl.TEXTURE_2D, captionSurfaceTexture);
       var uniforms = compositeProgram.uniforms;
       gl.uniform1i(uniforms.img, 0);
       gl.uniform1i(uniforms.clouds, 1);
@@ -1888,8 +1873,6 @@
       gl.uniform1i(uniforms.titleGlyph, 5);
       gl.uniform1i(uniforms.titleSurface, 6);
       gl.uniform1i(uniforms.inkNoise, 7);
-      gl.uniform1i(uniforms.captionGlyph, 8);
-      gl.uniform1i(uniforms.captionSurface, 9);
       gl.uniform2f(uniforms.res, output.width, output.height);
       gl.uniform2f(uniforms.imgSize, srcW, srcH);
       gl.uniform2f(uniforms.mouse, pointer.x, pointer.y);
@@ -1899,11 +1882,8 @@
       gl.uniform1f(uniforms.codeSize, code.state.size);
       gl.uniform1f(uniforms.T, time);
       gl.uniform4fv(uniforms.titleRect, titleRect);
-      gl.uniform4fv(uniforms.captionRect, captionRect);
       gl.uniform1f(uniforms.titleOpacity, 0.8 * settings.ink);
       gl.uniform1f(uniforms.titleStrength, 0.22);
-      gl.uniform1f(uniforms.captionStrength, 0.16);
-      gl.uniform1f(uniforms.captionOpacity, 1.0);
       gl.uniform1f(uniforms.writingProgress, introDone() ? 1 : 0);
       gl.uniform1f(uniforms.ink, settings.ink);
       gl.uniform1f(uniforms.particles, 1);
@@ -1947,16 +1927,16 @@
 
     renderer.refreshRect = function () {
       syncMarkRect();
-      refreshCaptionTexture();
+      refreshTitleTexture();
       renderer.rectDirty = false;
     };
     syncMarkRect();
+    refreshTitleTexture(true);
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(function () {
         if (!alive) return;
         syncMarkRect();
-        refreshTitleTexture();
-        refreshCaptionTexture(true);
+        refreshTitleTexture(true);
       }).catch(function () { /* ignore */ });
     }
 
@@ -1973,8 +1953,6 @@
       gl.deleteTexture(codeAtlas);
       gl.deleteTexture(titleTexture);
       gl.deleteTexture(titleSurface);
-      gl.deleteTexture(captionTexture);
-      gl.deleteTexture(captionSurfaceTexture);
       gl.deleteTexture(noiseTexture);
       gl.deleteBuffer(buffer);
       gl.deleteVertexArray(vao);
