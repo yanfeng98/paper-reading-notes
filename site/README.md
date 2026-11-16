@@ -15,8 +15,8 @@ python3 -m http.server 8000 --directory _site
 - `assets/site.css`、`assets/site.js`：经典皮肤样式与两套皮肤共用的交互；不依赖 CDN。
 - `assets/skin-kimi.css`：Kimi 皮肤，全部规则包在 `html[data-skin="kimi"]` 下，不影响经典皮肤。
 - `assets/fonts.css`：自托管字体声明（Lora + Noto Serif SC 分片 + Ma Shan Zheng 分片 + Sentient，后两者分别用于 hero「读」字标/控件 K 图标与副标）。
-- `assets/hero-kimi-*.webp/.jpg`：Kimi 首屏与阅读页封面的云海图（由 `tools/hero-source.jpg` 生成，保持原图 4:3，由 CSS `object-fit: cover` 裁切）。源照片来自 Kimi K3.1 Pro 文章页（<https://www.kimi.ai/blog/kimi-k3-1-pro>），仅作版式参考，版权归原作者；页脚与 `CLAUDE.md` 已标注来源，公开部署前需确认授权。
-- `site/tools/prepare_hero.py`：从 `site/tools/hero-source.jpg` 生成 hero 的离线脚本（需要 Pillow，不是构建依赖）；源图即原版 K3.1 hero 的云海照片，脚本只做轻度锐化，并用多倍频噪声生成纯白云朵 sprite，避免把山脊裁进云层。
+- `assets/hero-kimi-*.webp/.jpg`：Kimi 首屏与阅读页封面的云海图（`hero-kimi-*` 由 `tools/hero-source.jpg` 生成，保持原图 4:3；`hero-kimi-yunhai-*` 由 `tools/yunhai-source.jpg` 生成，保持 16:9，均由 CSS `object-fit: cover` 裁切）。首张源照片来自 Kimi K3.1 Pro 文章页（<https://www.kimi.ai/blog/kimi-k3-1-pro>），仅作版式参考，版权归原作者，公开部署前需确认授权；第二张是站点作者提供的云海照片，参与首页 hero 轮换。
+- `site/tools/prepare_hero.py`：从 `site/tools/hero-source.jpg` 与 `site/tools/yunhai-source.jpg` 生成 hero 的离线脚本（需要 Pillow，不是构建依赖）；脚本只做轻度锐化，并用多倍频噪声生成纯白云朵 sprite，避免把山脊裁进云层。
 - `vendor/`：marked / MathJax / Mermaid / 字体与许可证，构建时复制到 `_site/assets/vendor/`。
 
 ## 双皮肤
@@ -34,7 +34,7 @@ python3 -m http.server 8000 --directory _site
 - 阅读页的中文密度与原版英文博客不同：正文两端对齐，但含行内代码/长拉丁词的段落保持左对齐，避免 justified 产生的词间大洞。开头的「来源信息」表在 Kimi 皮肤下由 `site.js` 转成定义列表卡片（默认显示前 4 项，长字段折叠，「展开全部信息」展开其余项）；原表保留在 DOM 里供经典皮肤使用。手机（≤700px）的表格按行折成带列名的卡片，不再横向滚动。
 - 字体从 `site/vendor/fonts/` 本地加载：Lora（拉丁）、Noto Serif SC（按 `unicode-range` 分片）、Ma Shan Zheng（hero「读」字标、控件 K 图标）与 Sentient（hero 副标，small caps）。新增或替换字体时同时更新 `assets/fonts.css` 与对应许可证（Sentient 使用 ITF Free Font License，不是 OFL）。
 - 首页「读」字标使用从 `ma-shan-zheng-slice.woff2` 提取的轮廓 path（不用 `<text>`：Firefox 会把带 mask 的 `<text>` 裁到 em box，切掉字形下部的笔锋），再套用 `hanzi-writer-data` 的笔顺 mask（Arphic Public License，许可证在 `vendor/licenses/hanzi-writer-data-ARPHICPL.txt`）逐笔写出；「卖」的下半部由新增的 m10–m12 三条 mask 写出；右下角的「点」用黑色轮廓从 m0–m11 中挖掉，只由最后一条 m12 单独写出；点旁边的「撇」也用黑色区域从除 m11 外的 mask 中挖掉，只由 m11 一笔写出。最后淡入无 mask 的完整字形补上残余笔锋，保证静止状态的 SVG 字标与 WebGL 字模形状一致。
-- hero 由 `site/tools/prepare_hero.py` 从 `site/tools/hero-source.jpg`（原版 K3.1 hero 的云海照片）生成，导出 1600/2400 的 WebP/JPEG（保留 4:3），并用多倍频噪声生成 `cloud-sprite-1..4.webp` 供 hero 云层漂移。
+- hero 由 `site/tools/prepare_hero.py` 从 `site/tools/hero-source.jpg`（原版 K3.1 hero 的云海照片，保留 4:3）与 `site/tools/yunhai-source.jpg`（站点作者的云海照片，保留 16:9）生成，各导出 1600/2400 的 WebP/JPEG，并用多倍频噪声生成 `cloud-sprite-1..4.webp` 供 hero 云层漂移。首页 hero 每 12 秒在两张照片之间做 1.6 秒交叉淡化：WebGL 用双纹理在 composite 内溶解，CSS 两层 `<picture>` 负责无 WebGL 的兜底；第二张在首帧后延迟加载，标签页隐藏、hero 离开视口或 exit 交接播放时暂停计时，reduced-motion 只保留首张。
 
 ## 约定
 

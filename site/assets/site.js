@@ -440,11 +440,11 @@
     var heroNode = document.querySelector('.hero');
     function frame() {
       ticking = false;
-      var image = document.querySelector('.hero-media img');
+      var images = document.querySelectorAll('.hero-media img');
       var inner = document.querySelector('.hero-inner');
       var stage = document.querySelector('.home-stage');
-      if (!image || currentSkin() !== 'kimi' || motionMedia.matches) {
-        if (image) image.style.transform = '';
+      if (!images.length || currentSkin() !== 'kimi' || motionMedia.matches) {
+        images.forEach(function (image) { image.style.transform = ''; });
         if (inner) {
           inner.style.transform = '';
           inner.style.opacity = '';
@@ -454,19 +454,23 @@
       // The handoff owns the hero while it is armed: the scene is pinned and
       // the exit pass drives both its transform and its fade.
       if (stage && stage.hasAttribute('data-reveal-enabled')) {
+        images.forEach(function (image) { image.style.transform = ''; });
         if (inner) {
           inner.style.transform = '';
           inner.style.opacity = '';
         }
         return;
       }
-      var hero = image.closest('.hero');
+      var hero = images[0].closest('.hero');
       var limit = hero ? hero.offsetHeight : window.innerHeight;
       var y = Math.min(window.scrollY, limit);
       var progress = Math.min(1, y / Math.max(1, limit));
       var panX = parseFloat(hero && hero.style.getPropertyValue('--hero-pan-x')) || 0;
       var panY = parseFloat(hero && hero.style.getPropertyValue('--hero-pan-y')) || 0;
-      image.style.transform = 'translate3d(' + (panX * 9).toFixed(2) + 'px,' + (panY * 7 + y * 0.09).toFixed(2) + 'px,0) scale(1.045)';
+      var transform = 'translate3d(' + (panX * 9).toFixed(2) + 'px,' + (panY * 7 + y * 0.09).toFixed(2) + 'px,0) scale(1.045)';
+      // Both rotation layers must move together, otherwise the hidden layer
+      // would jump into place during the crossfade.
+      images.forEach(function (image) { image.style.transform = transform; });
       if (inner) {
         inner.style.transform = 'translate3d(0,' + (progress * 34).toFixed(2) + 'px,0)';
         inner.style.opacity = String(Math.max(0, 1 - progress * 1.05));

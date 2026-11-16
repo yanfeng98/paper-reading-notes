@@ -15,6 +15,8 @@
 
   var hero = document.querySelector('.hero');
   var photo = hero && hero.querySelector('.hero-media img');
+  var photoAlt = hero && hero.querySelector('.hero-media picture[data-hero-photo-alt] img');
+  var photoMedia = hero && hero.querySelector('.hero-media');
   if (!hero || !photo) return;
 
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -24,6 +26,21 @@
   var caption = titleHost && titleHost.querySelector('.hero-mark-caption');
   var CAPTION_PAD = 12;
   var TITLE_PAD = 28;
+  var ROTATE_HOLD = 12;
+  var ROTATE_FADE = 1.6;
+  var rotation = {
+    mix: 0,
+    from: 0,
+    target: 0,
+    elapsed: 0,
+    hold: ROTATE_HOLD,
+    fading: false,
+    last: 0,
+    altRequested: false,
+    altScheduled: false,
+    altReady: false
+  };
+  var rotationFallback = 0;
   var settings = { cloud: 0.65, speed: 3, coverage: 1, ink: 0.9 };
   var api = {
     ready: false,
@@ -139,23 +156,23 @@
     'precision highp float;',
     'in vec2 viewportUV; out vec4 o;',
     'vec2 v;',
-    'uniform sampler2D img, clouds, frontClouds, codeGrid, codeAtlas, titleGlyph, titleSurface, inkNoise;',
-    'uniform vec2 res, imgSize, mouse, sceneSize, codeStep;',
-    'uniform float T, coverage, codeSize, titleOpacity, titleStrength;',
+    'uniform sampler2D img, imgAlt, clouds, frontClouds, codeGrid, codeAtlas, titleGlyph, titleSurface, inkNoise;',
+    'uniform vec2 res, imgSize, imgSizeAlt, mouse, sceneSize, codeStep;',
+    'uniform float T, coverage, codeSize, titleOpacity, titleStrength, photoMix;',
     'uniform float writingProgress, ink, particles, titleActive, washSolidity, titleCloudPresence;',
     'uniform vec4 titleRect, inkBounds, inkStarts[16], inkEnds[16], inkTipStart, inkTipEnd;',
     'uniform int inkCount;',
     'float h(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }',
     'float lum(vec3 c){ return dot(c,vec3(.299,.587,.114)); }',
-    'vec2 photoScale(){',
-    '  float ra = res.x/res.y, ia = imgSize.x/imgSize.y;',
+    'vec2 photoScale(vec2 size){',
+    '  float ra = res.x/res.y, ia = size.x/size.y;',
     '  return ra > ia ? vec2(1.,ia/ra) : vec2(ra/ia,1.);',
     '}',
-    'vec2 photoUV(vec2 screen){',
-    '  return (vec2(screen.x,1.-screen.y)-.5)*photoScale()+.5+mouse*.0024;',
+    'vec2 photoUV(vec2 screen, vec2 size){',
+    '  return (vec2(screen.x,1.-screen.y)-.5)*photoScale(size)+.5+mouse*.0024;',
     '}',
-    'float ridgeVisibility(vec3 base, vec2 uv, float y){',
-    '  float L = mix(lum(base),lum(textureLod(img,uv,3.).rgb),.45);',
+    'float ridgeVisibility(vec3 base, vec3 blur, float y){',
+    '  float L = mix(lum(base),lum(blur),.45);',
     '  float rock = 1.-smoothstep(.24,.48,L);',
     '  return 1.-rock*mix(.95,.35,smoothstep(.55,.95,y));',
     '}',
@@ -228,9 +245,15 @@
     '}',
     'vec3 sceneAt(vec2 screen){',
     '  v = screen;',
-    '  vec2 uv = photoUV(v);',
+    '  vec2 uv = photoUV(v, imgSize);',
     '  vec3 base = texture(img, uv).rgb;',
-    '  float k = ridgeVisibility(base,uv,1.-v.y);',
+    '  vec3 blur = textureLod(img, uv, 3.).rgb;',
+    '  if (photoMix > .001) {',
+    '    vec2 uvAlt = photoUV(v, imgSizeAlt);',
+    '    base = mix(base, texture(imgAlt, uvAlt).rgb, photoMix);',
+    '    blur = mix(blur, textureLod(imgAlt, uvAlt, 3.).rgb, photoMix);',
+    '  }',
+    '  float k = ridgeVisibility(base, blur, 1.-v.y);',
     '  vec4 c = texture(clouds,v)*k;',
     '  c.a = min(1., c.a * mix(.82,1.12,coverage));',
     '  c.rgb *= mix(.94,1.04,coverage);',
@@ -1070,6 +1093,134 @@
       !!photo.currentSrc && photo.currentSrc.indexOf('data:image') !== 0;
   }
 
+  function photoAltReady() {
+    return !!photoAlt && photoAlt.complete && photoAlt.naturalWidth > 0 &&
+      !!photoAlt.currentSrc && photoAlt.currentSrc.indexOf('data:image') !== 0;
+  }
+
+  function requestAltPhoto() {
+    if (!photoAlt || rotation.altRequested || reduce.matches || !isKimi()) return;
+    rotation.altRequested = true;
+    var picture = photoAlt.closest('picture');
+    var source = picture && picture.querySelector('source[data-hero-srcset]');
+    var src = photoAlt.getAttribute('data-hero-src');
+    if (source && source.dataset.heroSrcset) {
+      source.setAttribute('srcset', source.dataset.heroSrcset);
+    }
+    photoAlt.addEventListener('load', function () {
+      rotation.altReady = true;
+    });
+    photoAlt.addEventListener('error', function () {
+      // Keep altRequested set: a missing/broken second photo should leave the
+      // hero on the primary photograph rather than retry every frame.
+      rotation.altReady = false;
+    });
+    if (src) photoAlt.setAttribute('src', src);
+  }
+
+  // Load the second photograph only after the first one has had a chance to
+  // paint, so the rotation never competes with the hero LCP request.  A short
+  // timeout is more reliable than requestIdleCallback here: the hero's
+  // continuous rAF loop can starve idle callbacks indefinitely.
+  function scheduleAltPhoto() {
+    if (!photoAlt || rotation.altRequested || rotation.altScheduled || reduce.matches) return;
+    rotation.altScheduled = true;
+    window.setTimeout(function () {
+      rotation.altScheduled = false;
+      requestAltPhoto();
+    }, 1200);
+  }
+
+  function rotationAllowed() {
+    if (reduce.matches || !isKimi() || document.hidden || !inView) return false;
+    // The no-WebGL fallback has no frame loop and therefore no
+    // IntersectionObserver-owned `inView` updates; read the hero box in its
+    // 500ms ticker so an off-screen hero still pauses the countdown.
+    if (rotationFallback) {
+      var box = hero.getBoundingClientRect();
+      if (box.bottom <= 0 || box.top >= window.innerHeight) return false;
+    }
+    if (stage && stage.hasAttribute('data-reveal-running')) return false;
+    if (exitController && exitController.running()) return false;
+    if (exit.phase > 0.001 && exit.phase < 0.999) return false;
+    return true;
+  }
+
+  function beginRotationFade() {
+    rotation.from = rotation.mix;
+    rotation.target = rotation.target === 1 ? 0 : 1;
+    rotation.elapsed = 0;
+    rotation.fading = true;
+    if (photoMedia) {
+      photoMedia.classList.toggle('is-alt', rotation.target === 1);
+    }
+  }
+
+  // Called once per rendered frame (WebGL) or by the fallback ticker.  The
+  // countdown uses wall-clock deltas, not the clamped render dt: a slow GPU
+  // must not stretch the 12s hold, and pausing the frame loop (out of view,
+  // hidden tab, exit playback) simply leaves `last` stale until it is cleared.
+  function advanceRotation(now) {
+    if (!rotation.last) {
+      rotation.last = now;
+      return;
+    }
+    // Clamp the wall-clock delta: after a bfcache restore or an OS sleep the
+    // first tick can be minutes late, and the hold must not collapse to zero.
+    var delta = Math.min(2, (now - rotation.last) / 1000);
+    rotation.last = now;
+    if (!rotationAllowed()) return;
+    if (!rotation.altReady) {
+      if (photoAltReady()) rotation.altReady = true;
+      else return;
+    }
+    if (rotation.fading) {
+      rotation.elapsed = Math.min(ROTATE_FADE, rotation.elapsed + delta);
+      var t = rotation.elapsed / ROTATE_FADE;
+      t = t * t * (3 - 2 * t);
+      rotation.mix = rotation.from + (rotation.target - rotation.from) * t;
+      if (rotation.elapsed >= ROTATE_FADE) {
+        rotation.mix = rotation.target;
+        rotation.fading = false;
+        rotation.hold = ROTATE_HOLD;
+      }
+      return;
+    }
+    rotation.hold -= delta;
+    if (rotation.hold <= 0) {
+      rotation.hold = 0;
+      beginRotationFade();
+    }
+  }
+
+  function resetRotation() {
+    rotation.mix = 0;
+    rotation.from = 0;
+    rotation.target = 0;
+    rotation.elapsed = 0;
+    rotation.hold = ROTATE_HOLD;
+    rotation.fading = false;
+    rotation.last = 0;
+    if (photoMedia) photoMedia.classList.remove('is-alt');
+  }
+
+  // No WebGL means no frame loop, but the two CSS layers can still rotate.
+  function startRotationFallback() {
+    if (rotationFallback || reduce.matches) return;
+    rotationFallback = window.setInterval(function () {
+      // Always go through advanceRotation so it refreshes `last` even while
+      // the hero is off-screen; otherwise the first tick after returning would
+      // consume the whole paused interval and flip immediately.
+      advanceRotation(performance.now());
+    }, 500);
+  }
+
+  function stopRotationFallback() {
+    if (!rotationFallback) return;
+    window.clearInterval(rotationFallback);
+    rotationFallback = 0;
+  }
+
   function compile(gl, type, source) {
     var shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -1292,6 +1443,8 @@
       canvas.remove();
       canvas = null;
       enableMaskFallback();
+      scheduleAltPhoto();
+      startRotationFallback();
       return;
     }
     try {
@@ -1301,9 +1454,12 @@
       canvas.remove();
       canvas = null;
       enableMaskFallback();
+      scheduleAltPhoto();
+      startRotationFallback();
       return;
     }
 
+    stopRotationFallback();
     api.ready = true;
     if (mark) {
       mark.style.webkitMaskImage = '';
@@ -1331,6 +1487,8 @@
         }, 300);
       } else {
         enableMaskFallback();
+        scheduleAltPhoto();
+        startRotationFallback();
       }
     });
     start();
@@ -1414,27 +1572,51 @@
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.BLEND);
 
+    var maxTexture = Math.min(4096, gl.getParameter(gl.MAX_TEXTURE_SIZE));
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+    // Upload a photograph at the same budget as the original hero texture and
+    // return its natural aspect ratio for the shader's cover-UV maths.
+    function uploadPhotoTexture(texture, image) {
+      var width = image.naturalWidth || image.width || 2400;
+      var height = image.naturalHeight || image.height || 1800;
+      var size = fitSize(width, height, 2400000, 1, Math.min(2048, maxTexture));
+      var canvas = document.createElement('canvas');
+      canvas.width = size[0];
+      canvas.height = size[1];
+      var context = canvas.getContext('2d');
+      context.imageSmoothingQuality = 'high';
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+      canvas.width = canvas.height = 1;
+      return [width, height];
+    }
+
     var photoTexture = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, photoTexture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-    var maxTexture = Math.min(4096, gl.getParameter(gl.MAX_TEXTURE_SIZE));
-    var source = document.createElement('canvas');
-    var srcW = sourceImage.naturalWidth || sourceImage.width || 2400;
-    var srcH = sourceImage.naturalHeight || sourceImage.height || 1800;
-    var size = fitSize(srcW, srcH, 2400000, 1, Math.min(2048, maxTexture));
-    source.width = size[0];
-    source.height = size[1];
-    var sourceCtx = source.getContext('2d');
-    sourceCtx.imageSmoothingQuality = 'high';
-    sourceCtx.drawImage(sourceImage, 0, 0, source.width, source.height);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    var imgSize = uploadPhotoTexture(photoTexture, sourceImage);
+    var srcW = imgSize[0];
+    var srcH = imgSize[1];
+
+    // Placeholder until the deferred second photo arrives; the composite only
+    // samples it once photoMix rises above zero.
+    var altTexture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE10);
+    gl.bindTexture(gl.TEXTURE_2D, altTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0,
+      gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
-    source.width = source.height = 1;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    var altSize = [srcW, srcH];
+    var altUploaded = false;
 
     var cloudTexture = gl.createTexture();
     gl.activeTexture(gl.TEXTURE1);
@@ -1824,6 +2006,11 @@
 
       uploadCodeGrid();
       uploadSurface();
+      if (!altUploaded && photoAltReady()) {
+        gl.activeTexture(gl.TEXTURE10);
+        altSize = uploadPhotoTexture(altTexture, photoAlt);
+        altUploaded = true;
+      }
 
       var amount = cloudAmount(settings.cloud);
       var cw = output.cloudWidth;
@@ -1835,13 +2022,18 @@
       gl.uniform2f(cloudProgram.uniforms.mouse, pointer.x, pointer.y);
       gl.uniform1f(cloudProgram.uniforms.T, time);
       gl.uniform3f(cloudProgram.uniforms.cloudAmount, amount.opticalDepth, amount.densityLift, amount.gapScale);
+      // The 4:3 and 16:9 photos see slightly different horizons under the same
+      // cover crop; follow the active photo so the cloud deck does not jump.
+      var outputAspect = Math.max(1, output.width) / Math.max(1, output.height);
+      var horizonA = 0.2 / Math.min(
+        1, Math.max(1, srcW) / Math.max(1, srcH) / outputAspect
+      );
+      var horizonB = 0.2 / Math.min(
+        1, Math.max(1, altSize[0]) / Math.max(1, altSize[1]) / outputAspect
+      );
       gl.uniform1f(
         cloudProgram.uniforms.horizon,
-        0.2 / Math.min(
-          1,
-          Math.max(1, srcW) / Math.max(1, srcH) /
-            (Math.max(1, output.width) / Math.max(1, output.height))
-        )
+        horizonA + (horizonB - horizonA) * rotation.mix
       );
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
@@ -1864,8 +2056,11 @@
       gl.bindTexture(gl.TEXTURE_2D, titleSurface);
       gl.activeTexture(gl.TEXTURE7);
       gl.bindTexture(gl.TEXTURE_2D, noiseTexture);
+      gl.activeTexture(gl.TEXTURE10);
+      gl.bindTexture(gl.TEXTURE_2D, altTexture);
       var uniforms = compositeProgram.uniforms;
       gl.uniform1i(uniforms.img, 0);
+      gl.uniform1i(uniforms.imgAlt, 10);
       gl.uniform1i(uniforms.clouds, 1);
       gl.uniform1i(uniforms.frontClouds, 2);
       gl.uniform1i(uniforms.codeGrid, 3);
@@ -1875,6 +2070,8 @@
       gl.uniform1i(uniforms.inkNoise, 7);
       gl.uniform2f(uniforms.res, output.width, output.height);
       gl.uniform2f(uniforms.imgSize, srcW, srcH);
+      gl.uniform2f(uniforms.imgSizeAlt, altSize[0], altSize[1]);
+      gl.uniform1f(uniforms.photoMix, rotation.mix);
       gl.uniform2f(uniforms.mouse, pointer.x, pointer.y);
       gl.uniform2f(uniforms.sceneSize, sceneSize[0], sceneSize[1]);
       gl.uniform1f(uniforms.coverage, settings.coverage);
@@ -1949,6 +2146,7 @@
       gl.deleteTexture(cloudTexture);
       gl.deleteTexture(frontTexture);
       gl.deleteTexture(photoTexture);
+      gl.deleteTexture(altTexture);
       gl.deleteTexture(codeGrid);
       gl.deleteTexture(codeAtlas);
       gl.deleteTexture(titleTexture);
@@ -1983,6 +2181,8 @@
       canvas = null;
     }
     enableMaskFallback();
+    scheduleAltPhoto();
+    startRotationFallback();
   }
 
   /* ---------- scroll-driven hero exit (K3.1 handoff) ---------- */
@@ -2232,8 +2432,8 @@
       inner.style.transform = '';
       inner.style.opacity = '';
     }
-    var image = hero.querySelector('.hero-media img');
-    if (image) image.style.transform = '';
+    var images = hero.querySelectorAll('.hero-media img');
+    images.forEach(function (image) { image.style.transform = ''; });
     exitController = createExitController();
     exitController.bind();
     exitController.reset();
@@ -2263,6 +2463,7 @@
   function markCloudReady() {
     if (hero.classList.contains('hero-cloud-ready')) return;
     hero.classList.add('hero-cloud-ready');
+    scheduleAltPhoto();
     syncMarkAfterBoot();
     enableExit();
   }
@@ -2282,6 +2483,7 @@
     pointer.x += (pointer.tx - pointer.x) * ease;
     pointer.y += (pointer.ty - pointer.y) * ease;
     time += dt * Math.max(0.2, Math.min(15, settings.speed));
+    advanceRotation(now);
     try {
       state.draw(dt);
       markCloudReady();
@@ -2309,11 +2511,20 @@
       raf = 0;
     }
     last = 0;
+    rotation.last = 0;
   }
+
+  document.addEventListener('visibilitychange', function () {
+    // Do not count the hidden interval; the first visible tick starts a fresh
+    // delta instead of consuming the whole hold at once.
+    if (document.hidden) rotation.last = 0;
+  });
 
   reduce.addEventListener && reduce.addEventListener('change', function () {
     if (reduce.matches) {
       stop();
+      stopRotationFallback();
+      resetRotation();
       resetMark();
       disableExit();
       hero.classList.remove('hero-cloud-ready');
@@ -2329,6 +2540,8 @@
         if (canvas && state) start();
       } else {
         stop();
+        stopRotationFallback();
+        resetRotation();
         resetMark();
         disableExit();
         hero.classList.remove('hero-cloud-ready');

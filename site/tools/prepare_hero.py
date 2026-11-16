@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""Prepare the Kimi-skin hero from the K3.1 editorial cloud-sea photograph.
+"""Prepare the Kimi-skin hero from its two cloud-sea photographs.
 
-One-off asset script (not part of the stdlib-only site build). The editable
-source lives at site/tools/hero-source.jpg; this script keeps the source's
-4:3 aspect ratio and writes the 1600/2400 WebP + JPEG derivatives used by
-skin-kimi.css.
+One-off asset script (not part of the stdlib-only site build). Editable sources
+live at site/tools/hero-source.jpg and site/tools/yunhai-source.jpg; this script
+writes the 1600/2400 WebP + JPEG derivatives used by skin-kimi.css.
 
-The source is the cloud-sea photograph used by the K3.1 Pro article hero
+The first source is the cloud-sea photograph used by the K3.1 Pro article hero
 (https://www.kimi.ai/blog/kimi-k3-1-pro), archived locally so the offline site
 keeps the same mountain silhouette, ridge contrast and cloud mass as the
-reference. It is used here only to reproduce the reference layout.
+reference. It is used here only to reproduce the reference layout. The second
+source is the site author's own cloud-sea photograph that participates in the
+hero rotation.
 
-The derivatives keep the source's 4:3 aspect ratio; skin-kimi.css uses
-object-fit: cover, exactly like the reference, so narrower viewports crop the
-top and bottom instead of baking a 16:9 crop into the asset.
+Each derivative keeps its source's aspect ratio (4:3 and 16:9 respectively);
+skin-kimi.css uses object-fit: cover, so viewports crop the images instead of
+baking a single fixed crop into the assets.
 """
 
 from __future__ import annotations
@@ -24,32 +25,39 @@ import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 
 HERE = Path(__file__).resolve().parent
-SOURCE = HERE / "hero-source.jpg"
+SOURCES = (
+    (HERE / "hero-source.jpg", "hero-kimi"),
+    (HERE / "yunhai-source.jpg", "hero-kimi-yunhai"),
+)
 ASSETS = HERE.parent / "assets"
 
 
-def main() -> None:
-    image = Image.open(SOURCE).convert("RGB")
-    # The official artwork already carries the reference color grade. Keep the
-    # treatment light so the cloud sea stays as dense and bright as the original.
+def write_derivatives(source: Path, stem: str) -> None:
+    image = Image.open(source).convert("RGB")
+    # Both photographs already carry their own color grade. Keep the treatment
+    # light so the cloud sea stays as dense and bright as the original.
     image = ImageEnhance.Contrast(image).enhance(1.02)
     image = ImageEnhance.Color(image).enhance(0.99)
     image = image.filter(ImageFilter.UnsharpMask(radius=1.0, percent=32, threshold=3))
 
-    ASSETS.mkdir(parents=True, exist_ok=True)
     for width in (1600, 2400):
         resized = image.resize(
             (width, round(width * image.height / image.width)),
             Image.Resampling.LANCZOS,
         )
-        resized.save(ASSETS / f"hero-kimi-{width}.webp", quality=86, method=6)
+        resized.save(ASSETS / f"{stem}-{width}.webp", quality=86, method=6)
         resized.save(
-            ASSETS / f"hero-kimi-{width}.jpg",
+            ASSETS / f"{stem}-{width}.jpg",
             quality=88,
             optimize=True,
             progressive=True,
         )
 
+
+def main() -> None:
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    for source, stem in SOURCES:
+        write_derivatives(source, stem)
     # Build soft, purely white cloud puffs for the drifting tracks. Cropping
     # bright patches from the photograph also carried ridge silhouettes, which
     # read as grey stains once several sprites overlapped. Multi-octave noise
@@ -99,7 +107,7 @@ def main() -> None:
             method=6,
         )
 
-    print("wrote hero-kimi-1600/2400 and cloud-sprite-1..4")
+    print("wrote hero-kimi-1600/2400, hero-kimi-yunhai-1600/2400 and cloud-sprite-1..4")
 
 
 if __name__ == "__main__":
