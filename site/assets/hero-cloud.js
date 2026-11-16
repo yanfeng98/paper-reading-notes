@@ -140,7 +140,7 @@
     'uniform sampler2D img, clouds, frontClouds, codeGrid, codeAtlas, titleGlyph, titleSurface, inkNoise;',
     'uniform vec2 res, imgSize, mouse, sceneSize, codeStep;',
     'uniform float T, coverage, codeSize, titleOpacity, titleStrength;',
-    'uniform float writingProgress, ink, particles, titleActive, washSolidity, titleCloudPresence, titleWashFloor;',
+    'uniform float writingProgress, ink, particles, titleActive, washSolidity, titleCloudPresence;',
     'uniform vec4 titleRect, inkBounds, inkStarts[16], inkEnds[16], inkTipStart, inkTipEnd;',
     'uniform int inkCount;',
     'float h(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }',
@@ -238,8 +238,7 @@
     '  vec3 landscape = base*(1.-c.a)+c.rgb;',
     '  vec3 col = composeGlyphs(landscape,landscape);',
     '  vec3 withTitle = composeTitle(col,cleanRear,front);',
-    '  float washReveal = designReveal()*smoothstep(titleWashFloor,titleWashFloor+.02,v.y);',
-    '  float titleCover = (titleActive > .001 && writingProgress >= 1.) ? clamp(washReveal,0.,1.) : 0.;',
+    '  float titleCover = (titleActive > .001 && writingProgress >= 1.) ? clamp(designReveal(),0.,1.) : 0.;',
     '  col = mix(withTitle,col,titleCover);',
     '  return col;',
     '}',
@@ -1503,7 +1502,6 @@
     var lastDpr = 0;
     var titleBox = { left: 0, top: 0, width: 1, height: 1 };
     var titleActive = 0;
-    var titleWashFloor = 0;
     var titleTarget = 0;
     var titleHoldUntil = 0;
     var overMark = false;
@@ -1536,10 +1534,6 @@
         titleBox.width,
         titleBox.height
       ];
-      var capRect = caption ? caption.getBoundingClientRect() : null;
-      titleWashFloor = capRect && capRect.height
-        ? 1 - (capRect.top - heroRect.top - 2) / Math.max(1, heroRect.height)
-        : 0;
       sceneSize = [Math.max(1, heroRect.width), Math.max(1, heroRect.height)];
     }
 
@@ -1809,7 +1803,6 @@
       // Our foreground-cloud layer is denser than the reference's; scale it
       // with Coverage so the wordmark keeps a crisp core at the default.
       gl.uniform1f(uniforms.titleCloudPresence, 0.0);
-      gl.uniform1f(uniforms.titleWashFloor, titleWashFloor);
       gl.uniform4fv(uniforms.inkBounds, wash.state.bounds);
       gl.uniform4fv(uniforms.inkTipStart, wash.state.tipStart);
       gl.uniform4fv(uniforms.inkTipEnd, wash.state.tipEnd);
