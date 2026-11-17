@@ -744,12 +744,24 @@
     var resultCount = document.getElementById('result-count');
     var clear = document.getElementById('clear-filters');
     var filters = Array.prototype.slice.call(document.querySelectorAll('.filter'));
+    var pager = document.getElementById('pager');
+    var pagerStatus = document.getElementById('pager-status');
+    var pagerLive = document.getElementById('pager-live');
+    var pagerPages = document.getElementById('pager-pages');
+    var pagerPrev = pager ? pager.querySelector('[data-page-prev]') : null;
+    var pagerNext = pager ? pager.querySelector('[data-page-next]') : null;
+    var PER_PAGE = 12;
     if (!cardsEl || !search) return;
 
+    var pageParam = Number(params.get('page'));
+    var initialPage = (isFinite(pageParam) && Math.floor(pageParam) === pageParam && pageParam > 0)
+      ? pageParam
+      : 1;
     var state = {
       q: params.get('q') || '',
       type: params.get('type') || 'all',
-      sort: params.get('sort') || 'recent'
+      sort: params.get('sort') || 'recent',
+      page: initialPage
     };
     if (['all', 'paper', 'blog', 'summary'].indexOf(state.type) < 0) state.type = 'all';
     if (['recent', 'year', 'title'].indexOf(state.sort) < 0) state.sort = 'recent';
@@ -782,32 +794,170 @@
       next.delete('q');
       next.delete('type');
       next.delete('sort');
+      next.delete('page');
       if (state.q.trim()) next.set('q', state.q.trim());
       if (state.type !== 'all') next.set('type', state.type);
       if (state.sort !== 'recent') next.set('sort', state.sort);
+      if (state.page > 1) next.set('page', String(state.page));
       var query = next.toString();
       var url = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
       window.history.replaceState(null, '', url);
     }
 
+    function pageList(current, total) {
+      if (total <= 7) {
+        var all = [];
+        for (var number = 1; number <= total; number += 1) all.push(number);
+        return all;
+      }
+      var items = [1];
+      var lower = Math.max(2, current - 1);
+      var upper = Math.min(total - 1, current + 1);
+      if (lower > 2) items.push('gap');
+      for (var number = lower; number <= upper; number += 1) items.push(number);
+      if (upper < total - 1) items.push('gap');
+      items.push(total);
+      return items;
+    }
+
+    var pagerSignature = '';
+    var lastTotalResults = -1;
+    var pagerLiveReady = false;
+
+    function setPagerLive(text) {
+      if (pagerLive && pagerLive.textContent !== text) pagerLive.textContent = text;
+    }
+
+    function renderPager(totalCards, totalPages, totalResults) {
+      if (!pager) return;
+      var previousResults = lastTotalResults;
+      lastTotalResults = totalResults;
+      // Do not announce the initial page load; only react to user-driven
+      // filter/search/page changes.
+      var announce = pagerLiveReady;
+      pagerLiveReady = true;
+      // Keep the pager out of the DOM flow until there is something to page
+      // through, so a short library stays visually identical to before.
+      var show = totalCards > PER_PAGE;
+      pager.hidden = !show;
+      if (!show) {
+        if (announce) {
+          if (totalResults === 0) {
+            if (previousResults !== 0) setPagerLive('没有匹配的笔记');
+          } else {
+            setPagerLive('结果已全部显示');
+          }
+        }
+        if (pagerPages) pagerPages.innerHTML = '';
+        if (pagerStatus && pagerStatus.textContent) pagerStatus.textContent = '';
+        pagerSignature = '';
+        return;
+      }
+      var statusText = '第 ' + state.page + ' / ' + totalPages + ' 页';
+      if (pagerStatus && pagerStatus.textContent !== statusText) {
+        pagerStatus.textContent = statusText;
+      }
+      if (announce) setPagerLive(statusText);
+      if (pagerPrev) pagerPrev.disabled = state.page <= 1;
+      if (pagerNext) pagerNext.disabled = state.page >= totalPages;
+      if (!pagerPages) return;
+      // Typing in the search box re-applies on every keystroke; rebuilding the
+      // same page buttons would churn the DOM and lose focus.
+      var signature = state.page + '/' + totalPages;
+      if (signature === pagerSignature) return;
+      pagerSignature = signature;
+      pagerPages.innerHTML = '';
+      pageList(state.page, totalPages).forEach(function (item) {
+        if (item === 'gap') {
+          var gap = document.createElement('span');
+          gap.className = 'pager-gap';
+          gap.setAttribute('aria-hidden', 'true');
+          gap.textContent = '…';
+          pagerPages.appendChild(gap);
+          return;
+        }
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'pager-page';
+        button.dataset.page = String(item);
+        button.textContent = String(item);
+        button.setAttribute('aria-label', '第 ' + item + ' 页');
+        if (item === state.page) {
+          button.classList.add('is-active');
+          button.setAttribute('aria-current', 'page');
+        }
+        pagerPages.appendChild(button);
+      });
+    }
+
+    function goToPage(requested) {
+      var target = Math.floor(Number(requested));
+      if (!isFinite(target) || target < 1 || target === state.page) return;
+      var focused = document.activeElement;
+      // Page-number buttons are rebuilt by apply(), so restore focus to the
+      // new current number.  Prev/next buttons survive, and stealing focus from
+      // them would make a second Enter a no-op on the current page.  If a step
+      // button becomes disabled at a boundary, keep focus in the pager by
+      // landing on the active page number instead of dropping it to <body>.
+      var restorePageFocus = !!(pager && focused && pager.contains(focused) &&
+        focused.closest && focused.closest('.pager-page'));
+      var stepHadFocus = !!(focused && (focused === pagerPrev || focused === pagerNext));
+      state.page = target;
+      apply();
+      if ((restorePageFocus || (stepHadFocus && focused.disabled)) && pagerPages) {
+        var active = pagerPages.querySelector('[data-page="' + state.page + '"]');
+        if (active) active.focus({ preventScroll: true });
+      }
+      var anchor = (state.page === 1 && featuredWrap && !featuredWrap.hidden)
+        ? featuredWrap
+        : (document.querySelector('.result-line') || cardsEl);
+      if (anchor) {
+        anchor.scrollIntoView({
+          behavior: motionMedia.matches ? 'auto' : 'smooth',
+          block: 'start'
+        });
+      }
+      setupReveal();
+    }
+
+    function setPagedVisibility(element, visible, matchesFilter) {
+      element.hidden = !visible;
+      // Filter-hidden nodes must stay out of print; pagination-hidden nodes are
+      // re-expanded by the print rules via data-page-hidden.
+      if (!visible && matchesFilter) element.setAttribute('data-page-hidden', '');
+      else element.removeAttribute('data-page-hidden');
+    }
+
     function apply() {
       sortCards();
-      var visible = 0;
+      var matching = cards.filter(matches);
+      var totalPages = Math.max(1, Math.ceil(matching.length / PER_PAGE));
+      if (state.page > totalPages) state.page = totalPages;
+      if (state.page < 1) state.page = 1;
+      var start = (state.page - 1) * PER_PAGE;
+      var pageCards = matching.slice(start, start + PER_PAGE);
+      var matchingSet = new Set(matching);
       cards.forEach(function (card) {
-        var show = matches(card);
-        card.hidden = !show;
-        if (show) visible += 1;
+        var onPage = pageCards.indexOf(card) >= 0;
+        setPagedVisibility(card, onPage, matchingSet.has(card));
       });
-      var featuredVisible = 0;
+      var featuredMatching = 0;
       featuredCards.forEach(function (card) {
-        var show = matches(card);
-        card.hidden = !show;
-        if (show) featuredVisible += 1;
+        var match = matches(card);
+        if (match) featuredMatching += 1;
+        setPagedVisibility(card, state.page === 1 && match, match);
       });
-      if (featuredWrap) featuredWrap.hidden = featuredVisible === 0;
-      visible += featuredVisible;
+      if (featuredWrap) {
+        setPagedVisibility(
+          featuredWrap,
+          state.page === 1 && featuredMatching > 0,
+          featuredMatching > 0
+        );
+      }
+      var visible = matching.length + featuredMatching;
       if (empty) empty.hidden = visible !== 0;
       if (resultCount) resultCount.textContent = visible + ' 份文档';
+      renderPager(matching.length, totalPages, visible);
       filters.forEach(function (button) {
         var active = button.dataset.filter === state.type;
         button.classList.toggle('is-active', active);
@@ -820,25 +970,41 @@
 
     search.addEventListener('input', function () {
       state.q = search.value;
+      state.page = 1;
       apply();
     });
     sort.addEventListener('change', function () {
       state.sort = sort.value;
+      state.page = 1;
       apply();
     });
     filters.forEach(function (button) {
       button.addEventListener('click', function () {
         state.type = button.dataset.filter || 'all';
+        state.page = 1;
         apply();
         search.focus();
       });
     });
     if (clear) {
       clear.addEventListener('click', function () {
-        state = { q: '', type: 'all', sort: 'recent' };
+        state = { q: '', type: 'all', sort: 'recent', page: 1 };
         apply();
         search.focus();
       });
+    }
+    if (pager) {
+      pager.addEventListener('click', function (event) {
+        var button = event.target.closest ? event.target.closest('.pager-page') : null;
+        if (!button) return;
+        goToPage(button.dataset.page);
+      });
+    }
+    if (pagerPrev) {
+      pagerPrev.addEventListener('click', function () { goToPage(state.page - 1); });
+    }
+    if (pagerNext) {
+      pagerNext.addEventListener('click', function () { goToPage(state.page + 1); });
     }
     document.addEventListener('keydown', function (event) {
       var tag = (event.target && event.target.tagName || '').toLowerCase();
@@ -849,6 +1015,7 @@
       } else if (event.key === 'Escape' && document.activeElement === search) {
         search.value = '';
         state.q = '';
+        state.page = 1;
         apply();
         search.blur();
       }
@@ -860,6 +1027,7 @@
         if (['all', 'paper', 'blog', 'summary'].indexOf(type) < 0) return;
         event.preventDefault();
         state.type = type;
+        state.page = 1;
         apply();
         var library = document.getElementById('library');
         if (library) {

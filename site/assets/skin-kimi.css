@@ -831,6 +831,42 @@ html[data-skin="kimi"] .result-line {
 }
 html[data-skin="kimi"] #result-count { color: var(--muted); font-weight: 500; }
 
+html[data-skin="kimi"] .pager-wrap {
+  margin-top: 38px;
+  padding-top: 26px;
+  border-top-color: var(--border);
+}
+html[data-skin="kimi"] .pager-status {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+html[data-skin="kimi"] .pager-step,
+html[data-skin="kimi"] .pager-page {
+  min-height: 32px;
+  border-color: var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+}
+html[data-skin="kimi"] .pager-step:hover:not(:disabled),
+html[data-skin="kimi"] .pager-page:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+}
+html[data-skin="kimi"] .pager-page.is-active {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+html[data-skin="kimi"] .pager-step:focus-visible,
+html[data-skin="kimi"] .pager-page:focus-visible {
+  border-radius: 999px;
+}
+html[data-skin="kimi"] .pager-gap { color: var(--faint); }
+
 /* ---------- featured + cards ---------- */
 
 html[data-skin="kimi"] .featured { gap: 28px; margin: 28px 0 0; }
@@ -2045,6 +2081,9 @@ html[data-skin="kimi"] .kimi-cloud-track:not(.is-visible) .kimi-cloud {
   /* Scroll-reveal is a screen interaction; print must show every card even if
      it was never scrolled into view. */
   html[data-skin="kimi"] .kimi-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  /* Cards hidden by pagination are re-expanded for print in site.css; Kimi's
+     featured card is a grid, unlike the classic flex layout. */
+  html[data-skin="kimi"] .featured-card[data-page-hidden] { display: grid !important; }
   /* The handoff is screen-only: restore the document flow so the whole page
      prints without the pinned stage or the 100svh spacer. */
   html[data-skin="kimi"] .home-stage[data-reveal-enabled]::after { display: none !important; }

@@ -237,6 +237,17 @@
       </div>
 
       <div class="cards" id="cards">{{CARDS_HTML}}</div>
+
+      <div class="pager-wrap" id="pager" hidden>
+        <p class="pager-status" id="pager-status"></p>
+        <nav class="pager" aria-label="笔记分页">
+          <button class="pager-step" type="button" data-page-prev aria-label="上一页"><span aria-hidden="true">←</span> 上一页</button>
+          <div class="pager-pages" id="pager-pages"></div>
+          <button class="pager-step" type="button" data-page-next aria-label="下一页">下一页 <span aria-hidden="true">→</span></button>
+        </nav>
+      </div>
+      <p class="sr-only" id="pager-live" aria-live="polite" aria-atomic="true"></p>
+
       <div class="empty-state" id="empty" hidden>
         <p class="empty-title">没有匹配的笔记</p>
         <p>换一个关键词，或清除筛选后再试。</p>

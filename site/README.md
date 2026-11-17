@@ -10,7 +10,7 @@ python3 -m http.server 8000 --directory _site
 ## 结构
 
 - `build.py`：仅 Python 标准库。解析 `README.md` 的 5 列表格，发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md` 与 `docs/*.md`，生成资料库首页、阅读页、manifest、复制笔记图片与汇总 PDF；首页贡献热力图由 `git log` 生成，按 UTC+8 归日统计每天提交数。
-- `templates/home.html`：资料库首页（贡献热力图、卡片、筛选、搜索、排序、三态主题、双皮肤切换）。
+- `templates/home.html`：资料库首页（贡献热力图、卡片分页、筛选、搜索、排序、三态主题、双皮肤切换）。
 - `templates/doc.html`：独立阅读页（Markdown、MathJax、Mermaid、TOC、进度、图片/图表 lightbox 与图表缩放、双皮肤切换）。
 - `assets/site.css`、`assets/site.js`：经典皮肤样式与两套皮肤共用的交互；不依赖 CDN。
 - `assets/skin-kimi.css`：Kimi 皮肤，全部规则包在 `html[data-skin="kimi"]` 下，不影响经典皮肤。
@@ -28,7 +28,8 @@ python3 -m http.server 8000 --directory _site
 - 首页 hero→资料库的交接按原版 K3.1 的 exit pass 实现（仅 Kimi 皮肤、WebGL2 就绪后）：`main.home-stage` 加 `data-reveal-enabled`，`.home-pin` 变 sticky、hero 绝对定位、`.home-stage::after` 补 100svh；滚过 8px 时截获 wheel/touch/key，用 800ms（冷却 100ms）把过渡进度钉在起点播放，结束后再跳到终点。合成结果先写进 RGBA8 FBO，再由 exit pass 输出预乘 alpha：细行 3–9px、粗行 18–38px 整行横向错位（≤125/190px），双采样重影染 `#9DBBC7`，粗行里写代码字形，再按 5–13px 行、28–120px 宽开洞；洞里露出 `.home-reveal`（以 `--article-reveal` 做 opacity + 50svh 上浮），hero 的 scrim/inner 以 `--hero-tear` 淡出。向上回到边界会反向播放；点「Scroll to explore」或 `#library` 锚点会先播完交接再滚到目标。WebGL2 不可用、reduced-motion、经典皮肤都不加 `data-reveal-enabled`，保持普通文档流；交接时照片在 `hero-cloud-ready` 后隐藏，避免洞露出照片而不是正文。
 - 资源按皮肤按需加载：hero 图与 `hero-cloud.js` 的 WebGL composite（云、代码带）只在 Kimi 皮肤初始化；经典皮肤仍加载 `skin-kimi.css` 以便随时切换，但不下载 hero 照片、不预载 Ma Shan Zheng/Sentient，也不创建这些 WebGL context。Hero 的 WebP 由 `<head>` 里的内联脚本在 Kimi 分支提前 preload，`hero-cloud.js` 等 `<img>` 真正加载后再取它的 `currentSrc` 建纹理，避免同一张图先拉 JPEG 再拉 WebP。
 - 首页卡片缩略图取笔记 `assets/` 下的第一张图，但只有滚动到距视口 600px 内才赋 `src`；不能直接给所有 `data-kimi-src` 赋地址，否则 `loading="lazy"` 会被绕过、手机首屏会一次拉完所有封面。
-- 打印前 `beforeprint` 会展开 scroll-reveal 并把 `data-kimi-defer` 图片全部赋值；`@media print` 里也强制 `.kimi-reveal` 可见，避免打印出空白卡片。
+- 首页资料库在浏览器端分页，每页 12 张笔记卡（第 1 页另含主题汇总 featured 卡）：先排序、再过滤、最后切页；主题汇总 featured 卡只出现在第 1 页；`?page=` 可分享，搜索/筛选/排序会回到第 1 页；只有一页或结果为空时分页条隐藏，无 JS 时全部卡片可见。
+- 打印前 `beforeprint` 会展开 scroll-reveal 并把 `data-kimi-defer` 图片全部赋值；`@media print` 里也强制 `.kimi-reveal` 可见，避免打印出空白卡片。分页隐藏的卡片带 `data-page-hidden`，打印时重新展开（当前筛选/搜索仍然生效）。
 - 阅读页采用原版文章页结构：封面（约 64svh）只放居中的 `Paper Reading Notes` 字标，标题与元信息在封面下方的文章区（40px 标题、720px 正文列、17px/1.8 正文、1040px 图片；≥1280px 显示左侧 164px section 导航时图片相应收窄（1280–1359px 880–959px，≥1360px 960px））；封面只认笔记显式提供的 `assets/cover.*` / `assets/hero.*`（或 `cover-*` / `hero-*` 前缀），没有就回退 `hero-kimi-1600`。不要用「第一张图」当整屏封面：多数笔记第一张是白底图表，压暗后只剩近黑一片。卡片缩略图仍可用第一张图。
 - 阅读页章节云（Kimi 皮肤）：`assets/reader-clouds.js` 按原版 `BlogV2Motion` 实现，每个 `.prose > h2` 一朵 WebGL2 体积云，云心绑在标题中心线；标题中心进入 90% 视口时 0.8s 从左右交替飘入（宽 720–980px、透明度 0.52–0.60、旋转 ±9°），越过 65% 视口后再滚 4% 视口，2.4s 飘出并淡出。云层是 `.prose` 内 `z-index:-1` 的全幅绝对层，向上延伸 360px 让第一朵云不被正文顶部裁切（标题区 `z-index:1` 盖在云层上），不挡文字；浅色峰值不透明度 1（白云），深色用 0.52–0.60 的蓝灰云；≤700px 云宽 420px、透明度 ×0.8、漂移 ×0.6；reduced-motion 与打印隐藏。脚本只在 Kimi 皮肤 + 阅读页按需加载，切回经典皮肤时销毁全部 renderer。
 - 阅读页的中文密度与原版英文博客不同：正文两端对齐，但含行内代码/长拉丁词的段落保持左对齐，避免 justified 产生的词间大洞。开头的「来源信息」表在 Kimi 皮肤下由 `site.js` 转成定义列表卡片（默认显示前 4 项，长字段折叠，「展开全部信息」展开其余项）；原表保留在 DOM 里供经典皮肤使用。手机（≤700px）的表格按行折成带列名的卡片，不再横向滚动。
