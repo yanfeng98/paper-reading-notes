@@ -136,6 +136,17 @@ arXiv 论文仍会获取完整原文用于阅读和核对，只是不把 PDF 归
 
 ## 交付前检查
 
+**先检查站点卡片日期**：来源信息的阅读日期行必须是 `| 阅读日期 | YYYY-MM-DD |`；构建后解析 `_site/index.html` 的所有 `.card`，确认没有 `data-read-date=""`。空值不会让 `build.py` 报错，只会把卡片排到列表末尾（本轮实际发生）。
+
+```python
+import re
+html = open('_site/index.html', encoding='utf-8').read()
+cards = re.findall(r'<article class="card".*?</article>', html, re.S)
+empty = [c[:80] for c in cards if not re.search(r'data-read-date="\d{4}-\d{2}-\d{2}"', c)]
+assert not empty, f'{len(empty)} 张卡片日期为空；检查 note.md 的 | 阅读日期 | YYYY-MM-DD | 行'
+print(f'{len(cards)} 张卡片日期均非空')
+```
+
 检查笔记中的本地链接与图片是否存在、来源和版本是否一致、核心数值是否能回溯到原文，以及阅读范围说明是否符合实际；逐条打开核对自己写的 `§x.y`、`Figure n`、`Table n` 与公式编号是否指向正确内容，未编号的公式不编造编号。**凡声称「原文加粗/斜体/标星号的那几处」的归属句，回字体信息核一遍**（`page.get_text('dict')` 的 span `font`）；凡声称「最大/最小/唯一/首个」的极值句，回表格与正文核一遍。这两类断言是实战里暴露的检查点——**别把它读成「只有这两类会出错」**：同一次复核里还抓到页码范围写错、把否定断言绝对化、数值口径混淆三类，它们已分别并入上文对应条目。回写了 `README.md` 时，一并核对这一行：编号列的链接按条目类型可达（论文指向确实存在的 PDF，非论文条目指向可达的原文在线地址）、编号未与两侧最大值撞号、笔记链接可达。另核**公式格式**：正文段落、列表、表格中没有行内 `$…$`；公式块用 `math` 围栏（三反引号 + math；不是单行或列表内的 `$$`），每块后跟白话读法。**货币符号不要写裸 `$`**：站点 MathJax 把 `$…$` 当行内公式，同一段文字里出现两个 `$` 就会被排成公式（实测：`$4,432 与 $2,377` 被吃成数学；`$` 为奇数个时，最后一个留作字面量）；`doc_lint` 也会把围栏外未放进行内代码的 `$` 报为行内公式。写成行内代码（`$4,432`）或直接改写为「4,432 美元」——不要用 `\$` 转义，marked 会先把它还原成 `$` 再交给 MathJax。若 `**…**` 的加粗内侧边界紧贴标点或 `&nbsp;`（如 `**连续：**用户`），marked 会输出字面 `**`；把这些标点移到加粗外侧（`**连续**：用户`），括注则整对移出（`**局部性**（Locality）`）。`**加粗**中文` 本身没问题。渲染后确认没有字面 `**`；`doc_lint`/`github_render_check` 不抓这个，但 `check_render.mjs` 会以 `literalStars` 报出，实载页面时看该项。**每次增删表格行/单元格后重跑 `doc_lint`**：行尾多一个 `|` 会多出空列，`site/build.py` 不报错、只有 lint 会暴露（实际发生过复核记录行尾多一个 `|`）。改了公式或 Mermaid 后跑：
 - `python3 -I <仓库根>/skills/summarize-paper-methods/scripts/doc_lint.py <note.md>`
 - `python3 -I <仓库根>/skills/summarize-paper-methods/scripts/github_render_check.py <note.md>`
