@@ -696,7 +696,7 @@ html[data-skin="kimi"] .hero-scroll-label { display: block; }
 
 html[data-skin="kimi"] .contrib {
   max-width: 1240px;
-  padding: 42px clamp(20px, 5vw, 56px) 0;
+  padding: 72px clamp(20px, 5vw, 56px) 0;
 }
 
 html[data-skin="kimi"] .contrib-card {
@@ -1819,7 +1819,7 @@ html[data-skin="kimi"] .hero-media img {
   }
   html[data-skin="kimi"] .kimi-hero-lower { padding-top: 96px; }
   html[data-skin="kimi"] .hero-scroll { bottom: 80px; font-size: 16px; }
-  html[data-skin="kimi"] .contrib { padding-top: 58px; }
+  html[data-skin="kimi"] .contrib { padding-top: 56px; }
   html[data-skin="kimi"] .library-heading { margin-top: 40px; }
   html[data-skin="kimi"] .cards { grid-template-columns: 1fr; gap: 30px; }
   html[data-skin="kimi"] .doc-layout { padding-bottom: 84px; }

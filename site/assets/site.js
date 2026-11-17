@@ -137,11 +137,9 @@
     var contrib = document.querySelector('.contrib');
     var library = document.querySelector('.library');
     if (!contrib || !library || !library.parentElement) return;
-    if (currentSkin() === 'kimi') {
-      if (contrib.previousElementSibling !== library) {
-        library.insertAdjacentElement('afterend', contrib);
-      }
-    } else if (contrib.nextElementSibling !== library) {
+    // Both skins read the same way: activity first, then the library. Keep the
+    // insert idempotent so toggling skins never duplicates or reorders nodes.
+    if (contrib.nextElementSibling !== library) {
       library.parentElement.insertBefore(contrib, library);
     }
   }
