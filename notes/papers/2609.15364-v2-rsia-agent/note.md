@@ -11,7 +11,7 @@
 | 许可 | [arXiv.org perpetual non-exclusive license 1.0](http://arxiv.org/licenses/nonexclusive-distrib/1.0/)（abs 页 "view license" 指向该协议；**不是 CC**） |
 | 代码 | <https://github.com/AetherLabsAI/RSIAgent>（**Apache-2.0**；2026-11-17 用 GitHub API 核验：创建 2026-09-13、最后 push 2026-10-02、★609；顶层含 `core/`、`env/`、`explore/`、`llm/`、`benchmarks/`、`scripts/`、`tests/`、`tools/` 与 `run_osworld.py`、`run_ale.py`。只读核验仓库结构与许可，**未运行、未复现**） |
 | 项目页 | <https://aetherlabsai.github.io/RSIAgent/>（含方法概览、论文/代码链接与结果图；页面标注 "Causality-driven RSI Agent v1"，论文链接文字为 "Paper · arXiv"） |
-| 阅读日期 | 2026-11-16 阅读；2026-11-17 复核（v2） |
+| 阅读日期 | 2026-11-16 |
 | 阅读范围 | v2 全文 50 页（PDF 页码＝印刷页码）。同版本 HTML 全文 438,487 B（与 `Content-Length` 一致，未截断）。正文 §1–7 与附录 A–E（p21–50）通读。**已渲染页逐格核对**：Table 1（p7）、Table 2（p10）、Table A1（p21）、Table A3（p28）、Table A4（p29）、Table A5（p32）、Table A6（p44）、Table A7（p45）、Table A8（p50）；式 (1)（p3）与 Algorithm A1（p23）回渲染页核对。**看图核对**：Figure 1（p1）、Figure 2（p4）、Figure 3（p8）、Figure 4（p9）、Figure 5（p11）；Figure 3 的读数按网格线读取，并用 PDF 矢量 marker 坐标交叉核对（**未做像素颜色测量**）。另抽查 v1（49 页）与 v2 的关键数字和节号差异。附录 B 的提示词模板（P1–P7）按 HTML 全文读，未逐字比对 PDF；Figure A1–A18 多数只按图注/正文核对，未逐张回看；A13/A14/A18 在核对 Table A6/A7/A8 时同页看过。 |
 | 配图 | `assets/` 下 3 张：Figure 2（框架示意，p4）、Figure 3（RSI 步数曲线，p8）、Figure 4（消融柱状图，p9）。均为 300 dpi PDF 渲染页裁剪；裁剪框与核对见文末「核对凭据」。许可按上方 arXiv 协议，引用请注明出处 |
 | 归档说明 | arXiv 来源，按仓库策略**不归档 PDF**；核对用的官方 PDF 为 50 页、15,269,199 B、sha256 `00cec41255a0dac1100dcf997d3b73b1c06364420bab777a62d01b0aa1545092`（alphaXiv 镜像同一文件，**sha256 完全一致**） |
