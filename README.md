@@ -330,7 +330,7 @@
 |[00061](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00061-Search-R1.pdf)|[Search-R1: Training LLMs to Reason and Leverage Search Engines with Reinforcement Learning](https://arxiv.org/abs/2503.09516)|2025|University of Illinois Urbana-Champaign|—（待生成笔记）|
 |[00166](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00166-CodeAct.pdf)|[Executable Code Actions Elicit Better LLM Agents](https://arxiv.org/abs/2402.01030)|2024|University of Illinois Urbana-Champaign|—（待生成笔记）|
 |[00170](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00170-CoRNStack.pdf)|[CoRNStack: High-Quality Contrastive Data for Better Code Retrieval and Reranking](https://arxiv.org/abs/2412.01007)|2024|University of Illinois Urbana-Champaign|—（待生成笔记）|
-|[00202](https://arxiv.org/abs/2608.15071)|[Evo-Harness: Context-to-Harness Skill Compilation for Self-Evolving Agents](https://arxiv.org/abs/2608.15071)|2026|University of Illinois Urbana-Champaign|—（待生成笔记）|
+|[00202](https://arxiv.org/abs/2608.15071)|[Evo-Harness: Context-to-Harness Skill Compilation for Self-Evolving Agents](https://arxiv.org/abs/2608.15071)|2026|University of Illinois Urbana-Champaign|[笔记](./notes/papers/2608.15071-v2-evo-harness/note.md)|
 
 ### Hong Kong University of Science and Technology
 
