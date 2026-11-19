@@ -289,6 +289,7 @@
 |:-:|:-:|:-:|:-:|:-:|
 |[00120](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00120-EvoSyn.pdf)|[EvoSyn: Generalizable Evolutionary Data Synthesis for Verifiable Learning](https://arxiv.org/abs/2510.17928)|2025|Fudan University|—（待生成笔记）|
 |[00135](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00135-AgentPRM.pdf)|[AgentPRM: Process Reward Models for LLM Agents via Step-Wise Promise and Progress](https://arxiv.org/abs/2511.08325)|2025|Fudan University|—（待生成笔记）|
+|[00231](https://arxiv.org/abs/2604.25850)|[Agentic Harness Engineering: Observability-Driven Automatic Evolution of Coding-Agent Harnesses](https://arxiv.org/abs/2604.25850)|2026|Fudan University|[笔记](./notes/papers/2604.25850-v4-ahe/note.md)|
 
 ### Shanghai Jiao Tong University
 
