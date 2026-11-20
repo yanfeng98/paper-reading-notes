@@ -403,6 +403,7 @@
 |[00216](https://github.com/proteus-evolve/Proteus)|[Proteus: A Harness-Agnostic Self-Evolution Framework for AI Agents](https://github.com/proteus-evolve/Proteus)|2026|Proteus Authors|—（待生成笔记）|
 |[00217](https://github.com/Human-Agent-Society/reef)|[Reef: Continual Learning Infrastructure for Self-Improving Agents](https://github.com/Human-Agent-Society/reef)|2026|Human-Agent-Society|—（待生成笔记）|
 |[00229](https://arxiv.org/abs/2609.15364)|[RSIAgent: Autonomous Exploration for Recursive Self-improvement in New Environments](https://arxiv.org/abs/2609.15364)|2026|Aether AI|[笔记](./notes/papers/2609.15364-v2-rsia-agent/note.md)|
+|[00233](https://arxiv.org/abs/2609.37725)|[Context Language Models](https://arxiv.org/abs/2609.37725)|2026|University of Washington|[笔记](./notes/papers/2609.37725-v1-context-language-models/note.md)|
 
 ## 书籍
 
