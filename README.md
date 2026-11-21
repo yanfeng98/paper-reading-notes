@@ -83,6 +83,7 @@
 |[00111](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00111-RPG.pdf)|[RPG: A Repository Planning Graph for Unified and Scalable Codebase Generation](https://arxiv.org/abs/2509.16198)|2025|Microsoft|—（待生成笔记）|
 |[00124](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00124-agent-lightning.pdf)|[Agent Lightning: Train ANY AI Agents with Reinforcement Learning](https://arxiv.org/abs/2508.03680)|2025|Microsoft|—（待生成笔记）|
 |[00161](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00161-X-Coder.pdf)|[X-Coder: Advancing Competitive Programming with Fully Synthetic Tasks, Solutions, and Tests](https://arxiv.org/abs/2601.06953)|2026|Microsoft|—（待生成笔记）|
+|[00234](https://arxiv.org/abs/2610.22791)|[Self-Evolving Coding Agents via Harness-Policy Optimization](https://arxiv.org/abs/2610.22791)|2026|Microsoft Research|[笔记](./notes/papers/2610.22791-v1-self-hpo/note.md)|
 
 ### Google
 
