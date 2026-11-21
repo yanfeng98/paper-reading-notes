@@ -119,6 +119,7 @@
 |[00039](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00039-Automated-Process-Supervision.pdf)|[Improve Mathematical Reasoning in Language Models by Automated Process Supervision](https://arxiv.org/abs/2406.06592)|2024|DeepMind|—（待生成笔记）|
 |[00126](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00126-extracting-alignment-data.pdf)|[Extracting alignment data in open models](https://arxiv.org/abs/2510.18554)|2025|DeepMind|—（待生成笔记）|
 |[00139](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00139-Evo-Memory.pdf)|[Evo-Memory: Benchmarking LLM Agent Test-time Learning with Self-Evolving Memory](https://arxiv.org/abs/2511.20857)|2025|DeepMind|—（待生成笔记）|
+|[00235](https://arxiv.org/abs/2610.22319)|[A team of Gemini 4 Argon agents beats Minecraft](https://arxiv.org/abs/2610.22319)|2026|Google DeepMind|[笔记](./notes/papers/2610.22319-v1-gemini-minecraft/note.md)|
 
 ### NVIDIA
 
