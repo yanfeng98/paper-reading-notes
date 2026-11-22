@@ -10,10 +10,10 @@
 | 来源 | [arXiv:2611.18856v1](https://arxiv.org/abs/2611.18856v1)（cs.LG; cs.AI）；提交 2026-11-13，阅读时只有 v1、无更新版 |
 | 原文 | PDF 35 页、525,024 B、sha256 `a8299ba5b16577dd328d602e32f35b914b9393ffb38148d2410f358d4d90ff3d`；同版 HTML 707,675 B 用于交叉核对正文。**HTML 版图号整体比 PDF 少 1**（HTML 缺 p.1 的 teaser，故 HTML 的 Figure 1–11 = PDF 的 Figure 2–12）；本笔记一律用 **PDF 图号** |
 | 许可 | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)（abs 页 view license 指向 `licenses/by/4.0`）；但 PDF p.1 页脚写「© 2026 Google. All rights reserved」，与 arXiv 许可元数据不一致，本笔记以 arXiv 许可为准 |
-| 代码 / 项目页 | 论文正文未给出代码仓库或项目主页；未另行检索公开实现（**未核验**，不等于不存在） |
+| 代码 / 项目页 | 论文正文未给出代码仓库或项目主页；2026-11-22 按标题检索未发现作者公开实现（只命中 Hugging Face papers 聚合页与转载），**不等于不存在** |
 | 阅读日期 | 2026-11-18 |
 | 仓库编号 | 00230（已收入 `### Google` 分组，紧随 00212/00220/00227 三条 Google Cloud AI Research 条目；论文单位列按原文第一机构写 Google Cloud AI） |
-| 阅读范围 | 全文 35 页：§1–5、Limitations、Ethics Statement、References、附录 A–F。**已渲染页逐项核对**：Table 1（p.6）、Table 2/3（p.8）、Table 4（p.18）、Table 5（p.23）、Table 6（p.24）、Table 7（p.25）、Table 8（p.31）逐格；Figure 1（p.1）、2（p.4）、3/4（p.7）、5（p.9）、6（p.20）、7（p.23）、8（p.24）、9（p.28）、10（p.29）、11（p.30）、12（p.32）看图核对。**本笔记复算**：Table 2 的 All 列、Table 3 的均值/配对 t/CI/`d_z`、Table 4 的 merged 行合计、Table 5/6 与 Figure 11(a) 的差值、Figure 8 的 rollout 折算。**未做位图像素颜色测量**：配图与正文数值均来自表格打印值、图内打印标签或 PDF 矢量 marker 坐标（Figure 5 的逐轮值见「核对凭据」），没有用颜色掩码从位图反推数据点 |
+| 阅读范围 | 全文 35 页：§1–5、Limitations、Ethics Statement、References、附录 A–F。**已渲染页逐项核对**：Table 1（p.6）、Table 2/3（p.8）、Table 4（p.18）、Table 5（p.23）、Table 6（p.24）、Table 7（p.25）、Table 8（p.31）逐格；Figure 1（p.1）、2（p.4）、3/4（p.7）、5（p.9）、6（p.20）、7（p.23）、8（p.24）、9（p.28）、10（p.29）、11（p.30）、12（p.32）看图核对。**本笔记复算**：Table 2 的 All 列、Table 3 的均值/配对 t/CI/`d_z`、Table 4 的 merged 行合计、Table 5/6 与 Figure 11(a) 的差值、Figure 8 的 rollout 折算。**未做位图像素颜色测量**：配图与正文数值均来自表格打印值、图内打印标签或 PDF 矢量坐标（Figure 5 的逐轮值见「核对凭据」，偶数轮用 marker、奇数轮用路径顶点），没有用颜色掩码从位图反推数据点 |
 | 配图 | `assets/` 下 2 张，自 v1 PDF 300 dpi 渲染页裁剪：Figure 2 裁剪框 `(58, 76, 538, 316)` pt、成品 2001×1001；Figure 5 裁剪框 `(58, 80, 538, 396)` pt、成品 2001×1317。裁剪框在页内、成品逐张回看确认无页眉残留、无黑边、无截断；Figure 5 的 3 个面板、图例与坐标轴标签齐全，Figure 2 的流程框与箭头齐全。原图许可 CC BY 4.0 |
 
 ---
@@ -22,8 +22,37 @@
 
 - **基准**：重取 arXiv v1 PDF（525,024 B、35 页、sha256 `a8299ba5…d90ff3d`，与笔记记录一致）；abs 页提交历史只有 `[v1]`。
 - **方式**：Table 1–8 在 250–300 dpi 渲染页逐格核对；式 (1)–(3) 对 p.3–p.4 渲染页；Figure 1–12 对照渲染页；Figure 5 的逐轮值用 PDF 矢量 marker 坐标 + 网格线定标复核；README 00230 行与所在分组、仓库内 RRSI/Harness²/Self-Harness/Evo-Harness 笔记交叉核对。
-- **本轮修正**：① README 分组表述——实际在 `### Google` 组，不存在独立的 Google Cloud AI Research 分组；② Table 2 的 S2 由"三轮反馈"改为"每轮合并三个模型的轨迹反馈"；③ `sample` 字段说明与文末核对凭据统一（schema + P5/P8 5 条示例，正文未定义）；④ "跨厂商模型迁移都没有测"改为"跨厂商的多跳链没有测"（单跳 Opus→Gemini 已在 §4.3.1 测过）；⑤ "差别只在源侧记忆"限定为目标侧也按同一记忆条件追加；⑥ RRSI 关系由"同一团队"改为同机构体系，并注明 RRSI 第一作者 Peng Xia ≠ 本文作者 Fei Xia；⑦ 图 5 命名（图例是 Harness Transfer，不是 No SIM）与第 4 轮回落幅度（20.00→19.39）；⑧ 补 workspace judge、工程无 LLM judge、三个领域的失败/重叠分母规则；⑨ 作者上标排版 `¹⁴` → `¹,⁴`；⑩ 补 PDF 页脚 `© 2026 Google` 与 arXiv CC BY 4.0 的不一致。
+- **本轮修正**：① README 分组表述——实际在 `### Google` 组，不存在独立的 Google Cloud AI Research 分组；② Table 2 的 S2 由"三轮反馈"改为"每轮合并三个模型的轨迹反馈"；③ `sample` 字段说明与文末核对凭据统一（schema + P5/P8 5 条示例，正文未定义）；④ "跨厂商模型迁移都没有测"改为"跨厂商的多跳链没有测"（单跳 Opus→Gemini 已在 §4.3.1 测过）；⑤ "差别只在源侧记忆"限定为目标侧也按同一记忆条件追加；⑥ RRSI 关系由"同一团队"改为同机构体系，并注明 RRSI 第一作者 Peng Xia 与本文作者不是同一人（2026-11-22 复核更正：本文第一作者是 Xin Yu，Fei Xia 为第二作者；两篇共享 Yanfei Chen）；⑦ 图 5 命名（图例是 Harness Transfer，不是 No SIM）与第 4 轮回落幅度（20.00→19.39）；⑧ 补 workspace judge、工程无 LLM judge、三个领域的失败/重叠分母规则；⑨ 作者上标排版 `¹⁴` → `¹,⁴`；⑩ 补 PDF 页脚 `© 2026 Google` 与 arXiv CC BY 4.0 的不一致。
 - **未修 / 未核**：代码仓库与项目页（未另行检索，标未核验）；"是否逐页看过"这类过程性声明无法独立验证；论文未给 token 与条目数统计，相关判断保留。
+
+## 复核记录（2026-11-22，重读）
+
+- **基准**：从官方 `https://arxiv.org/pdf/2611.18856v1` 重新下载，525,024 B、35 页、sha256 `a8299ba5…d90ff3d`，与建档时一致；abs 页提交历史仍只有 `[v1]`。同版 HTML 重取为 707,675 B，11 条图题注逐条比对，确认「HTML Figure 1–11 = PDF Figure 2–12」（HTML 无 p.1 的 teaser）。
+- **方式**：全文 35 页重读；Table 1（p.6）、2/3（p.8）、4（p.18）、5（p.23）、6（p.24）、7（p.25）、8（p.31）在 250 dpi 渲染页逐格对照；式 (1)–(3) 在 400 dpi 局部渲染核对；Figure 5(a) 用 PDF 矢量路径顶点复核逐轮保留分；Table 2 的加粗用 `get_text('dict')` 的字体名判定（S2 三列均为 `URWPalladioL-Bold`，B1 的 77.40 是常规体）。
+- **结论**：表值、公式、Figure 5 读数与既有笔记无冲突，未改动任何结论或数字；本轮只补细节。
+- **新增**：① §4.4 的逐轮支配陈述与 Figure 5(a) 的逐轮读数；② 附录 E.1 的「五个设定 held-out 增益大于 evolve 增益、FewShotAll 例外」；③ 编码/文本/workspace/工程四个域的若干具体机制（见「跨领域迁移模式」）；④ Table 6 题注给出的 Terminus-2 Cold Start 对照值。
+- **精确化**：原「检索 github 无命中」改为「正文无命中；全文唯一命中是参考文献里 Harvey LAB 的 GitHub 链接」。
+
+## 复核记录（2026-11-22，独立审计）
+
+- **基准**：同一份官方 v1（525,024 B、35 页、sha256 `a8299ba5…d90ff3d`）；审计前快照 md5 `829cee3f…2d4`，审计期间未改动文件。用 `~/miniconda3` 的 pymupdf 重取全文、渲染页与矢量坐标。
+- **方式**：派独立子 agent 只读审计，按 A–H 全项覆盖（元数据、Table 1–8 逐格、式 (1)–(3)、§/Figure/Table 引用、声称 vs 证据、读图、遗漏、内部一致性），它另用 `get_drawings()` 复算 Figure 5 顶点、用字体名核加粗、用 300 dpi 裁剪做配图像素差（max diff 0）。它报的 14 项由本笔记逐条回原文复验后全部采纳。
+- **本轮修正**：
+  1. RRSI 关系段把本文第一作者写成了 Fei Xia——应为 **Xin Yu**（Fei Xia 第二作者）；并补两篇共享 Yanfei Chen，旧复核记录⑥同步更正。
+  2. P8「预测的 4 个任务」改为「两次共 4 条任务预测」（`photonic-waveguide-routing`、`production-planning` 各两次）。
+  3. `three single-shot tiers` 的译法由「每次只升一档」改为「每级只触发一次」。
+  4. 核对凭据的横轴间距 18.1 pt → **17.48 pt**（每两轮 tick 34.97 pt）。
+  5. 「全为 0–100、两位小数」补上 **Table 1 一位小数**的例外（C.5）。
+  6. §1 的 `often needs` 与 `may repeat / may change` 不再写成「都需要」「会」；第三条现象标注为 F.3 的单次观察。
+  7. 附录 E.1 的「作者据此强调……」删去，改为原文只陈述事实、随后转入 §4.2。
+  8. 「作者也承认」改为引用 Limitations 的原意（对照评估的是完整过程，不是单字段消融）。
+  9. P8 的「最终分数仍提高」改为与 **Table 5 的 Terminus-2 Full SIM 行**（19.39→21.82）绑定，并注明案例不作贡献归因。
+  10. 补 Ethics Statement 两点：harness 可能迎合评测器；workspace 分数可能受 judge 偏差影响。
+  11. tool registry 的复用限定为 **Harness Transfer 的目标 run**，不是所有目标 run。
+  12. `accepted` 的说明改为「存下来的都是入选的；未入选的候选根本没写进记录」。
+  13. 「B1 与 S2 的差异落在小样本范围」改为「每个 procedure 只跑一次，0.78 分不足以判断稳定性」。
+  14. 「奇数时 evolve 取偶数」明确为「取较小的偶数（89→44、67→34、65→32）」。
+- **未修 / 未核**：代码仓库——按标题检索未发现作者公开实现，只命中 Hugging Face papers 聚合页与转载（2026-11-22）；论文未给 token/条目数统计，相关判断保留。本轮未重新获取 HTML（沿用同日 707,675 B 同版副本的图号核对）。
 
 ---
 
@@ -51,15 +80,15 @@
 
 - harness 决定模型"看到什么上下文、能调什么工具、怎么执行"，因此不改权重也能提分；但手工找改动要反复工程与评测（§1）。
 - 已有 RSI 方法用执行反馈反复"提议—评估—选择" harness 编辑：Meta-Harness 用共享文件系统暴露历史实现与轨迹（Lee et al., 2026），AHE 让组件与改动结果可观测、并核对编辑级预测（Lin et al., 2026），RRSI 用正则约束搜索轨迹（Xia et al., 2026）。
-- 问题在于：**优化通常只在一个固定设定内做**。模型换代（同族新版本）或多模型共用一个 harness 时，以及任务分布变化时，都需要把已演化的 harness 带过去继续优化。
+- 问题在于：**优化通常只在一个固定设定内做**。模型换代（同族新版本）或多模型共用一个 harness 时，以及任务分布变化时，往往需要把已演化的 harness 带过去继续优化（原文用 "often needs"）。
 
 ### 为什么"只带 harness"不够
 
-作者的切入点是：harness 只是**结果**，它不解释"当初为什么这么改、预期修什么、测出来怎样"（§1）。缺了这段历史，目标设定里的优化会：
+作者的切入点是：harness 只是**结果**，它不解释"当初为什么这么改、预期修什么、测出来怎样"（§1）。缺了这段历史，目标设定里的优化可能：
 
 - 重复源设定已经试过的方向；
 - 改动继承来的组件却不知道它的目的；
-- 把继承来的机制误记成"自己这一轮发现的"。
+- 把继承来的机制误记成"自己这一轮发现的"（F.3 里一次无 SIM 的观察，不是 §1 的一般断言）。
 
 两个具体现象（作者给的例子，都是单次实验）：
 
@@ -133,8 +162,8 @@ H_{t+1} = \mathcal{S}\left(H_t, F_t, \mathcal{C}_t, F_t^{\mathcal{C}}; \mathcal{
 - **四个领域**：编码（TB2.1 → TB4）、文本分类（3 个源数据集 → 8 个目标数据集）、agentic workspace（Harvey LAB → JobBench + GDPval + APEX-Agents 等权平均）、工程设计（EngDesign → Frontier-Eng）。
 - **模型**：跨数据集两阶段都用 Gemini 3.8 Flash 作策略；跨模型用 Claude Opus 5.5 做源优化、Gemini 3.8 Flash 做目标优化。proposer 与 selector 默认也是 Gemini 3.8 Flash（即使任务是 Opus 在跑）；附录 E.4.2 换成 Opus 做优化代理作为消融。
 - **预算**：每次 RSI run `N=10` 轮、每轮 `k=5` 个候选；每个任务 5 次 rollout，evolve 与留出各一份；候选预算与 rollout 预算分开。
-- **数据划分**（Table 4）：每个 inventory 均匀随机切成约两半，不分层；奇数时 evolve 取偶数。例如 TB2.1 共 89 题 → evolve 44 题 / 220 rollouts、留出 45 题 / 225 rollouts；TB4 66 题 → 33/33；文本分类源 412 例、目标 1,000 例；workspace 三个目标合计 merged 765 题（382/1,910 与 383/1,915）。
-- **指标**：编码 pass@1；文本分类按样本池化的 accuracy；workspace 用各 benchmark 自己的 rubric/胜率/pass@1 后等权平均；工程用 pass rate 或 medal score。全为 0–100、两位小数。
+- **数据划分**（Table 4）：每个 inventory 均匀随机切成约两半，不分层；任务数为奇数时 evolve 取两半中的**偶数个**（89→44、67→34、65→32、47→24；偶数可能是较小或较大的一半）。例如 TB2.1 共 89 题 → evolve 44 题 / 220 rollouts、留出 45 题 / 225 rollouts；TB4 66 题 → 33/33；文本分类源 412 例、目标 1,000 例；workspace 三个目标合计 merged 765 题（382/1,910 与 383/1,915）。
+- **指标**：编码 pass@1；文本分类按样本池化的 accuracy；workspace 用各 benchmark 自己的 rubric/胜率/pass@1 后等权平均；工程用 pass rate 或 medal score。全为 0–100；主表按两位小数，Table 1 例外（C.5 说明保留一位小数）。
 - **判分与评测口径**：workspace 三个 benchmark 统一用 Gemini 3.8 Flash 作 judge（不同于 RRSI 的混合 judge 配置与 GDPval 投票团），工程两种指标都不用 LLM judge（B.5–B.6）；编码的 infra 失败 rollout 留在分母记 0，文本分类每次 rollout 从同一初始 example-memory 状态开始，Frontier-Eng 里源自 EngDesign 的 7 个子问题记 0 分但仍留在分母（B.3/B.4/B.6）。
 - **统计口径**：除专门的配对研究外，**每个条件只跑一次完整 RSI**，5 次 rollout 只估计执行波动、不估计优化方差；单 run 结果只作描述性报告（附录 C.4）。
 
@@ -152,6 +181,7 @@ H_{t+1} = \mathcal{S}\left(H_t, F_t, \mathcal{C}_t, F_t^{\mathcal{C}}; \mathcal{
 - 作者报的区间：Full SIM 比 Harness Transfer 高 **2.43–4.35** 分，比 Problem-Only 高 **0.20–6.06** 分（本笔记按上表复算，逐项吻合）；Problem-Only 相对 Harness Transfer 从 **−1.82** 到 **+2.40**，作用不稳定。
 - "最强对照"的领先幅度从 NoMemory 的 **0.20** 到工程的 **4.35** 分（复算：NoMemory 73.60−73.40；工程 46.96−42.61）。
 - **源提升不等于目标起点更好**：六组源留出分都涨了 2.75–6.41（附录 E.1、Figure 7），但 FewShotAll 带到目标反而低于种子（72.92 vs 75.72）；无记忆续优化到 74.12，仍低于 Cold Start 的 75.92，Full SIM 到 77.92。
+- 附录 E.1 另有一处口径：六个设定里有五个的留出增益**大于** evolve 增益，唯一例外是 FewShotAll（留出 6.41 vs evolve 6.60）。原文只陈述这一事实，随后转入 §4.2 的「源增益是否带来更好的目标起点」；本笔记不把它单独当作源侧泛化的证据。
 - NoMemory 上 Cold Start 的涨幅更大（3.40 vs 2.20）但终点更低（72.00 vs 73.60）；作者因此主张同时报起点与终点，并用共享起点的 Harness Transfer 作为记忆机制的直接对照。
 
 ### 跨模型：Opus → Gemini（§4.3.1、Table 6、Figure 4）
@@ -166,6 +196,7 @@ H_{t+1} = \mathcal{S}\left(H_t, F_t, \mathcal{C}_t, F_t^{\mathcal{C}}; \mathcal{
 - Opus 演化的 harness 换到 Gemini 后**四个领域都低于 Gemini 自己的种子**，缺口 0.60（文本）到 5.48（workspace）分。
 - 目标侧续优化并不总能补回：Harness Transfer 在编码、文本、workspace 三个领域仍低于 Cold Start；Full SIM 四个领域都最高，比 harness-only 高 **3.60–11.33** 分（复算吻合）。
 - workspace 差距最大：同起点 68.41，Full SIM 到 84.75，Harness Transfer 只到 73.42。
+- Table 6 题注另说明：编码行的 Cold Start 用的是 AHE 种子；Terminus-2 的 Cold Start 对照为 18.18 → 19.39。
 
 ### 模型代际链（§4.3.2、Table 1）
 
@@ -220,6 +251,7 @@ H_{t+1} = \mathcal{S}\left(H_t, F_t, \mathcal{C}_t, F_t^{\mathcal{C}}; \mathcal{
 - 9/10 次更好，唯一例外低 0.61；均值差 +2.36（95% CI [1.05, 3.68]，双侧配对 `t(9)=4.06`、`p=0.003`；符号秩检验 `p=0.006`；`d_z=1.28`）。
 - 本笔记复算：Start 均值 18.363、No SIM 19.334、SIM 21.697；Δ 均值 2.363；Δ 的样本标准差 1.842、标准误 0.582，`t=4.06`、CI ±1.32，`d_z=1.28`——与原文一致。
 - 该研究的分析单位是**独立源 run**（10 个），不是 10×5 次 rollout；作者在附录 C.4 明确区分"重复 rollout"与"独立优化 run"。
+- §4.4 另报逐轮比较：两个编码种子上 Full SIM 在第 1–10 轮都最好或并列，从 AHE 起点在第 5 轮（21.21）就超过最强对照的终局 20.61，从 Terminus-2 起点第 2 轮（21.21）已超过。Figure 5(a) 的 Full SIM 逐轮保留分为 r0 18.18、r1–r3 20.00、r4 19.39、r5 21.21、r6–r7 22.42、r8 24.24、r9–r10 24.85；r4 是整条曲线唯一一次回落（矢量路径顶点读数，TB4 每个 rollout 约 0.61 分，故读数都落在 0.61 的整数倍上）。
 
 ![Figure 5](assets/figure5-coding-curves.png)
 
@@ -229,7 +261,7 @@ H_{t+1} = \mathcal{S}\left(H_t, F_t, \mathcal{C}_t, F_t^{\mathcal{C}}; \mathcal{
 
 - **源侧保留**（Figure 8，AHE 起点，留出 TB2.1 共 225 rollouts，一次 rollout = 0.44 分）：三个迁移条件都从 90.22 出发；Full SIM 终局 88.89、Problem-Only 终局 88.44（两者的最低点是 88.44，即 −1.78）；Harness Transfer 第 2 轮跌到 86.67、终局 87.56；Cold Start 85.78 → 85.33。
 - 作者折算成**丢失的成功 rollout 数**：Full SIM 3/225、Problem-Only 4/225、Harness Transfer 6/225（复算：90.22−88.89=1.33≈3×0.44；−88.44=1.78≈4×0.44；−87.56=2.66≈6×0.44）。同一次 AHE 迁移里，Full SIM 在 TB4 上 +6.67，Problem-Only 只 +0.61。
-- **只记根因不够**（E.4.1）：10 个设定里 Full SIM 都高于 no-memory 与 root-cause-only；但作者也承认这个对照把"继承的信息"与"目标阶段的更新"打包在一起，不是对某个字段的消融。
+- **只记根因不够**（E.4.1）：10 个设定里 Full SIM 都高于 no-memory 与 root-cause-only；作者在 Limitations 说明该对照评估的是 SIM 这一完整过程（继承记忆 + 目标侧更新），因此不是单个字段的消融。
 - **优化代理换 Opus**（E.4.2、Table 7）：TB2.1 源优化中，Opus 做 proposer/selector 的留出分比 Gemini 高 1.06（AHE，91.28 vs 90.22）与 0.05（Terminus-2，91.61 vs 91.56）。
 
 ---
@@ -242,7 +274,7 @@ H_{t+1} = \mathcal{S}\left(H_t, F_t, \mathcal{C}_t, F_t^{\mathcal{C}}; \mathcal{
 
 - **源问题 P5**：TB2.1 上一个任务里，agent 把"用户会自己配账号"当成外部分工，没建 `user` 账号，本地命令全成功就宣布 `task_complete`；种子 harness 的完成确认只是让模型再说一遍，不问执行证据。源优化分三轮做出 `ExecutionGatingInterlock`（137 行 → 275 行），拦截"上一轮解析错/没真执行却要完成"等情形，任务成功率 1→5（out of 5）。
 - **目标侧**：TB4 的 `photonic-waveguide-routing` 任务里，解可行、`check_routing.py` 全过、无终端错误，四个拒绝条件都不触发；但评分是路径代价，"可行"不等于"够好"。于是目标第 2 轮开新条目 **P8**（可行但次优），加"约束检查通过 ≠ 最优"的提示与检测；第 4 轮加第五个拒绝路径拦截"带分数的可行性输出"。目标阶段把组件从 275 行扩展到 437 行。
-- **结果**：P8 两次入选，但**预测的 4 个任务一个都没修好**（0/4）；后来的编辑又改变了第 4 轮的阻塞行为：最终 harness 保留源侧四条拒绝路径，行为变为"拦截自报不可行 + 对可能次优给出提示"。SIM 里仍留着那次失败尝试与未解决的预测。
+- **结果**：P8 两次入选，但两次共 4 条任务预测（`photonic-waveguide-routing`、`production-planning` 各两次）全部未实现（0/4）；后来的编辑又改变了第 4 轮的阻塞行为：最终 harness 保留源侧四条拒绝路径，行为变为"拦截自报不可行 + 对可能次优给出提示"。SIM 里仍留着那次失败尝试与未解决的预测。
 - **对照（无 SIM）**：同一个继承门被改了四次、两次是在修完成死锁，第 3 轮的 rationale 还把继承来的门归因成"自己第 1 轮做的"（F.3）。有 SIM 的运行则在第 2 轮读到 P5 的源记录，保留验证思路、把证据要求改写成目标侧谓词。
 
 ### 同一诊断跨设定累积证据（F.4、Figure 12）
@@ -258,10 +290,10 @@ P3 的根因是"交付物内部正确、但违反验证器的外部契约（sche
 
 Table 8 把四个领域 ×（数据集变化 / 模型变化）的机制分成四类：直接复用、需要适配、继承后扩展、依赖设定（含失效或被移除的组件、需要重新评估的假设）。几个具体观察：
 
-- 编码：终端/进程层与 paste-buffer 结构可留，但 TB4 需要按键归一化与前台进程识别；完成契约保留、判据换成目标侧；**解析器修复是针对具体模型输出错误的**，换模型要重查；拒答处理被带过去但在 TB4 没有触发任务，所以"它在场"既不证明收益也不证明损失。
-- 文本分类：BM25 索引与检索器跨数据集可用，`top-k`、分数阈值、类配额要重调；SMILES 归一化在目标套件里失效（输出不再是该格式）。
-- Workspace：终止前的软门可留，但目标失败来自"文件写了却没通过 `write_file` 注册"，探针要从文件系统改成工具调用历史；注册假设依赖评测器，换评测器要重想。
-- 工程：源侧 import 了但没调用的 tool registry，在目标侧重构成集中截断的入口点；三个目标 run 都提高了共享上下文常量；Full SIM 保留了源指南并扩展，Harness Transfer 第一轮就把指南退回种子 prompt。
+- 编码：终端/进程层与 paste-buffer 结构可留，但 TB4 需要按键归一化与前台进程识别；完成契约保留、判据换成目标侧；**解析器修复是针对具体模型输出错误的**，换模型要重查；拒答处理被带过去但在 TB4 没有触发任务，所以"它在场"既不证明收益也不证明损失。F.5.1 还记录：无 SIM 的 cold-start run 在 8 轮内没有重新发现这套工具层改动，10 轮后只是得到一个更大的 parser，仍未超过继承的 harness。
+- 文本分类：BM25 索引与检索器跨数据集可用，`top-k`、分数阈值、类配额要重调；SMILES 归一化在目标套件里失效（输出不再是该格式）。源侧把检索限制在 BM25 分数为正的前 8 个样例；四个 run 里有三个演进出 BM25 索引；目标侧对 Banking77、GoEmotions 的 rubric 重写比对 SciTail、TweetEval-Hate 更多（F.5.2）。
+- Workspace：终止前的软门可留，但目标失败来自"文件写了却没通过 `write_file` 注册"，探针要从文件系统改成工具调用历史；注册假设依赖评测器，换评测器要重想。目标的注册检查分三级、每级只触发一次（single-shot）：检测到写文件时提示、步数预算用掉 75% 仍未注册时强制要求、`final_answer` 时条件阻塞（F.5.3）。
+- 工程：源侧 import 了但没调用的 tool registry，在 **Harness Transfer 的目标 run** 里被重新用作集中截断的入口点（不是所有目标 run）；三个目标 run 都提高了共享上下文常量；Full SIM 保留了源指南并扩展，Harness Transfer 第一轮就把指南退回种子 prompt。Full SIM 还把源侧一次性的事后检查改成 checkpoint 协议，把超过 baseline 的中间产物写盘以防无预告超时丢失；同一领域记录的零分率在 Opus 上 0.09%、Gemini 上 4.49%，所以干预阈值要按策略重校（F.5.4）。
 
 F.6 归纳出 SIM 的四个作用：保留旧理由以判断"还要不要"、同一理由可换实现、新结果给旧诊断加证据、编辑被替换后经验仍可查。
 
@@ -287,7 +319,7 @@ F.6 归纳出 SIM 的四个作用：保留旧理由以判断"还要不要"、同
 - 论文给出的成本只有编码域：**一轮约 4 h，其中评测 1.7 h、候选采样 34 min**；轮数/候选数对齐，token 与时长未对齐也未报告。跨方法比较的是"同轮数同候选数"，不是同算力。
 - SIM 每轮**整份**进 system prompt、不检索不截断，因此 prompt 随轮数与问题数线性增长；论文没有给条目数/长度的统计（D.3 的示意里出现 P1–P9，P6 已并入 P5），也没有报告 prompt token 与由此带来的成本。这是把它搬到长周期、多设定场景时首先要量的量。
 - 只记录入选编辑：被筛掉/未执行的候选、以及 selector 的拒绝理由都不在记忆里；因此 SIM 解释的是"试过并采纳了什么"，不是完整搜索树。
-- 预测字段要求"事前写、事后核"，这会约束 proposer 的表述，但**预测错了不会阻断采用**（P8 两次 0/4 仍被采用）。记忆在这里的作用是留下证据，不是自动纠错。
+- 预测字段要求"事前写、事后核"，这会约束 proposer 的表述，但**预测错了不会阻断采用**（P8 两次合计 0/4 条预测实现，仍被采用）。记忆在这里的作用是留下证据，不是自动纠错。
 - 迁移失败的高发点（F.5）：依赖具体模型输出格式的解析修复、依赖评测器注册方式的检查、按某一策略失败率校准的干预阈值；这些都需要在目标设定重新验证。
 
 ---
@@ -296,7 +328,7 @@ F.6 归纳出 SIM 的四个作用：保留旧理由以判断"还要不要"、同
 
 > 本节为本笔记补充，只做定位与对照。
 
-- **RRSI（00212，`notes/papers/2609.24972-v3-rrsi/note.md`）**：同一机构体系（Google Cloud AI / Google Cloud AI Research）的相关工作；RRSI 第一作者是 Peng Xia，本文作者是 Fei Xia，不是同一人、也不是同一作者列表，勿混。本文在 workspace 与工程两个领域直接采用 RRSI 的环境、种子 harness 与评测接口（workspace 的 judge 改为统一用 Gemini 3.8 Flash，而 RRSI 是混合 judge 配置）。差别在问题：RRSI 约束"搜索轨迹怎么走"，本文关心"换设定后带什么过去"。RRSI 也记录假设、diff、分数与拒绝决定；本文的增量是把记录按问题归组、加上事前预测/事后结果与出处，并让它跨设定继续追加。
+- **RRSI（00212，`notes/papers/2609.24972-v3-rrsi/note.md`）**：同一机构体系（Google Cloud AI / Google Cloud AI Research）的相关工作；RRSI 第一作者是 Peng Xia，本文第一作者是 Xin Yu（Fei Xia 是第二作者）。两篇只在 Yanfei Chen 一位作者上重合，作者列表不同，勿把两篇当成同一团队。本文在 workspace 与工程两个领域直接采用 RRSI 的环境、种子 harness 与评测接口（workspace 的 judge 改为统一用 Gemini 3.8 Flash，而 RRSI 是混合 judge 配置）。差别在问题：RRSI 约束"搜索轨迹怎么走"，本文关心"换设定后带什么过去"。RRSI 也记录假设、diff、分数与拒绝决定；本文的增量是把记录按问题归组、加上事前预测/事后结果与出处，并让它跨设定继续追加。
 - **Harness²（00220，`notes/papers/2610.14224-v1-harness2/note.md`）**：本文把它归为"保留已采纳 harness 与改法经验、在 benchmark 间复用"的一类（附录 A.2）。SIM 与它的差别是记录粒度和使用方式：SIM 以根因为键、把 rationale/预测/观测/出处绑在一起，并在目标阶段由 proposer 与 selector 同时读取。
 - **Self-Harness（2606.09498，`notes/papers/2606.09498-v3-self-harness/note.md`）**：本文引作"弱点挖掘 + harness 提议 + 回归验证"的代表（Zhang et al., 2026a）。两者都利用失败证据，但 Self-Harness 关注一次优化循环内的验证，本文关注跨设定的经验携带。
 - **Evo-Harness（2608.15071，`notes/papers/2608.15071-v2-evo-harness/note.md`）**：本文引用的是 **EvoHarnessBench**（Ke et al., 2026，arXiv:2609.04280），与本仓库已读的 Evo-Harness 不是同一篇，勿混。
@@ -312,13 +344,15 @@ F.6 归纳出 SIM 的四个作用：保留旧理由以判断"还要不要"、同
 2. 只研究**接口兼容**的设定，且优化器的规划与搜索过程保持不变（否则无法把差异归给记忆）。
 3. 比较的是 **SIM 这个完整过程**（继承记忆 + 目标侧更新），不是单个字段的消融。
 
+Ethics Statement 另提醒两点（不算 Limitations，但影响解读）：自改的 harness 可能迎合评测器而不真正解题——论文的对应做法是把留出反馈与优化代理隔离、标明每个 benchmark 的 verifier/judge，并在附录 F.2 收录一次「入选但没修好目标」的编辑；workspace 分数可能反映 LLM judge 的偏差，而 workspace 恰是 Full SIM 增益最大的领域（+12.96，Figure 11a）。
+
 读者应注意的（本笔记判断）：
 
 - 10 个主设定都是单 run，"Full SIM 全胜"是描述性结果；唯一有重复的实验只在编码/Terminus-2 上，换成 AHE 或别的领域是否仍有 2 分级别优势，没有证据。
 - 代际链只有 4 代，且末代回退 0.8；更长的链、跨厂商的多跳链没有测（跨厂商单跳 Opus→Gemini 已在 §4.3.1 测过）。
-- "一个共享 harness" 实验只跑一次，作者自己说不能据此排名；B1 与 S2 的差异也落在小样本范围内。
+- "一个共享 harness" 实验每个 procedure 只跑一次，作者自己说不能据此排名；B1 与 S2 各只跑一次，0.78 分的差异不足以判断稳定性。
 - 没有成本对账：SIM 让 prompt 变长，理论上会推高 proposer/selector 的推理成本；论文只说"token use and runtime can differ"，没有量化，也没有做"同等 token 预算"的对照。
-- 案例只说明机制，不估计单个编辑的贡献；P8 的两次尝试都没有修好目标任务，但最终 harness 的分数仍提高，说明案例与总分之间不能直接连线。
+- 案例只说明机制，不估计单个编辑的贡献；P8 的两次尝试都没有修好目标任务，而同一编码设定（Terminus-2、Table 5 的 Full SIM 行）终局分仍从 19.39 升到 21.82——案例与总分之间不能直接连线（p.24 也明确不作这种归因）。
 
 ---
 
@@ -327,7 +361,7 @@ F.6 归纳出 SIM 的四个作用：保留旧理由以判断"还要不要"、同
 1. **同一个 Cold Start 在不同表里不一致**：文本分类 FewShotAll 的 Cold Start 起点，Table 5 是 **75.72**、Table 6 是 **78.32**（同为 Gemini 3.8 Flash、同一目标套件）；而编码（16.36）、workspace（73.89）、工程（39.13）三行的 Cold Start 起点在两表完全相同。论文没有解释这个差异。可能的解释是文本分类的随机划分在两次实验里各抽了一次（附录 B.2 只说"均匀随机切分"、未说固定种子），但原文没有说明；本笔记不据此推断哪张表"错"。
 2. **共享 harness 的结论依赖看哪一列**：§4.3.3 用留出列说 S2（75.24）与 B1（75.20）"相近"；Table 2 的 All 列是 S2 **77.08** 对 B1 **76.30**（+0.78），且按题注 S2 在三列都加粗。正文没有提 All 列的这个差距，读者容易把"相近"读成"全面持平"。
 3. **第一代代际结果没进叙述**：Table 1 第一行 CRSI 22.4 vs Fresh 21.4（+1.0），作者只把它当"初次运行里 SIM 有用"的证据，没有展开；正文的"两胜一负"只数后三代。两处并不矛盾，但只读正文会漏掉第一代的 +1.0。
-4. **记录 schema 有未定义字段**：`backfilled`、`sample` 在 D.3 的字段表里没有解释；`accepted` 的语义（"selector 选中，即使部分预测没实现"）与"只记录入选候选"的规则放在一起时，示例里恒为 `true`，读者无法从记录本身区分"入选但失败"与"未入选"。
+4. **记录 schema 有未定义字段**：`backfilled`、`sample` 在 D.3 的字段表里没有解释；`accepted` 的语义（"selector 选中，即使部分预测没实现"）与"只记录入选候选"的规则放在一起时，示例里恒为 `true`。记录里看不到的是未入选或被筛掉的候选——不是无法区分，而是根本没写进来。
 5. **"最强对照"的口径**：§4.2 说领先"最强对照"0.20–4.35 分。逐项复算成立，但不同设定的"最强对照"并不是同一个条件（NoMemory 是 Problem-Only，工程是 Harness Transfer 与 Problem-Only 并列 42.61），正文没有逐项点明。
 6. **图 11(a) 与图 5 的命名不同**：图 11(a) 把对照叫 "Without SIM (Harness Transfer)"、把处理叫 "With SIM (Full SIM)"；图 5 的图例写的是 "Harness Transfer"，只有 (c) 的纵轴与 Table 3 表头用 "No SIM"。语义一致（都是 Harness Transfer vs Full SIM），但术语不统一。
 
@@ -338,6 +372,6 @@ F.6 归纳出 SIM 的四个作用：保留旧理由以判断"还要不要"、同
 - 原文 PDF：`https://arxiv.org/pdf/2611.18856v1`，525,024 B、35 页、sha256 见来源信息；下载后以 `%%EOF` 与页数（gs：35）确认完整，未使用镜像。
 - 表格：Table 1 p.6、Table 2/3 p.8、Table 4 p.18、Table 5 p.23、Table 6 p.24、Table 7 p.25、Table 8 p.31，均在 250–300 dpi 渲染页上逐格核对；Table 5/6 的 Before/After 与 Figure 3/4 的柱内打印标签、Figure 11(a) 的差值三方一致。
 - 公式：式 (1)–(3) 在 p.3–p.4 渲染页核对（式 (2) 的元组下标、式 (3) 的分号与 `M_t` 位置）；式 (4)–(6) 为附录计分定义，本笔记未转抄。
-- 图：Figure 2（p.4）与 Figure 5（p.9）的裁剪框与成品尺寸已记录；其余图按渲染页看图核对。Figure 5 的逐轮值由 PDF 矢量 marker 坐标读出（p.9 面板 (a)：网格线 y=215.49↔16、197.24↔18、178.98↔20，即 18.25 pt / 2 分；Full SIM r1–r3 的 y=178.98 → 20.00，r4 的 y=184.55 → 19.39，r10 的 y=134.73 → 24.85）。未做位图像素颜色测量。
-- 否定性断言检索词：为确认未定义字段，检索 `backfill`（全文仅 D.3 schema 一处）；`sample` 作为字段只出现在 schema 与 P5/P8 的 5 条示例记录（取值 `s1`–`s4`），正文没有定义其含义。为确认无代码/项目页，检索 `github`、`code available`、`open-source`（正文无命中）。
+- 图：Figure 2（p.4）与 Figure 5（p.9）的裁剪框与成品尺寸已记录；其余图按渲染页看图核对。Figure 5 的逐轮值由 PDF 矢量坐标读出（p.9 面板 (a)：横轴每轮 17.48 pt、每两轮一个 tick（间距 34.97 pt），圆形 marker 只画在偶数轮，奇数轮取路径顶点；纵轴网格线 y=215.49↔16、197.24↔18、178.98↔20，即 18.25 pt / 2 分）。Full SIM 各轮顶点 y 为 r0 195.59、r1–r3 178.98、r4 184.55、r5 167.94、r6–r7 156.90、r8 140.29、r9–r10 134.73，对应 18.18、20.00、19.39、21.21、22.42、24.24、24.85。未做位图像素颜色测量。
+- 否定性断言检索词：为确认未定义字段，检索 `backfill`（全文仅 D.3 schema 一处）；`sample` 作为字段只出现在 schema 与 P5/P8 的 5 条示例记录（取值 `s1`–`s4`），正文没有定义其含义。为确认无代码/项目页，检索 `github`、`code available`、`open-source`：正文无命中，全文唯一命中是参考文献里 Harvey LAB 的 `https://github.com/harveyai/harvey-labs/tree/v1.0`（PDF 折行成 `https://github.c` + `om/...`）。
 - 环境备忘：本次 `/tmp` 为 3.8 GB tmpfs，先前的 HTML/PDF 下载曾因空间不足被截断（HTML 只到 602,112 B、PDF 只到 221,184 B）；改在 `~/tmp/sim` 重下后得到完整的 707,675 B HTML 与 525,024 B PDF。复核时先比 `Content-Length`/`size_download`，再比 sha256。
