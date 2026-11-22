@@ -20,7 +20,7 @@
 
 |编号|论文|年份|论文单位|笔记地址|
 |:-:|:-:|:-:|:-:|:-:|
-|[00042](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00042-DeepSeek-V3.pdf)|[DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437)|2024|DeepSeek-AI|—（待生成笔记）|
+|[00042](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00042-DeepSeek-V3.pdf)|[DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437)|2024|DeepSeek-AI|[笔记](./notes/papers/2412.19437-v2-deepseek-v3/note.md)|
 |[00045](./papers/00045-DeepSeek_R1.pdf)|[DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning](https://github.com/deepseek-ai/DeepSeek-R1/blob/main/DeepSeek_R1.pdf)|2025|DeepSeek-AI|—（待生成笔记）|
 |[00095](./papers/00095-DeepSeek_R1.pdf)|[DeepSeek-R1 incentivizes reasoning in LLMs through reinforcement learning](https://www.nature.com/articles/s41586-025-09422-z)|2025|DeepSeek-AI|—（待生成笔记）|
 |[00056](https://github.com/yanfeng98/paper-is-all-you-need/blob/main/papers/00056-DeepSeek-GRM.pdf)|[Inference-Time Scaling for Generalist Reward Modeling](https://arxiv.org/abs/2504.02495)|2025|DeepSeek-AI|—（待生成笔记）|
