@@ -81,7 +81,7 @@ Figure 2（p2）把三种设置并排：
 
 ### 形式化：冻结的 solver，外部的 skill harness
 
-任务流被切成 batch：`B_1, …, B_K`，其中 `B_i = {x_{i,1}, …, x_{i,m_i}}`。在第 i 批之前，agent 有一个当前 harness：
+任务流被切成 batch：$B_{1}, \dots , B_{K}$，其中 $B_{i} = \{x_{i,1}, \dots , x_{i,m_i}\}$。在第 i 批之前，agent 有一个当前 harness：
 
 ```math
 \mathcal{H}_i = \{h_i^1, \dots, h_i^{n_i}\}, \qquad
@@ -95,7 +95,7 @@ S_{i,j} = \mathrm{Select}(x_{i,j}, \mathcal{H}_i; b), \quad |S_{i,j}| \le b
 (\tau_{i,j}, y_{i,j}, f_{i,j}) = \mathcal{A}(\tilde{x}_{i,j})
 ```
 
-读法：`Inject` 把选中的指导拼进任务输入；冻结的 solver `A` 执行后返回动作轨迹 τ、结果 y 和可用反馈 f（verifier 结果、单测输出、工具诊断或 judge 反馈）。这四元组就是 execution context `c_{i,j} = (x, τ, y, f)`（式 5）。
+读法：`Inject` 把选中的指导拼进任务输入；冻结的 solver $A$ 执行后返回动作轨迹 τ、结果 y 和可用反馈 f（verifier 结果、单测输出、工具诊断或 judge 反馈）。这四元组就是 execution context $c_{i,j} = (x, \tau, y, f)$（式 5）。
 
 关键点是：**harness 是外部控制脚手架**，不是原始轨迹存储；它通过选择和注入影响 solver 的规划、行动、验证与恢复（§3.1）。这也意味着改进的对象是「给模型看什么」，而不是「模型怎么想」。
 
@@ -118,7 +118,7 @@ Algorithm 1（p5）的循环是：
 
 对每个完成的 context，solver 只在失败或负反馈时产出一条候选记忆（式 6）。候选的表示是：
 
-`r = (lesson, trigger, evidence, scope_hint)`
+$r = (lesson, trigger, evidence, scope_{\mathrm{hint}})$
 
 - `lesson`：这次到底学到了什么；
 - `trigger`：什么情况下应该调用它；
@@ -129,7 +129,7 @@ Algorithm 1（p5）的循环是：
 
 ### 编译：evolver 不是追加，而是编辑
 
-batch 结束后，候选记忆组成 `R_i = {r_{i,j}}`。evolver 同时看到 `H_i` 和 `R_i`，输出一组编辑：
+batch 结束后，候选记忆组成 $R_{i} = \{r_{i,j}\}$。evolver 同时看到 $H_{i}$ 和 $R_{i}$，输出一组编辑：
 
 ```math
 o = \pi_{\mathrm{evolve}}(r, \mathcal{H}_i, R_i), \qquad
@@ -137,7 +137,7 @@ o \in \{\mathrm{ADD}, \mathrm{MERGE}, \mathrm{REVISE}, \mathrm{SKIP}\}, \qquad
 \mathcal{H}_{i+1} = \mathrm{ApplyEdits}(\mathcal{H}_i, O_i)
 ```
 
-读法：每条候选记忆不是直接 append，而是被映射成「新增 / 合并 / 修订 / 跳过」之一；`O_i` 是这一批编辑的集合，最后统一应用到 harness 上。作者强调，这一步把 harness 从「memory store」变成了「compiled guidance」：evolver 会过滤噪声、合并兼容信号、修订已有条目、把可复用的教训提升为规则（§3.2）。
+读法：每条候选记忆不是直接 append，而是被映射成「新增 / 合并 / 修订 / 跳过」之一；$O_{i}$ 是这一批编辑的集合，最后统一应用到 harness 上。作者强调，这一步把 harness 从「memory store」变成了「compiled guidance」：evolver 会过滤噪声、合并兼容信号、修订已有条目、把可复用的教训提升为规则（§3.2）。
 
 这也解释了它和 retrieval 的区别：retrieval 把原始案例放回上下文，compilation 把案例**压成**更短、更可执行的规则；前者保真但噪声大，后者有信息损失但更适合作为行为指导（本笔记判断）。
 
@@ -168,8 +168,8 @@ Evo-Harness 的 harness 有两级（§3.3）：
 
 除了上面的形式化，本文没有复杂的训练目标；真正需要记住的是三个量：
 
-1. **harness 是集合，不是一段 prompt**：`H_i = {h_i^1, …, h_i^{n_i}}`，每条有触发条件和作用域；这使「选择哪几条」成为一个独立的检索问题（式 1–2）。
-2. **候选记忆是带证据的教训，不是原始轨迹**：`r = (lesson, trigger, evidence, scope_hint)`；设计意图是让 evolver 能判断这条教训是不是过度拟合了某次执行（式 7）。
+1. **harness 是集合，不是一段 prompt**：$H_{i} = \{h_{i}^{1}, \dots , h_{i}^{n_i}\}$，每条有触发条件和作用域；这使「选择哪几条」成为一个独立的检索问题（式 1–2）。
+2. **候选记忆是带证据的教训，不是原始轨迹**：$r = (lesson, trigger, evidence, scope_{\mathrm{hint}})$；设计意图是让 evolver 能判断这条教训是不是过度拟合了某次执行（式 7）。
 3. **更新是离散编辑，不是梯度**：`ADD / MERGE / REVISE / SKIP` 四种操作把候选压进 harness；从论文描述看，没有可微目标，也没有 verifier 门控，编辑是否被接受由 evolver 判断（式 10–11）。
 
 一个直觉：这套方法把「经验」当成**可编译的源代码**——每次执行是一条带噪声的日志，reflection 是解析器，evolver 是编译器优化 pass，harness 是生成的目标文件。作者没有用这个比喻，但它能解释为什么他们强调「compile」而不是「retrieve」：日志不能直接执行，必须被降噪、抽象、链接到已有规则。
@@ -468,7 +468,7 @@ Table 6 的「easier-to-improve tasks」也应当这样读：WebArena 的有状�
 1. **「三次平均」与表值/图值的整数计数关系没有被说明**：附录 I.3 说「performance is averaged over three runs」，但 Table 1 的 40 个值在两位小数显示精度内全部能还原为对应分母上的整数通过数（CL-Bench 1899、TerminalBench-2 89、SWE-bench Lite 300、τ-bench 165、WebArena-Infinity 80）；Table 3/4 也一样。例如 73.03% = 65/89、67.00% = 201/300、76.97% = 127/165、76.25% = 61/80。Figure 6 的六值也全部与 /300 的整数计数吻合（70.7 ≈ 212/300、75.3 ≈ 226/300、76.0 = 228/300、58.0 = 174/300、55.3 ≈ 166/300、55.7 ≈ 167/300；本笔记复算，按显示精度取整）；Figure 5 的三值则与 /64 的 44/47/48 完全吻合（68.8 ≈ 44/64、73.4 ≈ 47/64、75.0 = 48/64；本笔记复算）。**结论**：原文明确说三次运行平均（I.3），但表值又都能写成整数计数；这与「三次各 k 次通过、3k/3N」完全相容，不能据整数计数反推成单次。原文没有给方差，也没有说明这些分母；Figure 5 的候选分母 /64 只能作为推断（不排除整数倍）。
 2. **Figure 5 与 Figure 6 的 No-Evolve 很可能不是同一测试集**：Figure 5 的 68.8 与候选分母 /64 的 44/64 吻合（推断，不排除整数倍）；Figure 6(a) 的 70.7 与 Table 5 给出的 300 题全集 212/300 吻合；原文只缺 Figure 5 的 test-subset 大小。按上下文，Figure 5 的 solver 应为 Opus 4.7（原文只在 Train-Split Transfer 句里明说，No-Evolve 柱没有单独标注）。**结论**：不能把两图的 No-Evolve 直接当成同一基线，也不能直接比较 +1.6 pp（Online vs Train-Split）与 +0.7 pp（Cross vs Same）。
 3. **Online-Updated 的 evolver 型号没有说清**：Figure 5 的文字说 Train-Split Transfer 用 Sonnet 4.5 在训练集上进化，再用 Opus 4.7 评测；Online-Updated 说「updates the harness directly with the same models」。这个「same models」是指「和 Train-Split 相同的 Sonnet evolver + Opus solver」，还是「solver 与 evolver 都用 Opus 4.7」，原文没有明确。如果是后者，+1.6 pp 就混入了 evolver 更强的因素，不能纯归因于 in-situ adaptation。
-4. **编辑词表前后不一致**：§3.2 的式 10 定义 `o ∈ {ADD, MERGE, REVISE, SKIP}`；附录 E.1 的 solver 提议 prompt 用 `NEW / ENHANCE / NONE`；E.2 的 evolver curator prompt 用 `ACCEPT / MERGE / SKIP`。这像是「抽象记号」与「压缩后的 prompt 词表」的差别，但原文没有说明映射关系；读消融时不要把这几个词当成同一套操作。
+4. **编辑词表前后不一致**：§3.2 的式 10 定义 $o \in \{\mathrm{ADD}, \mathrm{MERGE}, \mathrm{REVISE}, \mathrm{SKIP}\}$；附录 E.1 的 solver 提议 prompt 用 `NEW / ENHANCE / NONE`；E.2 的 evolver curator prompt 用 `ACCEPT / MERGE / SKIP`。这像是「抽象记号」与「压缩后的 prompt 词表」的差别，但原文没有说明映射关系；读消融时不要把这几个词当成同一套操作。
 5. **No Propose 的输入没有说明**：Table 3 的 No Propose 仍然比 No Evolve 高 3.74/1.66 pp，说明它不是「完全不更新」。但论文只说「removes solver-side proposal of candidate memories」，没有说 evolver 此时读什么（原始 execution context？空的候选集？另一种 agent evolver？）。因此这个消融的机制解释不完整。
 6. **Algorithm 1 与 §3.2 的 reflection 条件不一致**：Algorithm 1 第 9 行对每个任务都写 `Reflect`，§3.2 说只有失败或负反馈才产生候选记忆；正文的机制描述是后者，伪代码没有写出这个条件。引用 Algorithm 1 时不要把「每个任务都反思」当成实际流程。
 

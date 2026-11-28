@@ -36,9 +36,9 @@ README 行 `00042` 的编号单元格指向上游归档 PDF。2026-11-22 复核�
 
 一句话：**DeepSeek-V3 不是靠一个新模块取胜，而是把 671B 总参 / 37B 激活的 MoE、MLA、无辅助损失负载均衡、MTP、FP8 混合精度、DualPipe 双向流水线和 R1 蒸馏一起工程化，做到 14.8T token 预训练 + 上下文扩展 + 后训练的全流程只用 2.788M H800 GPU 小时（其中预训练 2.664M；约 557.6 万美元，按 2 美元/GPU·小时），同时把开源模型的评测推到 GPT-4o / Claude-3.5-Sonnet 附近**。
 
-- **架构**：沿用 DeepSeek-V2 已验证的 MLA + DeepSeekMoE；新增按专家维护的偏置 `b_i` 做无辅助损失负载均衡，保留一个极小的序列级辅助损失（`α=1e-4`）防止单序列极端失衡；MTP 深度 `D=1`，即每个位置多预测一个 token (§2)。
+- **架构**：沿用 DeepSeek-V2 已验证的 MLA + DeepSeekMoE；新增按专家维护的偏置 $b_i$ 做无辅助损失负载均衡，保留一个极小的序列级辅助损失（$\alpha=10^{-4}$）防止单序列极端失衡；MTP 深度 $D=1$，即每个位置多预测一个 token (§2)。
 - **训练系统**：2048 张 H800；16-way PP × 64-way EP（跨 8 个节点）× ZeRO-1 DP；DualPipe 把 attention、dispatch、MLP、combine 切成可重排的块，双向灌 micro-batch；20 个 SM、10 个通信通道做跨节点 all-to-all (§3.2)。
-- **FP8**：所有 GEMM 用 E4M3；激活按 1×128 tile、权重按 128×128 block 量化；每 `N_C=128` 个 MMA 把部分和提升到 CUDA core 的 FP32 寄存器；embedding、输出头、MoE gating、norm、attention 保持高精度 (§3.3)。
+- **FP8**：所有 GEMM 用 E4M3；激活按 1×128 tile、权重按 128×128 block 量化；每 $N_C=128$ 个 MMA 把部分和提升到 CUDA core 的 FP32 寄存器；embedding、输出头、MoE gating、norm、attention 保持高精度 (§3.3)。
 - **成本**：预训练 2,664K + 上下文扩展 119K + 后训练 5K = 2,788K H800 GPU 小时；每万亿 token 180K 小时，按 2048 卡满利用率折算约 3.7 天；总美元成本 5.576M（Table 1、§1）。
 - **后训练**：1.5M SFT 实例；用内部 R1 生成推理数据，经「领域专家模型 SFT+RL → 两类样本 → 拒绝采样」蒸馏；规则 RM + 模型 RM（带 CoT 奖励）；GRPO；开放任务用 constitutional AI + 自投票做 self-rewarding (§5)。
 - **主结果**：chat 版 MMLU 88.5、MMLU-Pro 75.9、GPQA 59.1、MATH-500 90.2、AIME 2024 39.2、Codeforces 51.6 percentile、SWE-bench Verified 42.0、DROP 91.6、Arena-Hard 85.5、AlpacaEval 2.0 70.0（Table 6/7）。base 版在多数 benchmark 领先，尤其 code/math（Table 3）。
@@ -65,11 +65,11 @@ DeepSeek-V2 已经验证了 MLA 与 DeepSeekMoE 的可行性；V3 的问题不�
 
 ### 1. 总体架构与关键超参
 
-V3 仍是 Transformer 框架，但把 FFN 换成 DeepSeekMoE、把注意力换成 MLA。Figure 2 是原文的架构图：左侧是 Transformer block，右上角是 DeepSeekMoE（1 个共享专家 + 256 个路由专家，每个 token 选 8 个路由专家），右下角是 MLA（只缓存 `c_t^KV` 与 `k_t^R`）。
+V3 仍是 Transformer 框架，但把 FFN 换成 DeepSeekMoE、把注意力换成 MLA。Figure 2 是原文的架构图：左侧是 Transformer block，右上角是 DeepSeekMoE（1 个共享专家 + 256 个路由专家，每个 token 选 8 个路由专家），右下角是 MLA（只缓存 $c_t^{KV}$ 与 $k_t^{R}$）。
 
 ![Figure 2：DeepSeek-V3 的基本架构（MLA + DeepSeekMoE）](assets/fig2-architecture.png)
 
-*Figure 2（原文 p7）：绿色为共享专家，蓝色为路由专家；MLA 图中标有 “Cached During Inference” 的 `c_t^KV` 与 `k_t^R` 是推理时只需缓存的量。裁自 arXiv v2 PDF p7，300 dpi，裁剪框 `(55,60,540,455)` pt。*
+*Figure 2（原文 p7）：绿色为共享专家，蓝色为路由专家；MLA 图中标有 “Cached During Inference” 的 $c_t^{KV}$ 与 $k_t^{R}$ 是推理时只需缓存的量。裁自 arXiv v2 PDF p7，300 dpi，裁剪框 `(55,60,540,455)` pt。*
 
 §4.2 给出的主模型配置：
 
@@ -78,24 +78,24 @@ V3 仍是 Transformer 框架，但把 FFN 换成 DeepSeekMoE、把注意力换�
 | Transformer 层数 | 61 |
 | hidden dimension | 7,168 |
 | 注意力头数 × 每头维度 | 128 × 128 |
-| KV 压缩维度 `d_c` | 512 |
-| Query 压缩维度 `d'_c` | 1,536 |
-| 解耦 RoPE 的每头维度 `d_h^R` | 64 |
+| KV 压缩维度 $d_c$ | 512 |
+| Query 压缩维度 $d'_c$ | 1,536 |
+| 解耦 RoPE 的每头维度 $d_h^{R}$ | 64 |
 | 共享专家 | 1 |
 | 路由专家 | 256 |
-| 每 token 激活路由专家 `K_r` | 8 |
+| 每 token 激活路由专家 $K_r$ | 8 |
 | 每个专家的 intermediate hidden | 2,048 |
 | dense FFN 层 | 前 3 层 |
-| MTP 深度 `D` | 1 |
+| MTP 深度 $D$ | 1 |
 | 词表 | 128K |
 | 总参数 / 激活参数 | 671B / 37B |
-| 每个 token 最多发送到的节点数 `M` | 4 |
+| 每个 token 最多发送到的节点数 $M$ | 4 |
 
 这张表里有两个容易读错的点：**「8 个专家」只算路由专家**，共享专家另算；**「671B / 37B」是总参数 / 每 token 激活参数**，不是训练时的显存占用。
 
 ### 2. MLA：只缓存压缩 latent 和 RoPE key
 
-MLA 的核心是「KV 联合低秩压缩」：不缓存完整的 per-head key/value，而是缓存一个压缩 latent `c_t^KV`，推理时再上投影出 key/value；同时单独保留一个带 RoPE 的解耦 key `k_t^R`。
+MLA 的核心是「KV 联合低秩压缩」：不缓存完整的 per-head key/value，而是缓存一个压缩 latent $c_t^{KV}$，推理时再上投影出 key/value；同时单独保留一个带 RoPE 的解耦 key $k_t^{R}$。
 
 ```math
 \mathbf{c}_t^{KV}=W^{DKV}\mathbf{h}_t,\qquad
@@ -104,7 +104,7 @@ MLA 的核心是「KV 联合低秩压缩」：不缓存完整的 per-head key/va
 \mathbf{k}_{t,i}=[\mathbf{k}_{t,i}^C;\mathbf{k}_t^R]
 ```
 
-白话读法：`c_t^KV` 是 KV 的压缩向量（维度 `d_c=512`），`W^{UK}` 把它上投影成所有头的 content key；`k_t^R` 是单独走 RoPE 的 key，拼接在每个头的 key 后面。推理时只需缓存 `c_t^KV` 与 `k_t^R`，这就是 MLA 省 KV cache 的来源。
+白话读法：$c_t^{KV}$ 是 KV 的压缩向量（维度 $d_c=512$），$W^{UK}$ 把它上投影成所有头的 content key；$k_t^{R}$ 是单独走 RoPE 的 key，拼接在每个头的 key 后面。推理时只需缓存 $c_t^{KV}$ 与 $k_t^{R}$，这就是 MLA 省 KV cache 的来源。
 
 Query 侧也做低秩压缩，目的是省训练时的激活显存，而不是省推理 cache：
 
@@ -121,7 +121,7 @@ Query 侧也做低秩压缩，目的是省训练时的激活显存，而不是�
 \mathbf{o}_{t,i}=\sum_{j=1}^{t}\mathrm{Softmax}_j\left(\frac{\mathbf{q}_{t,i}^\top\mathbf{k}_{j,i}}{\sqrt{d_h+d_h^R}}\right)\mathbf{v}_{j,i}^C
 ```
 
-白话读法：分母同时包含 content 维度 `d_h` 与 RoPE 维度 `d_h^R`；value 只用 content 部分 `v_{j,i}^C`，不带 RoPE。原文只给公式与「只缓存蓝框向量」的说明，没有给 MLA 与 MHA 的逐项 FLOPs 对比；未列出的细节按 §2 开头沿用 V2 的设置。
+白话读法：分母同时包含 content 维度 $d_h$ 与 RoPE 维度 $d_h^{R}$；value 只用 content 部分 $v_{j,i}^{C}$，不带 RoPE。原文只给公式与「只缓存蓝框向量」的说明，没有给 MLA 与 MHA 的逐项 FLOPs 对比；未列出的细节按 §2 开头沿用 V2 的设置。
 
 ### 3. DeepSeekMoE：把负载均衡从损失里拿出来
 
@@ -131,9 +131,9 @@ DeepSeekMoE 的 FFN 输出是「共享专家 + Top-K 路由专家」：
 \mathbf{h}'_t=\mathbf{u}_t+\sum_{i=1}^{N_s}\mathrm{FFN}_i^{(s)}(\mathbf{u}_t)+\sum_{i=1}^{N_r}g_{i,t}\mathrm{FFN}_i^{(r)}(\mathbf{u}_t)
 ```
 
-其中 `g_{i,t}` 是归一化后的 gating 值，`s_{i,t}=Sigmoid(u_t^T e_i)` 是 token 与专家 centroid 的 affinity。与 V2 的差异是：V3 用 sigmoid 算 affinity，并在被选中的专家之间做归一化。
+其中 $g_{i,t}$ 是归一化后的 gating 值，$s_{i,t}=\operatorname{Sigmoid}(u_t^{\top}e_i)$ 是 token 与专家 centroid 的 affinity。与 V2 的差异是：V3 用 sigmoid 算 affinity，并在被选中的专家之间做归一化。
 
-**无辅助损失负载均衡**（§2.1.2）是 V3 的关键改动。为每个专家引入一个偏置 `b_i`，只加在「选 Top-K」这一步：
+**无辅助损失负载均衡**（§2.1.2）是 V3 的关键改动。为每个专家引入一个偏置 $b_i$，只加在「选 Top-K」这一步：
 
 ```math
 g'_{i,t}=\begin{cases}
@@ -142,7 +142,7 @@ s_{i,t}, & s_{i,t}+b_i\in\mathrm{Topk}\left(\{s_{j,t}+b_j\}_{j=1}^{N_r},K_r\righ
 \end{cases}
 ```
 
-白话读法：`b_i` 只决定「这个专家是否被选中」，真正乘到 FFN 输出上的 gating 仍由原始 affinity `s_{i,t}` 归一化得到，`b_i` 不参与 gating。训练时每个 step 统计整个 batch 的专家负载：某个专家过载就把 `b_i` 减 `γ`，欠载就加 `γ`；`γ` 是 bias update speed。这样负载均衡通过「路由偏置」实现，不会像 auxiliary loss 那样把梯度压到 gating 权重上，也就不容易损害模型性能。
+白话读法：$b_i$ 只决定「这个专家是否被选中」，真正乘到 FFN 输出上的 gating 仍由原始 affinity $s_{i,t}$ 归一化得到，$b_i$ 不参与 gating。训练时每个 step 统计整个 batch 的专家负载：某个专家过载就把 $b_i$ 减 $\gamma$，欠载就加 $\gamma$；$\gamma$ 是 bias update speed。这样负载均衡通过「路由偏置」实现，不会像 auxiliary loss 那样把梯度压到 gating 权重上，也就不容易损害模型性能。
 
 V3 仍保留一个**极小的序列级辅助损失**，只为防止单条序列内出现极端失衡：
 
@@ -150,30 +150,30 @@ V3 仍保留一个**极小的序列级辅助损失**，只为防止单条序列�
 \mathcal{L}_{Bal}=\alpha\sum_{i=1}^{N_r}f_iP_i
 ```
 
-其中 `f_i` 是路由到专家 `i` 的 token 比例（按 `N_r/K_r` 缩放），`P_i` 是该专家在所有 token 上的平均归一化 affinity。V3 取 `α=1e-4`，原文说这「只是为了避免任何单序列内的极端不平衡」。
+其中 $f_i$ 是路由到专家 $i$ 的 token 比例（按 $N_r/K_r$ 缩放），$P_i$ 是该专家在所有 token 上的平均归一化 affinity。V3 取 $\alpha=10^{-4}$，原文说这「只是为了避免任何单序列内的极端不平衡」。
 
 另外两条工程约束：
 
-- **Node-limited routing**：每个 token 最多送到 `M=4` 个节点；节点按「该节点上最高的 `K_r/M` 个 affinity 之和」选择。这样跨节点 IB 流量可控，同时保留节点内 NVLink 的高带宽。
+- **Node-limited routing**：每个 token 最多送到 $M=4$ 个节点；节点按「该节点上最高的 $K_r/M$ 个 affinity 之和」选择。这样跨节点 IB 流量可控，同时保留节点内 NVLink 的高带宽。
 - **No token dropping**：由于负载均衡有效，V3 训练全程不丢 token；推理侧用冗余专家部署来保证负载均衡，也不丢 token。原文没有给「丢 token 率」的对照数字，这是设计声明而非测量结果。
 
 ### 4. MTP：每个位置多预测一个 token
 
-MTP 用 `D` 个顺序模块预测 `D` 个额外 token；每个模块共享 embedding 与输出头，但有自己的 Transformer block。第 `k` 层的输入把「上一层在位置 `i` 的表示」与「位置 `i+k` 的 token embedding」拼起来：
+MTP 用 $D$ 个顺序模块预测 $D$ 个额外 token；每个模块共享 embedding 与输出头，但有自己的 Transformer block。第 $k$ 层的输入把「上一层在位置 $i$ 的表示」与「位置 $i+k$ 的 token embedding」拼起来：
 
 ```math
 \mathbf{h}_i'^{k}=M_k\left[\mathrm{RMSNorm}\left(\mathbf{h}_i^{k-1}\right);\mathrm{RMSNorm}\left(\mathrm{Emb}(t_{i+k})\right)\right]
 ```
 
-白话读法：`M_k` 是一个 `d×2d` 的线性投影，把上一层的 hidden 与「未来第 k 个 token」的 embedding 融合；然后过第 k 层的 Transformer block，用共享输出头预测 `t_{i+k+1}`。`k=1` 时，`h_i^{0}` 就是主模型在位置 `i` 的表示。
+白话读法：$M_k$ 是一个 $d\times 2d$ 的线性投影，把上一层的 hidden 与「未来第 k 个 token」的 embedding 融合；然后过第 k 层的 Transformer block，用共享输出头预测 $t_{i+k+1}$。$k=1$ 时，$h_i^{0}$ 就是主模型在位置 $i$ 的表示。
 
-训练目标是各深度交叉熵的平均，再乘权重 `λ`：
+训练目标是各深度交叉熵的平均，再乘权重 $\lambda$：
 
 ```math
 \mathcal{L}_{MTP}=\frac{\lambda}{D}\sum_{k=1}^{D}\mathcal{L}_{MTP}^k
 ```
 
-V3 取 `D=1`，即只多预测一个 token；`λ` 在前 10T token 为 0.3，后 4.8T 降为 0.1。Figure 3 按 D=2 的通用形式画出（Module 1 / Module 2，Next2 / Next3）；V3 实际 `D=1`，**不要按图读成训练了两个 MTP 模块**。
+V3 取 $D=1$，即只多预测一个 token；$\lambda$ 在前 10T token 为 0.3，后 4.8T 降为 0.1。Figure 3 按 D=2 的通用形式画出（Module 1 / Module 2，Next2 / Next3）；V3 实际 $D=1$，**不要按图读成训练了两个 MTP 模块**。
 
 ![Figure 3：MTP 的因果链结构](assets/fig3-mtp.png)
 
@@ -195,7 +195,7 @@ Table 2 的 bubble 对比：
 \text{bubble}_{DualPipe}=\left(\frac{P}{2}-1\right)(F\&B+B-3W)
 ```
 
-白话读法：`P` 是 PP 阶段数，`F` 是 forward chunk，`B` 是完整 backward，`W` 是「只对权重 backward」的 chunk，`F&B` 是 forward 与 backward 重叠后的时间。DualPipe 把与 `P` 相关的项从 `P-1` 降到 `P/2-1`，代价是保存两份模型参数（Parameter 2×）和略高的峰值激活（Activation `P+1` vs `P`）。原文说在 EP 很大时，两份参数的内存开销不显著；DualPipe 只要求 PP 阶段与 micro-batch 能被 2 整除，不要求 micro-batch 能被 PP 阶段整除；bubble 与激活不会随 micro-batch 数增加。
+白话读法：$P$ 是 PP 阶段数，$F$ 是 forward chunk，$B$ 是完整 backward，$W$ 是「只对权重 backward」的 chunk，$F\&B$ 是 forward 与 backward 重叠后的时间。DualPipe 把与 $P$ 相关的项从 $P-1$ 降到 $P/2-1$，代价是保存两份模型参数（Parameter 2×）和略高的峰值激活（Activation $P+1$ vs $P$）。原文说在 EP 很大时，两份参数的内存开销不显著；DualPipe 只要求 PP 阶段与 micro-batch 能被 2 整除，不要求 micro-batch 能被 PP 阶段整除；bubble 与激活不会随 micro-batch 数增加。
 
 **跨节点 all-to-all**（§3.2.2）：NVLink 160 GB/s，IB 50 GB/s，约 3.2 倍差距。V3 限制每个 token 最多去 4 个节点；先按「同节点同卡号」经 IB 发到目标节点，再在节点内用 NVLink 转发到具体专家。这样平均每个 token 每节点选 3.2 个专家，8 个路由专家最多可扩到 13 个（4 节点 × 3.2）而不增加通信成本。通信只用 20 个 SM（H800 有 132 个），分成 10 个 channel，用 warp specialization 分别处理 IB 发送、IB→NVLink 转发、NVLink 接收等任务；还用自定义 PTX 与自动调 chunk size 降低 L2 干扰。
 
@@ -207,7 +207,7 @@ Table 2 的 bubble 对比：
 
 **细粒度量化**（§3.3.2）：激活按 1×128 tile（每 token 每 128 个 channel）分组缩放；权重按 128×128 block（每 128 个输入 channel × 128 个输出 channel）分组缩放。所有 tensor 都用 E4M3（而不是 Fprop 用 E4M3、Dgrad/Wgrad 用 E5M2），因为细粒度分组把指数位「共享」给了小组元素，动态范围够用。量化是 online 的：对每个 tile/block 现算最大绝对值，得到 scaling factor，再量化，不依赖历史最大值。
 
-**提高累加精度**：Hopper 的 FP8 GEMM 在 Tensor Core 内只保留约 14 bit 的累加精度；当内维 `K` 很大时误差会放大。原文给了一个例子：两个随机矩阵、`K=4096`，不做提升时最大相对误差接近 2%。V3 的做法是每 `N_C=128` 个 MMA（约 4 个 WGMMA）把部分和从 Tensor Core 拷到 CUDA core 的 FP32 寄存器，做全精度累加，再乘 scaling factor 做反量化；`N_C=128` 是「能显著改善精度、又不引入明显开销」的最小间隔。Figure 7 画了 (a) 细粒度量化与 (b) 累加精度提升。Appendix B.1 在约 16B（1.33T token）与约 230B（0.9T token）两个规模上与 BF16 对比，相对 loss error 保持在 0.25% 以下。
+**提高累加精度**：Hopper 的 FP8 GEMM 在 Tensor Core 内只保留约 14 bit 的累加精度；当内维 $K$ 很大时误差会放大。原文给了一个例子：两个随机矩阵、$K=4096$，不做提升时最大相对误差接近 2%。V3 的做法是每 $N_C=128$ 个 MMA（约 4 个 WGMMA）把部分和从 Tensor Core 拷到 CUDA core 的 FP32 寄存器，做全精度累加，再乘 scaling factor 做反量化；$N_C=128$ 是「能显著改善精度、又不引入明显开销」的最小间隔。Figure 7 画了 (a) 细粒度量化与 (b) 累加精度提升。Appendix B.1 在约 16B（1.33T token）与约 230B（0.9T token）两个规模上与 BF16 对比，相对 loss error 保持在 0.25% 以下。
 
 **低精度存储与通信**（§3.3.3）：AdamW 的一阶/二阶矩用 BF16，master weights 与梯度仍用 FP32；Wgrad 的激活缓存用 FP8；attention 后 Linear 的输入用自定义 E5M6，且 scaling factor 取 2 的整数次幂，避免额外量化误差；MoE 的 SwiGLU 输入缓存后用 FP8 重算输出；MoE up-projection 前的激活量化成 FP8 再 dispatch，combine 仍用 BF16。
 
@@ -229,20 +229,20 @@ Table 2 的 bubble 对比：
 | --- | --- |
 | 预训练 token | 14.8T |
 | 序列长度 | 4K |
-| 优化器 | AdamW，`β1=0.9`、`β2=0.95`、`weight_decay=0.1` |
-| 学习率 | 0 → `2.2e-4`（前 2K 步线性 warmup）；保持 `2.2e-4` 到 10T token；在 4.3T token 内 cosine 降到 `2.2e-5`；最后 500B 中前 333B 保持 `2.2e-5`，后 167B 用 `7.3e-6` |
+| 优化器 | AdamW，$\beta_1=0.9$、$\beta_2=0.95$、`weight_decay=0.1` |
+| 学习率 | 0 → $2.2\times10^{-4}$（前 2K 步线性 warmup）；保持 $2.2\times10^{-4}$ 到 10T token；在 4.3T token 内 cosine 降到 $2.2\times10^{-5}$；最后 500B 中前 333B 保持 $2.2\times10^{-5}$，后 167B 用 $7.3\times10^{-6}$ |
 | batch size | 前 469B token 从 3,072 逐步增到 15,360，之后保持 15,360 |
 | gradient clipping | 1.0 |
-| bias update speed `γ` | 前 14.3T token 为 0.001；最后 500B 为 0 |
-| 序列级平衡损失 `α` | 1e-4 |
-| MTP 权重 `λ` | 前 10T 为 0.3；后 4.8T 为 0.1 |
-| node-limited routing | `M=4` |
+| bias update speed $\gamma$ | 前 14.3T token 为 0.001；最后 500B 为 0 |
+| 序列级平衡损失 $\alpha$ | $10^{-4}$ |
+| MTP 权重 $\lambda$ | 前 10T 为 0.3；后 4.8T 为 0.1 |
+| node-limited routing | $M=4$ |
 
-**长上下文**（§4.3）：预训练 4K；之后用 YaRN 做两阶段扩展，每阶段 1000 步：4K → 32K（batch 1920）→ 128K（batch 480）。YaRN 只作用在解耦 key `k_t^R` 上；`s=40`、`α=1`、`β=32`、`sqrt(t)=0.1 ln s + 1`；两阶段学习率都是 `7.3e-6`。Figure 8 的 NIAH（Needle In A Haystack，SFT 后）在 2K–128K、0–100% 深度上基本全是 10 分，说明检索任务覆盖完整；但 NIAH 只测「找针」，不等价于长上下文推理。
+**长上下文**（§4.3）：预训练 4K；之后用 YaRN 做两阶段扩展，每阶段 1000 步：4K → 32K（batch 1920）→ 128K（batch 480）。YaRN 只作用在解耦 key $k_t^{R}$ 上；$s=40$、$\alpha=1$、$\beta=32$、$\sqrt{t}=0.1\ln s+1$；两阶段学习率都是 $7.3\times10^{-6}$。Figure 8 的 NIAH（Needle In A Haystack，SFT 后）在 2K–128K、0–100% 深度上基本全是 10 分，说明检索任务覆盖完整；但 NIAH 只测「找针」，不等价于长上下文推理。
 
 ### 9. 后训练：SFT、R1 蒸馏、GRPO、self-rewarding
 
-**SFT**（§5.1）：1.5M 指令数据，覆盖多个域，每个域的数据构造方法不同。推理数据用内部 DeepSeek-R1 生成；R1 的输出准确但 overthinking、格式差、过长。做法是先训练一个领域专家模型（SFT + RL），让它生成两类样本：`<problem, original response>` 与 `<system prompt, problem, R1 response>`；system prompt 引导模型做反思与验证。RL 阶段用高温采样，让模型在无显式 system prompt 时也能把 R1 的模式融进自己的输出；最后用拒绝采样挑高质量数据训练最终模型。非推理数据（creative writing、role-play、简单 QA）用 V2.5 生成，再人工核验。SFT 训 2 个 epoch，学习率 `5e-6` → `1e-6`，cosine；单序列由多个样本打包，但用 sample masking 让样本互相不可见。
+**SFT**（§5.1）：1.5M 指令数据，覆盖多个域，每个域的数据构造方法不同。推理数据用内部 DeepSeek-R1 生成；R1 的输出准确但 overthinking、格式差、过长。做法是先训练一个领域专家模型（SFT + RL），让它生成两类样本：`<problem, original response>` 与 `<system prompt, problem, R1 response>`；system prompt 引导模型做反思与验证。RL 阶段用高温采样，让模型在无显式 system prompt 时也能把 R1 的模式融进自己的输出；最后用拒绝采样挑高质量数据训练最终模型。非推理数据（creative writing、role-play、简单 QA）用 V2.5 生成，再人工核验。SFT 训 2 个 epoch，学习率 $5\times10^{-6}$ → $1\times10^{-6}$，cosine；单序列由多个样本打包，但用 sample masking 让样本互相不可见。
 
 **奖励模型**（§5.2.1）：规则 RM 用于可验证任务（数学最终答案放在 box 里、LeetCode 用编译器跑测试）；模型 RM 从 V3 SFT checkpoint 训练，用于自由形式答案与无标准答案的任务。模型 RM 的偏好数据不仅给最终 reward，还给「得到 reward 的 CoT」，以降低 reward hacking。原文没有给 RM 的规模、数据量或训练细节。
 
@@ -252,13 +252,13 @@ Table 2 的 bubble 对比：
 \mathcal{J}_{GRPO}(\theta)=\mathbb{E}\left[\frac{1}{G}\sum_{i=1}^{G}\left(\min\left(\rho_i(\theta)A_i,\mathrm{clip}\left(\rho_i(\theta),1-\epsilon,1+\epsilon\right)A_i\right)-\beta D_{KL}\left(\pi_\theta\|\pi_{ref}\right)\right)\right]
 ```
 
-其中 `ρ_i(θ)=π_θ(o_i|q)/π_old(o_i|q)` 是重要性采样比，`r_i` 是第 i 条回答的奖励，`A_i=(r_i-mean(r))/std(r)`。白话读法：同一问题采样 `G` 条回答，用组内均值/标准差算优势；对重要性采样比做 clip；再减到参考模型的 KL。
+其中 $\rho_i(\theta)=\pi_\theta(o_i\mid q)/\pi_{\mathrm{old}}(o_i\mid q)$ 是重要性采样比，$r_i$ 是第 i 条回答的奖励，$A_i=(r_i-\operatorname{mean}(r))/\operatorname{std}(r)$。白话读法：同一问题采样 $G$ 条回答，用组内均值/标准差算优势；对重要性采样比做 clip；再减到参考模型的 KL。
 
 ```math
 D_{KL}\left(\pi_\theta\|\pi_{ref}\right)=\frac{\pi_{ref}(o_i|q)}{\pi_\theta(o_i|q)}-\log\frac{\pi_{ref}(o_i|q)}{\pi_\theta(o_i|q)}-1
 ```
 
-白话读法：这是原文式 (27) 的 KL 估计器（通常称 k3 形式），不是简单的 log ratio。`ε`、`β` 的具体数值没有给。RL prompt 覆盖 coding、math、writing、role-play、QA；原文说这既对齐人类偏好，也在 SFT 数据有限的场景提升 benchmark。
+白话读法：这是原文式 (27) 的 KL 估计器（通常称 k3 形式），不是简单的 log ratio。$\varepsilon$、$\beta$ 的具体数值没有给。RL prompt 覆盖 coding、math、writing、role-play、QA；原文说这既对齐人类偏好，也在 SFT 数据有限的场景提升 benchmark。
 
 **Self-rewarding**（§5.4.2）：开放任务没有硬编码的验证器，V3 用 constitutional AI 的思路，把模型自己对多个候选的投票结果作为反馈源；再加 constitutional inputs 可以让模型朝指定方向优化。原文把这视为「LLM 作为通用处理器，把非结构化信息转成 reward」的一种范式，但没有给投票数、prompt 模板或独立消融。
 
@@ -367,14 +367,14 @@ Figure 9 的专家负载热图支持这一点：相对负载定义为「实际�
 | 后训练 | 5K | 0.01M |
 | 合计 | 2,788K | 5.576M |
 
-Table 1 与 §1 的口径一致：预训练 2.664M 小时、上下文 0.119M、后训练 0.005M，总 2.788M；按 2 美元/GPU·小时得到 5.576M 美元。每万亿 token 180K 小时，`180K/(2048×24)=3.66` 天，所以「3.7 天」是**按 2048 卡满利用率**折算的；同样口径下整个预训练约 54.2 天，原文只说「less than two months」，与 2.664M 小时一致。成本不含架构/算法/数据的先前研究与消融实验。
+Table 1 与 §1 的口径一致：预训练 2.664M 小时、上下文 0.119M、后训练 0.005M，总 2.788M；按 2 美元/GPU·小时得到 5.576M 美元。每万亿 token 180K 小时，$180\mathrm{K}/(2048\times24)=3.66$ 天，所以「3.7 天」是**按 2048 卡满利用率**折算的；同样口径下整个预训练约 54.2 天，原文只说「less than two months」，与 2.664M 小时一致。成本不含架构/算法/数据的先前研究与消融实验。
 
 ### 2. 并行与通信
 
 - **16 PP × 64 EP × 2 DP**：64 EP 跨 8 节点，正好把 8 卡/节点用满；DP=2 是按 2048 卡反推的（原文未写 DP degree）。
-- **DualPipe**：2 份参数、`P+1` 激活；换来更小的 bubble 与 all-to-all/PP 全隐藏。它要求 PP 阶段与 micro-batch 能被 2 整除；不要求 micro-batch 能被 PP 阶段整除。若 EP 不够大，2 份参数的内存开销会变显著。
+- **DualPipe**：2 份参数、$P+1$ 激活；换来更小的 bubble 与 all-to-all/PP 全隐藏。它要求 PP 阶段与 micro-batch 能被 2 整除；不要求 micro-batch 能被 PP 阶段整除。若 EP 不够大，2 份参数的内存开销会变显著。
 - **20 个 SM**：H800 132 个 SM 中的 20 个用于通信，10 个 channel；每个 channel 的 warp 按 IB 发送、IB→NVLink 转发、NVLink 接收分工。通信与计算流重叠，但会争 L2；V3 用自定义 PTX 与自动调 chunk size 降低干扰。
-- **节点限制**：`M=4` 是通信成本与路由自由度的折中；8 个路由专家最多扩到 13 个（4×3.2）而不增加通信成本，这个「3.2 experts/node」是平均路由分布的结果，不是硬上限。
+- **节点限制**：$M=4$ 是通信成本与路由自由度的折中；8 个路由专家最多扩到 13 个（4×3.2）而不增加通信成本，这个「3.2 experts/node」是平均路由分布的结果，不是硬上限。
 
 ### 3. 显存与数值
 
@@ -432,7 +432,7 @@ Table 1 与 §1 的口径一致：预训练 2.664M 小时、上下文 0.119M、�
 - **FP8 的全规模证据只证明训练稳定，不证明与 BF16 等价**：受控对比只在 16B（1.33T token）/ 230B（0.9T token）；671B 全量没有 BF16 对照。
 - **没有训练 FLOPs**：全文 `FLOPs` 0 次，只有 GPU 小时与美元；无法直接比较不同硬件的算力效率。
 - **数据配比不公开**：14.8T token 的域比例、代码/数学比例、多语言比例都没有给；SFT 1.5M 的域比例也没有给。
-- **RL 细节不足**：GRPO 的 `ε`、`β` 数值、RM 规模/数据量、self-rewarding 的投票数/prompt 模板都没有给。
+- **RL 细节不足**：GRPO 的 $\varepsilon$、$\beta$ 数值、RM 规模/数据量、self-rewarding 的投票数/prompt 模板都没有给。
 - **128K 扩展只给了 NIAH 压力测试**：下游长上下文评测有 DROP、LongBench v2、FRAMES（§5.3.2），但没有按 128K 长度分层、多跳、摘要或代码库级任务的评测；128K 是 YaRN 扩展，不是原生训练。
 - **「不丢 token」是设计声明**：训练与推理都没有丢 token 的对照测量；推理侧依赖冗余专家与在线统计。
 - **上游 00042 PDF 是 v1 重导出**：已核验为 v1（watermark、FP8 旧措辞、DROP `91.`），不是本笔记的 v2；复核时先看版本关系，不要把 v1 的表格当成 v2。
@@ -448,7 +448,7 @@ Table 1 与 §1 的口径一致：预训练 2.664M 小时、上下文 0.119M、�
 5. **AlpacaEval 的「20%」是约 20 个百分点，不是 20% 相对提升**：§5.3.3 说 V3 比 V2.5-0905 高「a significant margin of 20%」；Table 7 是 70.0 vs 50.5，差 19.5 个百分点；若按相对提升算是 38.6%。原文的「20%」只能理解为约 20 个百分点。
 6. **工程任务「trails behind Claude」对 Aider-Polyglot 不成立**：§5.3.2 说在 engineering tasks 上 V3 落后 Claude-Sonnet-3.5-1022；Table 6 中 SWE 42.0 < 50.8、Aider-Edit 79.7 < 84.2，但 Aider-Polyglot 49.6 > 45.3（V3 反而高 4.3 分）。「trails」不是所有工程任务都成立。
 7. **Figure 10 编号重复**：p47 的 Figure 10 是 FP8 vs BF16 的 loss curves；p49–53 的 Figure 10 是 16B 模型的 expert load；Appendix C 的 “as demonstrated in Figure 10” 指后者。同一篇论文有两个 Figure 10，引用时必须带页码/主题，否则会指错。
-8. **Figure 3 画了 D=2，正文配置是 D=1**：Figure 3 有 MTP Module 1（Next2）与 Module 2（Next3），但 §4.2 明确 `D=1`，实际只加一个 MTP 模块。Figure 3 按 D=2 的通用形式画出，不能按图读成 V3 训练了两个模块。
+8. **Figure 3 画了 D=2，正文配置是 D=1**：Figure 3 有 MTP Module 1（Next2）与 Module 2（Next3），但 §4.2 明确 $D=1$，实际只加一个 MTP 模块。Figure 3 按 D=2 的通用形式画出，不能按图读成 V3 训练了两个模块。
 9. **Table 4 与 Table 5 的大规模 token 数不同**：Table 4 用 540B，Table 5 用 578B；两表大规模 run 的 token 预算不同，不能直接当作同一预算下的对照，跨表的「MTP vs aux-loss-free」比较不成立。
 10. **18T 比 14.8T「20% more」是近似**：§5.3.2 说 Qwen2.5 的 18T 比 V3 的 14.8T 多 20%；按 18/14.8 复算约多 21.6%，原文是取整/近似。
 
@@ -460,7 +460,7 @@ Table 1 与 §1 的口径一致：预训练 2.664M 小时、上下文 0.119M、�
 - **DeepSeek-V4 / V4.1-Flash**（00172 / 00191，[V4 笔记](../deepseek-v4/note.md)、[V4.1-Flash 笔记](../deepseek-v4.1-flash/note.md)）：更后面的代际。V4 笔记把 V3.2 视为 V4 的直接前代；V3 把 V2 的 MLA/DeepSeekMoE 推到 671B，并新增 MTP；V3.2/V4 是后续代际。V4 的 CSA/HCA、FP4、mHC 等设计不在本报告范围内，不能拿 V4 的数字回填 V3。
 - **Kimi K2**（00083，[笔记](../2507.20534-v2-kimi-k2/note.md)）：K2 把 V3 当作直接架构基线：61 层、MLA、8 激活专家、1 共享专家相同；不同点是总专家 256→384、激活参数 37B→32.6B、头数 128→64、dense layer 3→1，并去掉 expert grouping。K2 的 scaling law 与 64 头消融，本质是在 V3 架构上做「更稀疏 + 更少头」的再权衡。
 - **mHC**（00148，[笔记](../2512.24880-v2-mhc/note.md)）：DeepSeek 的 manifold-constrained hyper-connections；其笔记把 baseline 描述为 DeepSeek-V3 风格的 MoE。V3 的残差流是标准残差，mHC 是后续对残差连接的改动，不要混为同一模型。
-- **GLM-5**（00157，[笔记](../2602.15763-v2-glm-5/note.md)）：GLM-5 在 MLA 头数选择上引用 V3 的 H800 roofline 经验；它的 MTP 用 3 个共享参数层，与 V3 的 `D=1` 单层 MTP 形成对照。GLM-5 笔记里「DeepSeek-V3 只训 1 层却推 2 token」说的就是本报告。
+- **GLM-5**（00157，[笔记](../2602.15763-v2-glm-5/note.md)）：GLM-5 在 MLA 头数选择上引用 V3 的 H800 roofline 经验；它的 MTP 用 3 个共享参数层，与 V3 的 $D=1$ 单层 MTP 形成对照。GLM-5 笔记里「DeepSeek-V3 只训 1 层却推 2 token」说的就是本报告。
 - **DSpark**（00174，[笔记](../2607.05147v1-dspark/note.md)）：DSpark 的 baseline MTP-1 引自 V3 的单 token MTP 设置；V3 的 85%–90% 接受率与 1.8× TPS 是这类投机解码工作的前置参照。
 - **DeepSeek-R1**（00045 / 00095）与 **DeepSeekMath**（00057）：V3 的推理数据蒸馏自 R1 系列，GRPO 来自 DeepSeekMath；这两条在本仓库尚未生成笔记，读 V3 的 §5 时需要回原文/上游 PDF。
 - **同名不同文提醒**：V3、V3-0324、V3.1、V3.1-Terminus、V3.2 是不同 checkpoint/报告；本笔记只覆盖 2024-12 的 V3 技术报告（v2 是 2025-02 的编辑修订，不是新模型）。
@@ -478,4 +478,4 @@ Table 1 与 §1 的口径一致：预训练 2.664M 小时、上下文 0.119M、�
 - Figure 10 两处：p47 的 loss curves 与 p49–53 的 expert load；专家负载只按整图结构核对，未逐格读数。
 - 未做：运行代码、复现训练/评测、独立测量吞吐；上游 00042 PDF 已核验为 v1 重导出（见版本关系）；未做 Figure 1/8 的像素测量（按图内数值标签/色标核对）。
 
-**本轮复核（2026-11-22，独立审计 + 自查）**：基准 v2（sha `812a3fd6…`），重取 v2/v1 并核对 sha；上游 00042 完整下载并核验为 v1 重导出（见版本关系）。修正：长上下文限制从「只测 NIAH」改为「128K 扩展只给 NIAH，下游另有 DROP/LongBench v2/FRAMES」；GRPO 把重要性采样比改用 `ρ_i`、奖励保留 `r_i`；Dgrad 的「只做转置」归到 block-wise；gating 明确为「未加 bias 的 affinity 归一化」；54.2 天标为满利用率折算；FP8 证据改为「全部 GEMM + 关键算子高精度」；NIAH 补 SFT 后；补评测口径、IF-Eval、Table 4/5 设置、FP8 <0.25%、GRPO KL 式；Table 4/5 注明省略 `# Shots`；Table 6 三个 88.x；#1 归属改为 Arena-Hard；TriviaQA 加入双加粗例子；上游版本从未核验改为已核验。未修：K2 笔记仍写「本仓库尚未生成笔记」，按规则只报告、不改他篇；Figure 10 的 p50–53 未逐格像素读数；未运行代码/复现。
+**本轮复核（2026-11-22，独立审计 + 自查）**：基准 v2（sha `812a3fd6…`），重取 v2/v1 并核对 sha；上游 00042 完整下载并核验为 v1 重导出（见版本关系）。修正：长上下文限制从「只测 NIAH」改为「128K 扩展只给 NIAH，下游另有 DROP/LongBench v2/FRAMES」；GRPO 把重要性采样比改用 $\rho_i$、奖励保留 $r_i$；Dgrad 的「只做转置」归到 block-wise；gating 明确为「未加 bias 的 affinity 归一化」；54.2 天标为满利用率折算；FP8 证据改为「全部 GEMM + 关键算子高精度」；NIAH 补 SFT 后；补评测口径、IF-Eval、Table 4/5 设置、FP8 <0.25%、GRPO KL 式；Table 4/5 注明省略 `# Shots`；Table 6 三个 88.x；#1 归属改为 Arena-Hard；TriviaQA 加入双加粗例子；上游版本从未核验改为已核验。未修：K2 笔记仍写「本仓库尚未生成笔记」，按规则只报告、不改他篇；Figure 10 的 p50–53 未逐格像素读数；未运行代码/复现。

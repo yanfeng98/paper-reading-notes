@@ -19,7 +19,7 @@
 **阅读范围与核对凭据**（供下次复核复用）
 
 - **已渲染并逐项核对**：Table 3（p15）、Table 4（p16）、Table 5（p17）、Table 6（p18）、Table 7（p22）、Table 8（p29）、Table 9（p36，350 dpi 局部放大）——均在 200 dpi 渲染页上逐格比对正文数字（Table 4 另做了字体级加粗判定，见「复核记录」）；Eq. 6（Pass@k，p29）与 Eq. 1–5（p13–14，400 dpi 局部）在渲染页核对上下标；§6.2「Inverse scaling」段（p15）、§C.1「Failure evidence」段（p36）、§D.5「Did evolution close the clusters?」段（p42）在 350 dpi 渲染页逐字核对归属与限定词。
-- **像素测量**：Figure 4（p16）逐点读数。方法：600 dpi 渲染裁剪框 `Rect(104,113,507,346)`（pt，页面坐标系），橙色星标按填充色 `#D67721` / `#E97131`（实测矢量填充为 RGB(214,120,33) / RGB(233,113,50)，分割用 ±16/±18/±25 容差带）做连通域分割，取每个 13 个等距位置（x 起点 369.3 px，间距 238.2 px）星标的 `(ymin+ymax)/2` 为纵坐标；标定用 7 条灰色虚网格线行（y_px = 174.5, 412.5, 653.0, 891.0, 1129.0, 1368.5, 1610.5），线性拟合 `value = −0.008363·y + 86.4540`（1 单位 = 119.57 px）。**标定有效性经三个独立正文值验证**：R11 读数 83.50 对 Table 4「GAIA / Sonnet 4.6 / Evolved 83.5」、R10 读数 79.60 对 §C.1「79.6%」、R9 读数 74.75 对 §C.1「74.8%」。取数口径为**星标上下边中点**（该图星标以数据点为几何中心；含虚线并入的连通域用中点比质心更稳）。
+- **像素测量**：Figure 4（p16）逐点读数。方法：600 dpi 渲染裁剪框 `Rect(104,113,507,346)`（pt，页面坐标系），橙色星标按填充色 `#D67721` / `#E97131`（实测矢量填充为 RGB(214,120,33) / RGB(233,113,50)，分割用 ±16/±18/±25 容差带）做连通域分割，取每个 13 个等距位置（x 起点 369.3 px，间距 238.2 px）星标的 `(ymin+ymax)/2` 为纵坐标；标定用 7 条灰色虚网格线行（y_px = 174.5, 412.5, 653.0, 891.0, 1129.0, 1368.5, 1610.5），线性拟合 $\mathrm{value} = -0.008363\cdot y + 86.4540$（1 单位 = 119.57 px）。**标定有效性经三个独立正文值验证**：R11 读数 83.50 对 Table 4「GAIA / Sonnet 4.6 / Evolved 83.5」、R10 读数 79.60 对 §C.1「79.6%」、R9 读数 74.75 对 §C.1「74.8%」。取数口径为**星标上下边中点**（该图星标以数据点为几何中心；含虚线并入的连通域用中点比质心更稳）。
 - **放大读数**：Figure 5（p19）两处峰值星标在 600 dpi 裁剪下读出：GAIA 面板 41.7%（Co-Evolution）与 37.4%（AEGIS），WebShop 面板 **54%**（Co-Evolution，非 "5.4%"——200 dpi 下易误读）与 49%（AEGIS）。
 - **插图**：Figure 2（p7）、Figure 3（p12）、Figure 4（p16）从 300 dpi 渲染页裁剪（裁剪框见上），已按元素清单逐项点名核对完整（含图内标题、图例、坐标轴标签、图内注记、SHIP/REJECT 等），四边像素纯白、无边黑边或截断。
 - **仅按正文/图注引用，未逐点核对**：Figure 1（p1）、Figure 6（p20，文字内容已读，未做像素测量）、Figure 7（p38 manifest card）、Figure 8–12（p39–43 附录分基准三联图，图内数值一律按正文引用）。
@@ -27,13 +27,13 @@
 
 **版本与渠道关系**（多渠道核验，2026-10-14）
 
-- **arXiv v3 与站点 tech report 的关系**：主页 assets 下的 `HarnessX_Tech_Report.pdf`（2,110,177 B，sha256 `ab69a5ea…`）与 arXiv v3（2,254,858 B，sha256 `81175fb0…`）**均为 43 页，全部关键数字出现次数逐一相同**（`+14.5%`×6、`+44.0%`×11、`87.4`×7、`107.8M`×7、`143.7M`×4、`49.5`×4、`83.5`×1、`79.6`×2、`74.8`×3、`77.7`×1、`WikiTextFetch`×13、`8× H100`×1 等），逐页归一化文本比对后差异**仅一处**：站点版首页写「The complete codebase will be open-sourced in a future release」，v3 改写为「Project homepage: <https://darwin-agent.github.io/HarnessX/>」（其余差异是站点 PDF 连字编码导致的抽取噪声，如 `verified`→`veried`）。**站点版为较早措辞**；本笔记与本次核对一律以 arXiv v3 为准。
+- **arXiv v3 与站点 tech report 的关系**：主页 assets 下的 `HarnessX_Tech_Report.pdf`（2,110,177 B，sha256 `ab69a5ea…`）与 arXiv v3（2,254,858 B，sha256 `81175fb0…`）**均为 43 页，全部关键数字出现次数逐一相同**（`+14.5%`×6、`+44.0%`×11、`87.4`×7、`107.8M`×7、`143.7M`×4、`49.5`×4、`83.5`×1、`79.6`×2、`74.8`×3、`77.7`×1、`WikiTextFetch`×13、$8\times H100$×1 等），逐页归一化文本比对后差异**仅一处**：站点版首页写「The complete codebase will be open-sourced in a future release」，v3 改写为「Project homepage: <https://darwin-agent.github.io/HarnessX/>」（其余差异是站点 PDF 连字编码导致的抽取噪声，如 `verified`→`veried`）。**站点版为较早措辞**；本笔记与本次核对一律以 arXiv v3 为准。
 - **代码发布状态：论文未声明公开链接，但仓库实际已公开。** 全文**没有**发布声明（按 `open-source` / `release` / `will be released` / 链接 等词检索，除参考文献外无命中）；但**附录 B 两处提到实验文件存在于「the repository」**——B 开头写「the literal contents of the corresponding files **in the repository** as of the commit that produced the experiments in Section 6」（p29），B.2 写「the remaining benchmark defaults … are **listed in the repository**」（p34）——既未给链接、也无公开承诺。附录 E「Reproducibility and Artifacts」只描述运行目录结构 `runs/<run_name>/…`（journal.md、curves.json、audit.jsonl、`R<n>/{landscape,candidates,applied,decision,verdicts,regressions,digests,trajectories}`）这一日志布局，未说明该结构是否有公开产物。而正文给出的项目主页链到 GitHub 仓库 `Darwin-Agent/HarnessX`（API 核验：MIT、创建 2026-04-30、最后 push 2026-10-10、491 stars、约 56 MB），顶层含 `harnessx/`（下有 `processors/`、`bundles/`、`meta_harness/`、`rl/`、`sandbox/`、`tracing/`、`workspace/` 等）、`benchmarks/`、`container/`、`extensions/`、`tests/`、双语 README。**只核验了仓库存在性与目录结构，未验证其与本文实验的可复现性对应关系**——本笔记中所有结论均以论文自述为准。
 
 **复核记录（2026-10-14，check-paper-note）**
 
 - **基准版本**：arXiv 2606.14249v3。复核时**重新下载**，sha256 `81175fb0d23cf9fbd2e6aaf4de6c0192afa0791477f5ec64320d44c638b4b4be`、43 页，与首读版本逐字节一致；arXiv 元信息确认 **v3 仍是当前最新版**。清单 00199 行：编号列指向 arXiv 官方页（上游归档仓库最大编号为 00191，尚无本篇，指向正确）、笔记链接可达、未撞 `papers/` 文件名。
-- **核对方式**：PDF 全文文本抽取 ＋ 关键页渲染（200/350/400/500 dpi）＋ **Table 4 字体级加粗判定**（`get_text('dict')` 的 span 字体，`ByteSans-Bold` 恰 5 格）＋ Figure 4 像素测量（600 dpi，网格线定标 `value = −0.008363·y + 86.4540`）＋ Figure 5 峰值标签 600 dpi 放大 ＋ **独立子 agent 审计**（另一套方法：表格 span 级抽取、Figure 4 矢量路径提取与最小二乘定标、配图同坐标像素差比对；其结论已逐条复验）。否定性断言的检索词：`open-source` / `release` / `will be released` / `codebase` / `repository` / `up to K` / `K =` / `cluster` / `seeds` / `standard error`。
+- **核对方式**：PDF 全文文本抽取 ＋ 关键页渲染（200/350/400/500 dpi）＋ **Table 4 字体级加粗判定**（`get_text('dict')` 的 span 字体，`ByteSans-Bold` 恰 5 格）＋ Figure 4 像素测量（600 dpi，网格线定标 $\mathrm{value} = -0.008363\cdot y + 86.4540$）＋ Figure 5 峰值标签 600 dpi 放大 ＋ **独立子 agent 审计**（另一套方法：表格 span 级抽取、Figure 4 矢量路径提取与最小二乘定标、配图同坐标像素差比对；其结论已逐条复验）。否定性断言的检索词：`open-source` / `release` / `will be released` / `codebase` / `repository` / `up to K` / $K =$ / `cluster` / `seeds` / `standard error`。
 - **修正 9 项**：① Table 4 加粗（原文只加粗 Evolved 列 5 格；原稿误加粗 Δ 列且漏 4 格）；② 作者标注的**来源与完整性**（星号/剑号出自 p27，而非 arXiv 元信息；补 Zhao 的同等贡献与 Shao/Luan 的通讯标注）；③ 页数划分（参考文献 p24–**26**，p27 是贡献与致谢，p2 是目录）；④ 代码发布状态补上附录 B 两处「the repository」提及；⑤ 速查「最大单轮回退」→ 加限定（原文未支持「最大」）；⑥ 演化 token 省 25% → 标为本笔记复算，并区分 §7.5 的每任务推理成本；⑦ Figure 6 不一致清单补 (h) 面板；⑧ Figure 4 图注补图例第 4 项 Illustration；⑨ 像素测量凭据补实测色值与容差带。
 - **未修项与理由**：Figure 4 的 R7/R8 读数（78.1）不落在任何 k/103 上，且与 §C.1 的「peak 77.7%」差约 0.4pp——**原文未给该图的口径（是否 3 seed 平均）**，无法复算判定谁为准，故保留为「原文自身的表述张力」第 2 条，不代为裁决。
 - **渠道核验项**（本次复跑一致）：站点 tech report 2,110,177 B / sha256 `ab69a5ea…` / 43 页 / 仅首页一句措辞与 v3 不同；GitHub `Darwin-Agent/HarnessX` MIT、创建 2026-04-30、最后 push 2026-10-10、491 stars；许可 CC BY 4.0。核验日期 2026-10-14。
@@ -69,8 +69,8 @@ HarnessX 把 **harness 本身做成一等公民**：用类型化 processor 挂�
 
 ### 3.1 组合层：harness 是一等对象（§3）
 
-- **两种正交配置**：harness 是二元组 `H = (M, C)`。`M` 记录**哪个模型担任哪个角色**（main／judge／evaluator）及 fallback 策略；`C` 记录**与模型身份无关的行为**。二者组合出可执行 agent：`agent = model_config.agentic(harness_config)`——agent 是一段**绑定到模型的 processor 流水线**，两边都可独立替换。
-- **hook 与 processor**：`C = (P, S)`。`P: Hook → List[Processor]` 是**按 hook 索引的 processor 列表**；`S` 是固定的正交 slot 资源集合（tool registry、tracer、workspace、sandbox provider、plugin list），slot 是**单例、跨 processor 共享**，processor 状态则是实例私有的。
+- **两种正交配置**：harness 是二元组 $H = (M, C)$。$M$ 记录**哪个模型担任哪个角色**（main／judge／evaluator）及 fallback 策略；$C$ 记录**与模型身份无关的行为**。二者组合出可执行 agent：`agent = model_config.agentic(harness_config)`——agent 是一段**绑定到模型的 processor 流水线**，两边都可独立替换。
+- **hook 与 processor**：$C = (P, S)$。`P: Hook → List[Processor]` 是**按 hook 索引的 processor 列表**；$S$ 是固定的正交 slot 资源集合（tool registry、tracer、workspace、sandbox provider、plugin list），slot 是**单例、跨 processor 共享**，processor 状态则是实例私有的。
 - **8 个生命周期 hook 与各自「允许改什么」**（Table 1）——这张表是理解「编辑面」的关键：
 
 | hook | 事件类型 | 允许的修改 |
@@ -94,25 +94,25 @@ HarnessX 把 **harness 本身做成一等公民**：用类型化 processor 挂�
 
 ![Figure 2：AEGIS 演化环与九维组合层](assets/fig2-aegis-loop.png)
 
-*Figure 2（p7，裁剪自 300 dpi 渲染页）：左侧是组合层的九维空间，右上是一次 rollout（Config → Task Agent `M` → Traces），右下是 AEGIS 四阶段与确定性门（SHIP `H_{t+1}` / REJECT `H_t`）。*
+*Figure 2（p7，裁剪自 300 dpi 渲染页）：左侧是组合层的九维空间，右上是一次 rollout（Config → Task Agent $M$ → Traces），右下是 AEGIS 四阶段与确定性门（SHIP $H_{t+1}$ / REJECT $H_{t}$）。*
 
-**Operational mirror（操作镜像）**是全文的理论骨架（Table 2）：把 harness 演化写成符号空间里的 MDP——
+**Operational mirror（操作镜像）** 是全文的理论骨架（Table 2）：把 harness 演化写成符号空间里的 MDP——
 
 | RL 概念 | 符号空间对偶 | AEGIS 实现 |
 | --- | --- | --- |
-| Policy `π` | harness 更新过程 `π_evo` | 四阶段流水线 |
-| State `s_t` | `(H_t, T_t)` | harness 配置 + trace store |
-| Action `a_t` | 类型化 harness 编辑 | builder 操作 + change manifest |
-| Feedback | trace `τ` + verifier 分数 `r` | 可观测层 |
-| Update | `H_{t+1} ← U(H̃_t, T_t, r_t)` | **确定性接受门** |
+| Policy $\pi$ | harness 更新过程 $\pi_{\mathrm{evo}}$ | 四阶段流水线 |
+| State $s_{t}$ | $(H_{t}, T_{t})$ | harness 配置 + trace store |
+| Action $a_{t}$ | 类型化 harness 编辑 | builder 操作 + change manifest |
+| Feedback | trace $\tau$ + verifier 分数 $r$ | 可观测层 |
+| Update | $H_{t+1} \leftarrow U(\tilde{H}_{t}, T_{t}, r_{t})$ | **确定性接受门** |
 
 三个定义把对应关系钉死（p7–8）：
 
-- **Def 1（Harness 配置）**：`H = (c_1, …, c_9)`，每个 `c_i ∈ C_i` 实例化一个行为维度，`C_i` 受 hook 类型契约与 singleton 组排斥约束。
-- **Def 2（Harness 编辑）**：编辑 `e: H → H`，改一个或多个维度且保持类型契约。动作空间 `E` **离散但开放**——每个动作是 meta-agent 生成的**代码级产物**（新 processor 源码、改过的 prompt 模板、重配的 tool registry、控制流改写），**不是从预枚举集合里选**。作者明确说组合爆炸不是靠穷举搜索解决的，而是靠 LLM 的生成能力 + 类型约束在**生成时**剪枝。
-- **Def 3（Operational mirror）**：四元组 `(H, E, R, T)`；奖励函数 `R` 把「配置–编辑」对映到实数标量（verifier 分数在适应批次上的聚合）。
+- **Def 1（Harness 配置）**：$H = (c_{1}, \dots , c_{9})$，每个 $c_{i} \in C_{i}$ 实例化一个行为维度，$C_{i}$ 受 hook 类型契约与 singleton 组排斥约束。
+- **Def 2（Harness 编辑）**：编辑 $e: H \to H$，改一个或多个维度且保持类型契约。动作空间 $E$ **离散但开放**——每个动作是 meta-agent 生成的**代码级产物**（新 processor 源码、改过的 prompt 模板、重配的 tool registry、控制流改写），**不是从预枚举集合里选**。作者明确说组合爆炸不是靠穷举搜索解决的，而是靠 LLM 的生成能力 + 类型约束在**生成时**剪枝。
+- **Def 3（Operational mirror）**：四元组 `(H, E, R, T)`；奖励函数 $R$ 把「配置–编辑」对映到实数标量（verifier 分数在适应批次上的聚合）。
 
-**MDP 实例化**：状态 `s_t = (H_t, T_t)`（**模型 `M` 在演化全程固定**），`π_evo` 采样动作 `a_t ∈ E` 得到候选 `H̃_t = a_t(H_t)`；在适应批次上跑候选得到 `ΔT_t` 与逐任务分数 `r_t`；确定性接受算子 `U` 要么提交（`H_{t+1} = H̃_t`）要么拒绝（`H_{t+1} = H_t`）。**无论接受与否 trace store 都增长**：`T_{t+1} = T_t ∪ ΔT_t`。
+**MDP 实例化**：状态 $s_{t} = (H_{t}, T_{t})$（**模型 $M$ 在演化全程固定**），$\pi_{\mathrm{evo}}$ 采样动作 $a_{t} \in E$ 得到候选 $\tilde{H}_{t} = a_{t}(H_{t})$；在适应批次上跑候选得到 $\Delta T_{t}$ 与逐任务分数 $r_{t}$；确定性接受算子 $U$ 要么提交（$H_{t+1} = \tilde{H}_{t}$）要么拒绝（$H_{t+1} = H_{t}$）。**无论接受与否 trace store 都增长**：$T_{t+1} = T_{t} \cup \Delta T_{t}$。
 
 **三类 RL 病理在符号空间的放大形态**（§4.2）——这是全文最实用的一节，因为它们各自绑定了防守机制：
 
@@ -126,37 +126,37 @@ HarnessX 把 **harness 本身做成一等公民**：用类型化 processor 挂�
 
 1. **Digester**（可选）：把每任务的原始 trace 压成结构化摘要——二元结果、失败类别、涉及的组件标识、支撑证据片段——并链接该任务此前各轮的结局与已 ship 的编辑，使 Planner 能区分**持续性失败**与**瞬时噪声**。规模动机很具体：**GAIA 一轮（103 任务、pass@2）产生约 10M token 原始 trace**，直接喂下游超上下文，粗暴截断又会丢诊断信号（本笔记复算：10M → 10K 摘要约 **1000×** 压缩，三个数量级）。
 2. **Planner**（可选）：接收摘要 + 跨轮历史，构造 **adaptation landscape**——哪些任务在失败、试过哪些编辑、牵涉哪些组件、哪些编辑类型（prompt／tool／processor／config）还没试过。它是**防 under-exploration 的主力**：先建 landscape 再生成编辑，避免流水线收敛到「按 trace 条件反射做局部修补」。
-3. **Evolver**（可选）：产出 `K_t` 个候选 `{H̃_t^k}`，每个是一个**类型化 builder 操作** + 一份 **change manifest**（改了哪些组件、意图行为效果、预计改善／回退哪些任务）。引入新 processor 代码时还必须附**冒烟测试**证明它能实例化、能在合成输入上不抛异常地跑起来。作者提醒：builder 代数只保证**类型安全**，不保证**行为安全**。
+3. **Evolver**（可选）：产出 $K_{t}$ 个候选 ${\tilde{H}_{t}^{k}}$，每个是一个**类型化 builder 操作** + 一份 **change manifest**（改了哪些组件、意图行为效果、预计改善／回退哪些任务）。引入新 processor 代码时还必须附**冒烟测试**证明它能实例化、能在合成输入上不抛异常地跑起来。作者提醒：builder 代数只保证**类型安全**，不保证**行为安全**。
 4. **Critic + 确定性门（强制）**：Critic 比对 manifest 的声称与 trace 证据、评估经共享状态或控制流的非局部风险，可**最多发一次修订请求**给 Evolver，然后返回 `no_op` 或有序 `ship_ranking`。**门按序执行确定性检查**：manifest 完整性 → 配置规范化 → build／冒烟测试 → **seesaw 约束**（对先前通过任务的回退检查）；第一个失败即中止整个序列。通过者提交，失败者连同拒绝原因归档。
 
 > **设计原则（§4.3 末，原文加粗）**：*语言模型子代理负责探索、假设、提议；类型化结构与确定性门决定什么能 ship。* 作者据此声称安全属性（不回归、无未审计编辑）**与 LLM 子代理的失效模式无关**。
 
-**算法层面**（Algorithm 1）：Digester／Planner／Evolver 各自带一个 continuation 条件（可操作性是否够、landscape 是否非空、是否有至少一个类型安全候选），任一不满足就**当轮 no-op 短路**；只有 Critic 与门是无条件的。另有 `patience P`：连续 `P` 轮无 ship 就 break（实验里 `P=3`）。
+**算法层面**（Algorithm 1）：Digester／Planner／Evolver 各自带一个 continuation 条件（可操作性是否够、landscape 是否非空、是否有至少一个类型安全候选），任一不满足就**当轮 no-op 短路**；只有 Critic 与门是无条件的。另有 `patience P`：连续 $P$ 轮无 ship 就 break（实验里 $P=3$）。
 
 ### 3.3 变体隔离与集成路由（§4.5）
 
-单 harness 的 seesaw 约束在「任务之间要求互相冲突的行为」时会**把有益编辑直接拒掉**——保住了稳定，丢掉了局部收益。变体隔离改为维护**至多 `K` 个变体** `{H^{(1)}_t, …, H^{(V_t)}_t}`，按「该任务所属簇在既往轮次上的最高估计成功率」路由任务。门对每个候选区分两种结局：
+单 harness 的 seesaw 约束在「任务之间要求互相冲突的行为」时会**把有益编辑直接拒掉**——保住了稳定，丢掉了局部收益。变体隔离改为维护**至多 $K$ 个变体** ${H^{(1)}_{t}, \dots , H^{(V_t)}_{t}}$，按「该任务所属簇在既往轮次上的最高估计成功率」路由任务。门对每个候选区分两种结局：
 
 - 改善一部分任务且不回归任何任务 → 应用到目标变体；
 - 改善一个子集但回归另一个子集 → **fork 出新变体**（池满时**退休表现最差的变体**），而不是拒绝编辑。
 
-多变体存在后，**seesaw 约束按变体作用域生效**：针对变体 `k` 的候选只对路由到 `k` 的任务做回归检查，所以改好一个簇不会回归另一个簇。
+多变体存在后，**seesaw 约束按变体作用域生效**：针对变体 $k$ 的候选只对路由到 $k$ 的任务做回归检查，所以改好一个簇不会回归另一个簇。
 
-> ⚠️ **`K` 的取值、以及「簇」如何构造，全文都没有给出**（正文只写 "up to `K` variants"、`V_t ≤ K`；"Domain-aware clustering" 只作为**试点规模**的更细粒度策略被提及，30–40 任务、≤8 轮，因轮数与任务数不足而未做统计比较）。路由用的「成功率估计」也只说是「既往轮次的 prior success rate」。这是复现该消融的主要缺口（见 §7 局限）。
+> ⚠️ **$K$ 的取值、以及「簇」如何构造，全文都没有给出**（正文只写 "up to $K$ variants"、$V_{t} \le K$；"Domain-aware clustering" 只作为**试点规模**的更细粒度策略被提及，30–40 任务、≤8 轮，因轮数与任务数不足而未做统计比较）。路由用的「成功率估计」也只说是「既往轮次的 prior success rate」。这是复现该消融的主要缺口（见 §7 局限）。
 
 ### 3.4 Harness–Model 共演化（§5）
 
 两层天花板（§5 开篇的比喻很到位）：只演化 harness 会撞**脚手架天花板**——一旦脚手架把工具、上下文、控制流都摆对了，约束就变成「冻住的模型是否用得上」；只训模型会撞**训练信号天花板**——新能力在脚手架永不召唤它的场景里得不到锻炼。*更锐利的器械补不了弱内核，更强的内核也补不了从不召唤它的器械。*
 
-迭代七步（§5.1）：① rollout（记录每条 episode 完整 trace `τ_i`）；② **固定 verifier** 打分得 `r_i`（固定 verifier 是 cross-harness 优势可算的前提）；③ 连同产出它的 harness 版本一起入**定容 FIFO replay buffer**；④ harness 演化 `H_{t+1} ← AEGIS(H_t, B)`（非参数）；⑤ 对**本轮新增**轨迹做一次前向，缓存 token 级 `π_θold(τ_i)` 落盘；⑥ GRPO 更新 `M_{t+1} ← GRPO(M_t, B)`（参数化）；⑦ 带 `(M_{t+1}, H_{t+1})` 回到 ①。注意 ④ 与 ⑤⑥ **读同一个 buffer，但同一轮内互不条件于对方的输出**，两者都完成才进入下一次 rollout。
+迭代七步（§5.1）：① rollout（记录每条 episode 完整 trace $\tau_{i}$）；② **固定 verifier** 打分得 $r_i$（固定 verifier 是 cross-harness 优势可算的前提）；③ 连同产出它的 harness 版本一起入**定容 FIFO replay buffer**；④ harness 演化 $H_{t+1} \leftarrow \operatorname{AEGIS}(H_{t}, B)$（非参数）；⑤ 对**本轮新增**轨迹做一次前向，缓存 token 级 $\pi_{\theta_{\mathrm{old}}}(\tau_{i})$ 落盘；⑥ GRPO 更新 $M_{t+1} \leftarrow \operatorname{GRPO}(M_{t}, B)$（参数化）；⑦ 带 $(M_{t+1}, H_{t+1})$ 回到 ①。注意 ④ 与 ⑤⑥ **读同一个 buffer，但同一轮内互不条件于对方的输出**，两者都完成才进入下一次 rollout。
 
 ![Figure 3：harness–model 共演化环](assets/fig3-coevolution-loop.png)
 
-*Figure 3（p12，裁剪自 300 dpi 渲染页）：`(M_t, H_t)` 跑批次 → 轨迹与奖励入共享 replay buffer `B` → 同一个 buffer 驱动两条更新：AEGIS harness 演化（非参数）与 cross-harness GRPO（参数），分别产出 `H_{t+1}` 与 `M_{t+1}`。*
+*Figure 3（p12，裁剪自 300 dpi 渲染页）：$(M_{t}, H_{t})$ 跑批次 → 轨迹与奖励入共享 replay buffer $B$ → 同一个 buffer 驱动两条更新：AEGIS harness 演化（非参数）与 cross-harness GRPO（参数），分别产出 $H_{t+1}$ 与 $M_{t+1}$。*
 
-**Cross-harness GRPO 的关键设计**是分组准则：同一 `x` 的所有轨迹**不论出自哪个 `(M_k, H_k)` 都进同一组**（Eq. 2）。理由是——单策略 RL 里组内差异只是随机采样噪声，而这里**harness 身份主导了组内差异**，于是模型拿到的是**跨策略的奖励对比**而不是同一策略内的抖动。**对齐粒度是任务级而非动作级**：不同 harness 版本可以有互不兼容的动作空间（不同工具 schema、不同 prompt 结构、不同控制流），它们同组共存无冲突，因为计算梯度时每条 `τ_i` **在产出它的 harness 版本 `H_k` 下回放**，梯度只作用在「以 harness 特定上下文为条件的模型输出 token」上，不作用在 harness 的结构动作或环境转移上。
+**Cross-harness GRPO 的关键设计**是分组准则：同一 `x` 的所有轨迹**不论出自哪个 $(M_{k}, H_{k})$ 都进同一组**（Eq. 2）。理由是——单策略 RL 里组内差异只是随机采样噪声，而这里**harness 身份主导了组内差异**，于是模型拿到的是**跨策略的奖励对比**而不是同一策略内的抖动。**对齐粒度是任务级而非动作级**：不同 harness 版本可以有互不兼容的动作空间（不同工具 schema、不同 prompt 结构、不同控制流），它们同组共存无冲突，因为计算梯度时每条 $\tau_{i}$ **在产出它的 harness 版本 $H_{k}$ 下回放**，梯度只作用在「以 harness 特定上下文为条件的模型输出 token」上，不作用在 harness 的结构动作或环境转移上。
 
-**离策略处理**（§5.4）：`π_θold` 因 `M_k` 逐条不同而**无法从任何单一模型恢复**，所以在**入 buffer 时**用 `M_k` 做一次前向、把 token 级 log-prob 缓存到磁盘，此后每个梯度步复用；`ρ_i(θ)` 则用当前策略重算。FIFO 容量 `C`、每轮 `s` 条样本 ⇒ **最大版本滞后 `⌊C/s⌋` 轮**，因此缓存的 `π_θold` 总是落在 `π_θ` 的有界窗口内——同一个窗口也界定了 harness 的陈旧度。**无额外 rollout 成本**：agentic RL 的主要开销是 rollout（解码＋工具调用＋验证），而共演化里**一轮探索产出的轨迹同时驱动两个更新**，GRPO 只做 replay、不自发 rollout；模型更新的边际成本只有「每条轨迹一次缓存前向」＋「梯度步」。
+**离策略处理**（§5.4）：$\pi_{\theta_{\mathrm{old}}}$ 因 $M_{k}$ 逐条不同而**无法从任何单一模型恢复**，所以在**入 buffer 时**用 $M_{k}$ 做一次前向、把 token 级 log-prob 缓存到磁盘，此后每个梯度步复用；$\rho_{i}(\theta)$ 则用当前策略重算。FIFO 容量 $C$、每轮 $s$ 条样本 ⇒ **最大版本滞后 `⌊C/s⌋` 轮**，因此缓存的 $\pi_{\theta_{\mathrm{old}}}$ 总是落在 $\pi_\theta$ 的有界窗口内——同一个窗口也界定了 harness 的陈旧度。**无额外 rollout 成本**：agentic RL 的主要开销是 rollout（解码＋工具调用＋验证），而共演化里**一轮探索产出的轨迹同时驱动两个更新**，GRPO 只做 replay、不自发 rollout；模型更新的边际成本只有「每条轨迹一次缓存前向」＋「梯度步」。
 
 ## 4. 关键公式与直觉
 
@@ -166,9 +166,9 @@ HarnessX 把 **harness 本身做成一等公民**：用类型化 processor 挂�
 \text{Pass@k}=\frac{1}{|D|}\sum_{i=1}^{|D|}\left(1-\frac{\binom{n-c_i}{k}}{\binom{n}{k}}\right)
 ```
 
-白话读法：对每个任务，先算「从 `n` 次 rollout 里取 `k` 次全都失败」的概率，取它的补概率就得到该任务的 pass@k，再对所有任务取平均。
+白话读法：对每个任务，先算「从 $n$ 次 rollout 里取 $k$ 次全都失败」的概率，取它的补概率就得到该任务的 pass@k，再对所有任务取平均。
 
-任务 `i` 在 `n` 次 rollout 中的成功次数 `c_i`，等于各次结果 `r_ij` 之和。**演化曲线一律用 pass@2**（两次独立 rollout，任一成功即算解出）。两条容易被忽略的口径说明：**基础设施失败**（沙箱崩溃、API 超时）计为失败而非剔除，以对齐官方 leaderboard 协议；pass@2 在降低单次随机性的同时，**代价是掩盖 sub-threshold 的成功率漂移**——这一点后面反复成为失败的根因。
+任务 $i$ 在 $n$ 次 rollout 中的成功次数 $c_{i}$，等于各次结果 $r_{ij}$ 之和。**演化曲线一律用 pass@2**（两次独立 rollout，任一成功即算解出）。两条容易被忽略的口径说明：**基础设施失败**（沙箱崩溃、API 超时）计为失败而非剔除，以对齐官方 leaderboard 协议；pass@2 在降低单次随机性的同时，**代价是掩盖 sub-threshold 的成功率漂移**——这一点后面反复成为失败的根因。
 
 **Cross-harness 组（Eq. 2）与组相对优势（Eq. 3）**：
 
@@ -176,7 +176,7 @@ HarnessX 把 **harness 本身做成一等公民**：用类型化 processor 挂�
 \mathcal G_x=\{\tau_i\in\mathcal B \mid \text{task}(\tau_i)=x\}=\bigcup_k\{\tau\sim\text{Agent}(\mathcal M_k,\mathcal H_k,x)\},\qquad \hat A(\tau_i)=\frac{r_i-\mu(\mathcal G_x)}{\sigma(\mathcal G_x)+\epsilon}
 ```
 
-白话读法：把一个任务 `x` 在所有 harness 版本下采到的轨迹并成一组，组内每条轨迹的优势 `Â(τ_i)` 就是它的奖励减去组均值、再除以（组标准差 `σ` 加 `ε`）。
+白话读法：把一个任务 `x` 在所有 harness 版本下采到的轨迹并成一组，组内每条轨迹的优势 $\hat{A}(\tau_{i})$ 就是它的奖励减去组均值、再除以（组标准差 $\sigma$ 加 $\varepsilon$）。
 
 直觉：**同一任务的跨 harness 版本对比 = 结构化的探索算子**。每个新 harness 版本往该任务的采样分布里注入一个不同的行为模式，Eq. 3 让模型朝 verifier 打分更高的模式靠——单策略采样给不了的探索广度，由**不断演化的脚手架本身**提供。
 
@@ -186,11 +186,11 @@ HarnessX 把 **harness 本身做成一等公民**：用类型化 processor 挂�
 J_{GRPO}(\theta)=\mathbb E_{x,\tau_i\sim\mathcal B}\Big[\min\big(\rho_i(\theta)\hat A(\tau_i),\ \text{clip}(\rho_i(\theta),1-\epsilon_c,1+\epsilon_c)\hat A(\tau_i)\big)\Big]-\beta D_{KL}(\pi_\theta\|\pi_{ref})
 ```
 
-白话读法：对所有采样轨迹取期望——取「新旧策略比值乘优势」与「把该比值裁剪到以 `ε_c` 为半宽的区间后再乘优势」两者中的较小值，再减去相对参考策略的 KL 惩罚（`β` 是 KL 权重）。
+白话读法：对所有采样轨迹取期望——取「新旧策略比值乘优势」与「把该比值裁剪到以 $\varepsilon_{c}$ 为半宽的区间后再乘优势」两者中的较小值，再减去相对参考策略的 KL 惩罚（$\beta$ 是 KL 权重）。
 
-其中重要性比值 `ρ_i(θ) = π_θ(τ_i | x) / π_θold(τ_i | x)`，且 `π_θold = M_d`（产出该轨迹的那个 checkpoint）。**容易看错的一处**：比值里的行为策略 `π_θold` 与 KL 项里的参考策略 `π_ref` **不是同一个东西**——`π_ref = M_0` 全程固定，而 `π_θold` **逐轨迹不同**、必须从 buffer 里恢复。
+其中重要性比值 $\rho_{i}(\theta) = \pi_\theta(\tau_{i} | x) / \pi_{\theta_{\mathrm{old}}}(\tau_{i} | x)$，且 $\pi_{\theta_{\mathrm{old}}} = M_{d}$（产出该轨迹的那个 checkpoint）。**容易看错的一处**：比值里的行为策略 $\pi_{\theta_{\mathrm{old}}}$ 与 KL 项里的参考策略 $\pi_{\mathrm{ref}}$ **不是同一个东西**——$\pi_{\mathrm{ref}} = M_{0}$ 全程固定，而 $\pi_{\theta_{\mathrm{old}}}$ **逐轨迹不同**、必须从 buffer 里恢复。
 
-**Seesaw 约束**（§4.1 末）：候选**不得回归 `T_t` 中任何已被解决过的任务**。它是 deterministic acceptance operator 的核心，也是后文多次失败案例的焦点。
+**Seesaw 约束**（§4.1 末）：候选**不得回归 $T_{t}$ 中任何已被解决过的任务**。它是 deterministic acceptance operator 的核心，也是后文多次失败案例的焦点。
 
 ## 5. 实验与证据
 
@@ -206,8 +206,8 @@ J_{GRPO}(\theta)=\mathbb E_{x,\tau_i\sim\mathcal B}\Big[\min\big(\rho_i(\theta)\
 
 - **两个角色**：**meta-agent**（驱动 AEGIS 演化，全程 Claude Opus 4.6）与 **task agent**（在演化后的 harness 下跑基准，三个家族 Claude Sonnet 4.6／GPT-5.4／Qwen3.5-9B）。
 - **基线两条**：(1) **Static Harness**——用已发表的基准专用 prompt 与工具定义构造、全程固定；(2) **Claude Code SDK（CC SDK）单代理 evolver**——每轮一个 LLM 会话替代四阶段流水线，**保留同一套基础设施与轮数预算**，用它把「AEGIS 的多阶段架构」从「共享基础设施」里剥出来（同时充当 SICA 这类单体 evolver 的代理）。CC SDK 版本为 v0.0.25、`model="opus"`、`max_turns=200`，实验在 2026 年 5 月进行（p15 脚注 1）。
-- **规模**：每实验最多 `T=15` 轮，连续 `P=3` 轮无 ship 提前停止；**每轮评测全任务集，不做子采样**；meta-agent token 预算按基准 100M–175M，同基准内跨任务模型一致。
-- **超参（Table 8 渲染核对）**：每轮候选数 `K_t=4`、**每格 3 个随机种子**、噪声阈值「忽略单轮通过数变化 ±5%」、`H_0` 为**手工基座 harness**（不是最小默认——作者明说曲线是相对**一个像样的初始 harness** 的增益）、并发 10、meta-agent 并发 4 且每角色 200 步上限；每任务步数上限 GAIA 20／WebShop 20／ALFWorld 15／τ³-Bench 200／SWE-bench 200。共演化训练用 **8× H100、batch 256、lr `1×10⁻⁶`**；每个 rollout 跑在**每任务重新附着的新环境实例**里，防止购物车／世界状态／工作目录在任务间泄漏。
+- **规模**：每实验最多 $T=15$ 轮，连续 $P=3$ 轮无 ship 提前停止；**每轮评测全任务集，不做子采样**；meta-agent token 预算按基准 100M–175M，同基准内跨任务模型一致。
+- **超参（Table 8 渲染核对）**：每轮候选数 $K_{t}=4$、**每格 3 个随机种子**、噪声阈值「忽略单轮通过数变化 ±5%」、$H_{0}$ 为**手工基座 harness**（不是最小默认——作者明说曲线是相对**一个像样的初始 harness** 的增益）、并发 10、meta-agent 并发 4 且每角色 200 步上限；每任务步数上限 GAIA 20／WebShop 20／ALFWorld 15／τ³-Bench 200／SWE-bench 200。共演化训练用 **8× H100、batch 256、lr $1\times 10^{-6}$**；每个 rollout 跑在**每任务重新附着的新环境实例**里，防止购物车／世界状态／工作目录在任务间泄漏。
 
 ### 5.2 主结果（Table 4 / Figure 4）
 
@@ -257,7 +257,7 @@ J_{GRPO}(\theta)=\mathbb E_{x,\tau_i\sim\mathcal B}\Big[\min\big(\rho_i(\theta)\
 
 | 策略 | Final (%) | Peak (%) | Final−Peak | Tokens |
 | --- | --- | --- | --- | --- |
-| Ensemble（至多 `K` 个变体） | **87.4** | 87.4 | 0.0 | **107.8M** |
+| Ensemble（至多 $K$ 个变体） | **87.4** | 87.4 | 0.0 | **107.8M** |
 | Global（单 harness） | 49.5 | 73.8 | **−24.3** | 143.7M |
 
 （GAIA 103 任务、GPT-5.4、AEGIS evolver、15 轮。**本笔记复算**：87.4 − 73.8 = 13.6，即正文所述 **+13.6%** 相对基线。）
@@ -289,7 +289,7 @@ J_{GRPO}(\theta)=\mathbb E_{x,\tau_i\sim\mathcal B}\Big[\min\big(\rho_i(\theta)\
 | WebShop（100） | 49.0% | **54%** | +5.0% | 46.0% → 50.0% |
 
 - 均值 **+4.7%**（**本笔记复算**：(4.3+5.0)/2 = 4.65）。两条曲线**在 R4 联合训练生效前重合，之后分离**，共演化在余下各轮不低于 harness-only；差距**保持到末轮**，WebShop 上更宽（模型层面还有余量）。作者强调共演化抬的是**末轮成绩**，不只是峰值。
-- 设置：GAIA 文本子集（103）+ WebShop 子集（100），task agent Qwen3.5-9B；优化器 batch = 整个 replay buffer，buffer 为**四轮滑动窗口**——每任务 2 次 rollout 时 GAIA 是 **824 条**（103×2×4）、WebShop **400 条**（100×1×4）；lr `1×10⁻⁶`、GRPO clip `ε=0.2`、**KL 系数为 0（无 KL 惩罚）**、每轮 5 个训练步；奖励 GAIA = 0.9×正确性 + 0.1×格式，WebShop 用原生属性匹配奖励（**只在 reward = 1.0 时算通过**）。GAIA 因依赖实时 web 工具、延迟与可用性会波动，**每轮评测两次取平均**。
+- 设置：GAIA 文本子集（103）+ WebShop 子集（100），task agent Qwen3.5-9B；优化器 batch = 整个 replay buffer，buffer 为**四轮滑动窗口**——每任务 2 次 rollout 时 GAIA 是 **824 条**（103×2×4）、WebShop **400 条**（100×1×4）；lr $1\times 10^{-6}$、GRPO clip $\varepsilon=0.2$、**KL 系数为 0（无 KL 惩罚）**、每轮 5 个训练步；奖励 GAIA = 0.9×正确性 + 0.1×格式，WebShop 用原生属性匹配奖励（**只在 reward = 1.0 时算通过**）。GAIA 因依赖实时 web 工具、延迟与可用性会波动，**每轮评测两次取平均**。
 - **打破脚手架天花板**：harness-only 在 GAIA 平台化于 ~37%、WebShop ~49%；共演化越过这两个平台。
 
 ### 5.6 三类病理的失败案例（§6.6 + Figure 6）
@@ -304,7 +304,7 @@ J_{GRPO}(\theta)=\mathbb E_{x,\tau_i\sim\mathcal B}\Big[\min\big(\rho_i(\theta)\
 
 - **(b) WebShop／Sonnet 4.6**：**near-match 刷部分奖励**——平均奖励上升（reward 0.87）而 exact-match 成功率**冻结在 76%**，两者差距峰值 **+0.113**。这是「reward 与成功率脱钩」的干净实例。
 - **(c) SWE-bench**：**门检查的是 replay／novelty／structure，不是通过率**，所以「合规 ship」也会让分数从 20→16（R5）、19→14（R9）。R12 的 workspace 结构性 ship 是唯一真正的 +3 胜。（**该面板图内标题写 "SWE-bench · Qwen"、图注写 "(c) Reward hacking (SWE-bench, GPT-5.4)"——两者不一致**，本笔记不代为裁决；同一图里 **(e)** 标题 "SWE-bench · Sonnet" vs 图注 "(e) Forgetting (SWE-bench, GPT-5.4)"，其 "peak ~61.8% (35/57 scale)" 与 §6.2 的 63.6%（55 任务）也是对不上的口径；**(h)** 标题 "GAIA-103 · Sonnet 4.6" vs 图注 "(h) Under-exploration (GAIA, GPT-5.4)"——但该面板内容是 Sonnet 的 WikiTextFetch／+4.9pp／hit-rate 0.71 案例，与 (a) 面板同源，故疑为图注写错模型。）
-- **(f) GAIA／GPT-5.4**：R1–R4 只做 advisory → R4 峰值 73.8%；R5–R6 出现**「执行悬崖」**（SearchBudget + ComputationGate 一起上，76 → 55，−21）；**每个 enforcement 编辑单独都能过门，sub-threshold 累积却抹掉了 R4 的收益**；R12 回滚失败，终值 49.5%（−24.3pp）。
+- **(f) GAIA／GPT-5.4**：R1–R4 只做 advisory → R4 峰值 73.8%；R5–R6 出现 **「执行悬崖」** （SearchBudget + ComputationGate 一起上，76 → 55，−21）；**每个 enforcement 编辑单独都能过门，sub-threshold 累积却抹掉了 R4 的收益**；R12 回滚失败，终值 49.5%（−24.3pp）。
 
 **§6.6 的总结**与 §7.2 呼应：三条病理都真实出现了；reward hacking 两轮内被检测并缓解；under-exploration 由 ship-prediction 衰减诊断出来；而 catastrophic forgetting 暴露了**逐编辑门控的结构性局限**——sub-threshold 耦合会一直不被发现，直到超过逐任务检测阈值。§7.2 由此提炼出一条设计原则：**反馈信号的丰富度界定了能安全执行的演化的精细度**——只看标量奖励，三种病理都无法检测（分数变化分不清 reward hacking 与真实改进、under-exploration 与收敛、forgetting 与评测噪声）；而 trace 结构化让它们**可诊断**，前提是有既往轮次的 trace 可比。但**记录 trace 是检测的必要条件、不是预防的充分条件**：耦合在阈值下累积时，trace 只在损害发生后才记下症状。
 
@@ -356,15 +356,15 @@ ship ⇒ H_{t+1}；reject ⇒ H_t（失败候选连同原因归档）
 4. **依赖闭源 meta-agent**：AEGIS 需要能做多文件代码生成、结构化 trace 分析与多步规划的 meta-agent；接近该能力的开放权重模型（Qwen3.5-72B、Llama-4-Maverick）**未测**。同理 §7.4 声明**没测**较弱的 meta-agent 能否达到可比增益。
 5. **联合控制假设**：共演化要求同时掌握 harness 演化与模型训练；实践中这两件事常分属不同团队／组织，共享 replay buffer **没有跨团队协作就不现实**。
 6. **基准覆盖**：SWE-bench 全部用 **55 任务子采样**；τ³-Bench 只评三个域。结论（尤其反比例缩放）未必泛化到异质性不同或更大的评测集。
-7. **变体隔离的外推未知**（§7.3）：`V_t` 最终 = peak 只在这 15 轮内成立；更长时程（变体可能过度特化）或任务间存在依赖、无法干净切簇的分布上，没有保证。
+7. **变体隔离的外推未知**（§7.3）：$V_{t}$ 最终 = peak 只在这 15 轮内成立；更长时程（变体可能过度特化）或任务间存在依赖、无法干净切簇的分布上，没有保证。
 8. **伦理三机制中的一条未启用**（§7.6）：可审计性（每次 ship 带 manifest 与回滚目标、被拒候选连同原因归档）、确定性门（回归一个已解任务即拒）、**人机协同（支持对超过可配置风险阈值的编辑做人工批准，但自动化实验中未启用）**。
 
 **本笔记的判断（非作者结论）：**
 
 - **「峰值 + 无留出」的组合，恰好是本仓库已有实测证据反对的评测口径。** `notes/papers/2609.01437-v1-harnessdev/note.md` 记录的 HarnessDev 直接测出「演化涨分 ≠ 留出受益」；本文 §7.7 自己承认没有留出，而 Figure 4 的 "Apparent peak, noise-inflated" 注记又自曝峰值可被噪声抬高（R12 同配置重放掉到 81）。两者叠加意味着 Table 4 的 15 个 Δ 里，**至少 GAIA／Sonnet 那一格的 +9.7% 需要打折看**。
 - **Table 8 声明「每格 3 个随机种子」，但 Table 4 只给单值、无方差或置信区间。** 全文只在 §6.3／§6.4 给过两个不确定度（n=103 时每轮二项 95% CI ±8.5%、标准误 ~3.3%），未用于主表。**Figure 5 的 +4.7%** 也建在两条单曲线峰值差上（且 200 dpi 下 WebShop 的 "54%" 极易误读成 "5.4%"）。
-- **`K`（变体数上限）与「簇」的构造方式全文未给**，而 §6.3 的核心结论完全建立在变体隔离上（+13.6%，以及 107.8M vs 143.7M 的演化 token 开销——**本笔记复算**：省 ≈25%，原文只给绝对量）。这是想复现或搬用这套机制时最先卡住的地方。**注意别与 §7.5 的「GAIA 每任务推理 token 降 ~25%」混淆**：那是部署后每个任务的推理成本，不是演化开销。
-- **seesaw 约束的「不回归」是相对于 `T_t` 中已解任务的二元状态**，因此它对「退步但未跌破 0.5 概率」的漂移天然盲视——τ³ Telecom 的 R7 崩溃与 GAIA／GPT-5.4 的 R5–R6 执行悬崖都是这个盲视的直接后果，论文也承认了这一点。
+- **$K$（变体数上限）与「簇」的构造方式全文未给**，而 §6.3 的核心结论完全建立在变体隔离上（+13.6%，以及 107.8M vs 143.7M 的演化 token 开销——**本笔记复算**：省 ≈25%，原文只给绝对量）。这是想复现或搬用这套机制时最先卡住的地方。**注意别与 §7.5 的「GAIA 每任务推理 token 降 ~25%」混淆**：那是部署后每个任务的推理成本，不是演化开销。
+- **seesaw 约束的「不回归」是相对于 $T_{t}$ 中已解任务的二元状态**，因此它对「退步但未跌破 0.5 概率」的漂移天然盲视——τ³ Telecom 的 R7 崩溃与 GAIA／GPT-5.4 的 R5–R6 执行悬崖都是这个盲视的直接后果，论文也承认了这一点。
 - **SWE-bench 上 Qwen3.5 的结论在正文与附录之间是反的**（详见下节第 1 条），而 §6.2 的「反比例缩放」正是拿这一格当证据。
 
 ## 8. 原文自身的表述张力
@@ -383,7 +383,7 @@ ship ⇒ H_{t+1}；reject ⇒ H_t（失败候选连同原因归档）
 - **00212 RRSI**（已读）：RRSI 把「演化涨分能否迁移」当成**优化问题**，用正则把改动约束到可迁移的机制上；HarnessX 用**运行时约束**（typed 组合 + manifest 可伪证 + 确定性门 + 版本/回滚）来管同类风险。且本文正是 RRSI 那篇笔记里作为 baseline 出现、带整行成绩的 **HarnessX（RRSI note 记 `91.8 | 89.1 | 36.3 | 48.5 | 34.3`）**。**证据链**（本笔记复核时另取 RRSI 的 arXiv 原文 2609.24972v3 核对）：其参考文献列有「T. Chen, S. Lu, K. Zhao, W. Meng, H. Teng, T. Li, C. Li, X. Liu, J. Liang, Z. Zhang, et al. **Harnessx: A composable, adaptive, and evolvable agent harness foundry**. arXiv preprint **arXiv:2606.14249**, 2026」——作者前 10 位与标题逐字吻合，其 Table 1 中该行即 "HarnessX (Chen et al., 2026) → 91.8 / 89.1 / 36.3 / 48.5 / 34.3"。故 HarnessDev note 登记的「Meta-Harness／HarnessX 两处是否同一篇」悬置**可关闭**。RRSI 引的具体版本（v1/v2/v3）以其自身记录为准，未再核对；RRSI 在其附录 B（"B. Evaluation"）声明「A harness and its baseline are always evaluated in the same window, with the same tool environment, the same judge and the same number of trials」（本笔记已核对原句）。
 - **00189 HarnessDev**（已读）：那篇给的是 harness 演化的**评测协议**，核心发现是「演化涨分 ≠ 留出受益」；HarnessX 给的是**演化运行时**，但 §7.7 自认**不做留出评测、报峰值**——两者正好构成「评测方」与「被评测方」的关系。HarnessDev 笔记登记的**未读同族 00199 已由本笔记补上**；HarnessDev 引用的 HarnessX（[10]，composable/evolvable harness foundry）与本文相符。
 - **00205 Prime Agent**（已读）：Prime Agent 是「运行时 harness 状态持久化」（skill／subagent spec／memory 的 refinement + 版本/回滚，**不改权重**）；HarnessX 是「harness 配置的代码级演化 + **改权重**的共演化」。两者的差异点值得对照：Prime Agent 的自我改进定义明确排除权重更新，而 HarnessX §5 的共演化恰恰把权重更新接进同一个 loop——**同一个「harness 自演化」问题的两条互补路线**（运行时状态 vs 训练闭环）。
-- **00192 RSI 导读**：导读的关键限定是「更新产物要被后续任务复用才算 RSI」。HarnessX 在这一框架下属于**「harness 代码进化 + 参数共演化」**一侧：它的 ship 物是**代码级产物**（processor 源码、prompt、config），落地后会被后续轮次与部署复用，符合导读的「复用」要件；它同时给出了一条导读没覆盖的工程细节——**复用可以被验证**（manifest 的 `attribution_signature` 要求下一轮 trace 必须出现特定特征）。
+- **00192 RSI 导读**：导读的关键限定是「更新产物要被后续任务复用才算 RSI」。HarnessX 在这一框架下属于 **「harness 代码进化 + 参数共演化」** 一侧：它的 ship 物是**代码级产物**（processor 源码、prompt、config），落地后会被后续轮次与部署复用，符合导读的「复用」要件；它同时给出了一条导读没覆盖的工程细节——**复用可以被验证**（manifest 的 `attribution_signature` 要求下一轮 trace 必须出现特定特征）。
 - **同名辨析**：本文 Related Work 引的 SICA（[31]）、DGM（[18]）、HyperAgents（[47]）、Meta-Harness（[19]）、AHE（[22]）与仓库条目 **00193 Hyperagents**、**00198 Self-Harness**、**00202 Evo-Harness** 这几条名字接近，引用时需按 arXiv 编号核对，别按名字对号（仓库里已有一处此类混淆的登记，见 HarnessDev note 关于 Evo-Bench ≠ Evo-Harness 的提醒）。
 - **仓库外**：§2.2 末尾提到的 heuristic-learning theory（[38] J. Weng, *Learning beyond gradients*）是「operational mirror」的思想来源，**不在本仓库清单内**；想追这一理论源头需要单独收录。
 
@@ -391,26 +391,26 @@ ship ⇒ H_{t+1}；reject ⇒ H_t（失败候选连同原因归档）
 
 | 项 | 值 | 位置 |
 | --- | --- | --- |
-| Harness 定义 | `H = (M, C)`，`C = (P, S)`；`agent = model_config.agentic(harness_config)` | §3.1 |
+| Harness 定义 | $H = (M, C)$，$C = (P, S)$；`agent = model_config.agentic(harness_config)` | §3.1 |
 | Hook 数 / 只读 hook | 8 个（`step_end`、`task_end` 只读） | Table 1 |
 | Processor 五种结局 | pass-through / transform / split / intercept / interrupt | §3.2 |
 | 组合元数据 | `_singleton_group`、`_order`(PRE/NORMAL/POST)、`_after` | §3.2 |
 | 九维空间 | D1 model … D9 training bridge | §3.3、Figure 2 |
-| 镜像四元组 | `(H, E, R, T)`；状态 `s_t = (H_t, T_t)`；动作＝代码级编辑 | Def. 3、§4.1 |
+| 镜像四元组 | `(H, E, R, T)`；状态 $s_{t} = (H_{t}, T_{t})$；动作＝代码级编辑 | Def. 3、§4.1 |
 | 三类病理 → 防守 | reward hacking→Critic；forgetting→确定性门（seesaw）；under-exploration→Planner | §4.2–4.3 |
 | 四阶段 | Digester → Planner → Evolver → Critic（+ 确定性门）；前三阶段可短路，Critic/门强制 | §4.3、Alg. 1 |
 | Digester 压缩量 | ~10M token 原始 trace → ~10K 结构化摘要（GAIA 一轮，103 任务 pass@2） | §4.3 |
-| Seesaw 约束 | 候选不得回归 `T_t` 中任何已解任务 | §4.1 |
-| 变体隔离 | 至多 `K` 个变体 + 集成路由；冲突时 fork 而非拒绝；池满退休最差变体。（**`K` 值与簇构造未给**） | §4.5 |
-| 分组准则 | `G_x = {τ ∈ B : task(τ) = x}`，跨 harness 版本、任务级对齐 | Eq. 2、§5.3 |
-| GRPO 两个不同策略 | 比值里 `π_θold = M_d`（逐轨迹不同、入 buffer 时缓存）；KL 里 `π_ref = M_0`（固定） | Eq. 5、§5.4 |
+| Seesaw 约束 | 候选不得回归 $T_{t}$ 中任何已解任务 | §4.1 |
+| 变体隔离 | 至多 $K$ 个变体 + 集成路由；冲突时 fork 而非拒绝；池满退休最差变体。（**$K$ 值与簇构造未给**） | §4.5 |
+| 分组准则 | $G_{x} = \{\tau \in B : \operatorname{task}(\tau) = x\}$，跨 harness 版本、任务级对齐 | Eq. 2、§5.3 |
+| GRPO 两个不同策略 | 比值里 $\pi_{\theta_{\mathrm{old}}} = M_{d}$（逐轨迹不同、入 buffer 时缓存）；KL 里 $\pi_{\mathrm{ref}} = M_{0}$（固定） | Eq. 5、§5.4 |
 | 主结果 | 15 格中 14 格改善，平均 **+14.5%**（峰值口径），最高 **+44.0%**（ALFWorld／Qwen3.5-9B） | Table 4 |
 | 唯一停滞格 | GAIA／GPT-5.4，Δ=0.0（Global 策略下） | Table 4、§6.3 |
 | 变体隔离消融 | GAIA／GPT-5.4：Final 87.4 vs 49.5、Final−Peak 0.0 vs −24.3、107.8M vs 143.7M token | Table 5 |
 | 四阶段 vs 单代理 | 87.4 vs 86.4（差落在一个 SE 内）；107.8M vs 123.1M token | Table 6 |
 | 共演化 | GAIA 37.4→41.7、WebShop 49.0→54.0，均值 +4.7%；末轮同样抬升 | Figure 5、§6.5 |
 | 单轮回退（原文点名的那次） | τ³-Bench Telecom／Sonnet 4.6 的 R7：−14.0%（94.7→80.7），R9 自愈（§6.2 称 "in a single round"）。**「最大」未获原文支持**：Figure 6(f) 另有 GAIA／GPT-5.4 的 76 → 55（−21），但标注为跨 R5~6 | §6.6、Figure 6(f) |
-| 主超参 | `K_t=4` 候选／轮、3 seeds／格、噪声阈值 ±5%、`H_0`=手工基座、meta-agent Opus 4.6、并发 10 | Table 8 |
-| 训练超参 | 8× H100、batch 256、lr `1×10⁻⁶`、GRPO clip 0.2、**KL 系数 0**、5 步／轮 | §6.5、§A.5 |
+| 主超参 | $K_{t}=4$ 候选／轮、3 seeds／格、噪声阈值 ±5%、$H_{0}$=手工基座、meta-agent Opus 4.6、并发 10 | Table 8 |
+| 训练超参 | 8× H100、batch 256、lr $1\times 10^{-6}$、GRPO clip 0.2、**KL 系数 0**、5 步／轮 | §6.5、§A.5 |
 | 成本 | GAIA 15 轮 143.7M（Global）／107.8M（隔离）；ALFWorld 7 轮 43.4M；GAIA 在 ~1,300 次调用内摊销 | Table 7、§7.5 |
 | 最重局限 | 无留出评测、报峰值、在演化集上评测 | §7.7 |

@@ -10,7 +10,8 @@
      行内代码里的裸 | 也会拆列，按错误报出
   3. 围栏外的行内反引号成对（奇数报错）
   4. 围栏外的裸 HTML 标签（允许 <br>）
-  5. $ 只允许出现在代码块（含 ```math / $$…$$）或行内代码中；正文裸 $（含 \\$）报错，货币符号请放进行内代码或改写为「美元」
+  5. 行内公式用 $…$（站点 MathJax 渲染）；$ 必须成对、紧贴非空白字符，且数字开头的片段
+     需要显式数学记号（否则视为货币）。公式块外未配对的 $、疑似货币的 $ 报错；货币符号请放进行内代码或改写为「美元」
   6. 相对链接目标存在（跳过 http/https/#/mailto；代码段内的链接不检查）
   7. Mermaid 节点/边标签以 `1.`、`2.`、`1)` 这类有序列表标记开头、且同一标签内含 `<br`：
      站点阅读页用 `htmlLabels:false`，标签**较宽、需要自动换行**时，Mermaid 11.12 会抛
@@ -18,7 +19,7 @@
      （标签较短时可能侥幸通过）。此项按「提示」输出，不改变退出码；建议改用
      `①②③`、`第 1 步` 或去掉 `<br>`。
 
-约定：公式块首选 **```math 围栏**（GitHub 上最稳，列表项内也可用；新文档一律用它）；仅为兼容
+约定：独立公式块首选 **```math 围栏**（站点与 GitHub 都支持，列表项内也可用；新文档一律用它）；短行内公式用 `$…$`，由站点 MathJax 渲染。仅为兼容
 旧文档才接受顶格的 $$ 起止（各自单独成行）。**单行 $$…$$ 与带缩进/列表项内的 $$ 在 GitHub 上
 不可靠**，脚本会把它们报为问题，建议统一改为 ```math 围栏。Markdown 自动链接
 <https://…>、<http://…>、<mailto:…> 与邮箱 <user@example.com> 不算裸 HTML。
@@ -38,6 +39,35 @@ MD_LINK = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 SKIP_LINK_PREFIXES = ("http://", "https://", "#", "mailto:")
 MERMAID_NODE = re.compile(r"\[([^\]]*)\]|\(([^)]*)\)")
 MERMAID_EDGE = re.compile(r"\|([^|]*)\|")
+INLINE_MATH = re.compile(
+    r"(?<![\\$])\$(?![\s$])((?:\\.|[^$\\\n])+?)(?<!\s)(?<!\\)\$(?!\$)"
+)
+INLINE_MATH_MARKER = re.compile(
+    r"[_^\\{}]|[=<>≤≥≈≠≃→←↔↦⊕⊙∘∈∉⊂⊆∪∩]|[πθαβγδεζηικλμνξρστυφχψωΔΩΨΦΛΣΠΓΘΞ]"
+)
+
+
+def inline_math_allowed(content: str) -> bool:
+    if not content or not content.strip():
+        return False
+    if content[0].isdigit() and not INLINE_MATH_MARKER.search(content):
+        return False
+    return True
+
+
+def split_inline_math(line: str) -> tuple[str, int, list[str]]:
+    """Remove valid `$...$` spans; return (rest, count, math_contents)."""
+    contents: list[str] = []
+
+    def replace(match: re.Match[str]) -> str:
+        content = match.group(1)
+        if not inline_math_allowed(content):
+            return match.group(0)
+        contents.append(content)
+        return " "
+
+    rest = INLINE_MATH.sub(replace, line)
+    return rest, len(contents), contents
 
 
 def mermaid_label_warning(lineno: int, line: str) -> str | None:
@@ -56,8 +86,8 @@ def mermaid_label_warning(lineno: int, line: str) -> str | None:
     return None
 
 
-def lint(path: str) -> tuple[list[str], list[str], int, int]:
-    """返回 (问题列表, 提示列表, 围栏行数, 公式块数)。"""
+def lint(path: str) -> tuple[list[str], list[str], int, int, int]:
+    """返回 (问题列表, 提示列表, 围栏行数, 公式块数, 行内公式数)。"""
     with open(path, encoding="utf-8") as fh:
         lines = fh.read().split("\n")
 
@@ -68,6 +98,7 @@ def lint(path: str) -> tuple[list[str], list[str], int, int]:
     fence_lines: list[int] = []
     in_math = False
     math_blocks = 0
+    inline_math = 0
     table: list[tuple[int, int]] = []
 
     def flush_table() -> None:
@@ -127,6 +158,12 @@ def lint(path: str) -> tuple[list[str], list[str], int, int]:
 
         if line.lstrip().startswith("|"):
             inner = line.strip().strip("|")
+            # GFM 在解析行内内容之前按未转义 | 切列：公式里的裸 | 同样会拆列。
+            for match in INLINE_MATH.finditer(line):
+                if inline_math_allowed(match.group(1)) and "|" in match.group(1):
+                    problems.append(
+                        f"行 {lineno}: 表格行内公式含裸 '|'（会拆列，应写 \\vert 或 \\mid）"
+                    )
             # GFM 在解析行内内容之前按未转义 | 切列：代码段里的裸 | 同样会拆列，
             # 必须写成 \|。这里按原文切分，让这类行以列数不一致的形式暴露。
             table.append((lineno, len(TABLE_CELL_SEP.split(inner))))
@@ -152,17 +189,20 @@ def lint(path: str) -> tuple[list[str], list[str], int, int]:
         prose_no_link_target = re.sub(
             r"\]\(\s*<[^>]*>(?:\s+(['\"]).*?\1)?\s*\)", "]", prose_no_autolink
         )
+        # 站点 MathJax 把 $…$ 当行内公式：先剥掉合法的行内公式，再做 HTML / $
+        # 检查，避免把公式里的 `<p`、`<untracked>` 误报成裸 HTML。
+        # 合法 span 必须紧贴非空白字符；数字开头且无数学记号的内容按货币处理、不剥掉。
+        prose_masked, line_math, _ = split_inline_math(prose_no_link_target)
+        inline_math += line_math
 
-        for match in HTML_TAG.finditer(prose_no_link_target):
+        for match in HTML_TAG.finditer(prose_masked):
             tag = match.group(1).lower()
             if tag != "br":
                 problems.append(f"行 {lineno}: 疑似裸 HTML 标签 <{tag}>")
 
-        # 站点的 MathJax 配置把 $…$ 当行内公式：正文里出现两个 $ 会被当成公式，
-        # 因此对任何不在代码/公式块、也未放进行内代码的 $ 报错（代码与行内代码已在上文跳过/剥掉）。
-        if "$" in prose:
+        if "$" in prose_masked:
             problems.append(
-                f"行 {lineno}: 公式块外出现 '$'（行内公式？若是货币符号，请放进行内代码或改写为「美元」）"
+                f"行 {lineno}: 公式块外出现未配对的 '$'（行内公式需写成 $…$；若是货币符号，请放进行内代码或改写为「美元」）"
             )
 
         for match in MD_LINK.finditer(prose):
@@ -187,7 +227,7 @@ def lint(path: str) -> tuple[list[str], list[str], int, int]:
         problems.append("代码围栏未闭合")
     if in_math:
         problems.append("$$ 公式块未闭合")
-    return problems, warnings, len(fence_lines), math_blocks
+    return problems, warnings, len(fence_lines), math_blocks, inline_math
 
 
 def main(argv: list[str]) -> int:
@@ -198,7 +238,7 @@ def main(argv: list[str]) -> int:
     exit_code = 0
     for path in argv[1:]:
         try:
-            problems, warnings, fences, math_blocks = lint(path)
+            problems, warnings, fences, math_blocks, inline_math = lint(path)
         except OSError as exc:
             print(f"== {path} ==\n无法读取: {exc}")
             exit_code = 1
@@ -206,7 +246,7 @@ def main(argv: list[str]) -> int:
 
         print(f"== {path} ==")
         fence_state = "成对" if fences % 2 == 0 else "未闭合"
-        print(f"代码围栏: {fences} 行（{fence_state}）；独立公式块: {math_blocks} 个")
+        print(f"代码围栏: {fences} 行（{fence_state}）；独立公式块: {math_blocks} 个；行内公式: {inline_math} 个")
         if problems:
             exit_code = 1
             for problem in problems:

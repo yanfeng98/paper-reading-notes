@@ -32,7 +32,7 @@
 - MiniTriton 从「无对照」移出（它有 roofline 与 PyTorch loss 对照）；「四个 GitHub 仓库」→ 五个（FlashKDA 在参考文献 [14]）。
 - 预训练算力表述与 §5.3.1（RL 几百张 GPU）、H20/H100/Hopper 的实际用途对齐；删除未经本次核实的「K2 报告 15T token」对比。
 - 「开源权重默认 4bit」改为「部署默认 4bit，发布格式论文未明说（本笔记推断）」。
-- Table 1 补「原文 22 行、省略 Architecture 行、合并 4 行 ViT」的节选说明；Figure 2 图注的括号对象改为 `3×(KDA+LatentMoE) + 1×(Gated MLA+LatentMoE)`。
+- Table 1 补「原文 22 行、省略 Architecture 行、合并 4 行 ViT」的节选说明；Figure 2 图注的括号对象改为 $3\times (KDA+LatentMoE) + 1\times (Gated MLA+LatentMoE)$。
 - 补齐：GPT-5.6 Sol 的潜在 cyber guard、Table 3 的拒答/降级脚注、MCP-Atlas/AutomationBench 子集与视觉重复次数、OfficeQA Pro 图片化、FrontierSWE 重算日期、ALE 的 † 说明。
 - 文字修正：直方图段「分子 r_ij」→「所需偏置 r_ij」；Coding Experience 的 0.1/0.6 分对比写清。
 
@@ -157,9 +157,9 @@ g_t^{h}=g_{\min}\operatorname{Sigmoid}\!\left(e^{A^{h}}z_t^{h}\right)\in(g_{\min
 \qquad \phi(q,k)=\exp\!\left(q^{\top}\operatorname{RMSNorm}(k)\right)
 ```
 
-读法：key 与 value 都取各层输出（第 0 个是 token embedding），权重由伪查询与 RMSNorm 后的 key 的内积决定；RMSNorm 是为了防止输出幅值大的层垄断权重。全量形式是 O(L²d) 算术——L<100 时可承受——但 O(Ld) 的激活驻留（流水线并行下还有跨 stage 通信）才是实际瓶颈。
+读法：key 与 value 都取各层输出（第 0 个是 token embedding），权重由伪查询与 RMSNorm 后的 key 的内积决定；RMSNorm 是为了防止输出幅值大的层垄断权重。全量形式是 $O(L^{2}d)$ 算术——L<100 时可承受——但 $O(Ld)$ 的激活驻留（流水线并行下还有跨 stage 通信）才是实际瓶颈。
 
-因此实际用 **Block AttnRes**：把 L 层切成 N=8 块、每块 12 层（最后一块不满），块内输出求和成一个块表示，跨块只对 8 个块表示做注意力（块内第 i 层再把自己的部分和 bi−1 并进去）；加上 embedding 共 9 个来源。显存/通信从 O(Ld) 降到 O(Nd)，推理时块间并行结果可用 online softmax 与块内顺序部分和合并。K3 的层数是 93，所以最后一块是「不满」的（8 块 × 12 = 96 > 93），论文明确写了这一点。
+因此实际用 **Block AttnRes**：把 L 层切成 N=8 块、每块 12 层（最后一块不满），块内输出求和成一个块表示，跨块只对 8 个块表示做注意力（块内第 i 层再把自己的部分和 bi−1 并进去）；加上 embedding 共 9 个来源。显存/通信从 $O(Ld)$ 降到 $O(Nd)$，推理时块间并行结果可用 online softmax 与块内顺序部分和合并。K3 的层数是 93，所以最后一块是「不满」的（8 块 × 12 = 96 > 93），论文明确写了这一点。
 
 **为什么值得单列**：这是把「Transformer 用注意力替代时间上的循环」这套论证原样搬到深度上，而且是**推理期也保留**的结构（不是训练技巧）。代价是每层多一次跨层读取与一个伪查询参数，服务侧要专门做融合核（§5.4.2）。
 
@@ -180,7 +180,7 @@ u=\sum_{i\in\mathcal{T}_k(x)} p_i E_i^{\text{routed}}\left(W_\downarrow x\right)
 \operatorname{SiTU\text{-}GLU}(x)=\left[\beta_1\tanh\!\left(\frac{W_g x}{\beta_1}\right)\odot\operatorname{Sigmoid}(W_g x)\right]\odot\left[\beta_2\tanh\!\left(\frac{W_u x}{\beta_2}\right)\right]
 ```
 
-读法：门分支保留 sigmoid（负半轴仍趋 0），但把「线性因子」换成受 β1 限制的缩放 tanh；上分支同样受 β2 限制。β1=4、β2=25 时逐坐标有 |输出| ≤ β1β2 = 100（附录 B，Eq. 19），而原点附近 β tanh(z/β)=z+O(z³/β²)，与 SwiGLU 一阶一致、β→∞ 时逐点退化为 SwiGLU。和硬截断的区别是饱和边界外仍有非零梯度。对 2.8T 规模的低精度训练来说，这是「防溢出但别改坏形状」的折中。
+读法：门分支保留 sigmoid（负半轴仍趋 0），但把「线性因子」换成受 β1 限制的缩放 tanh；上分支同样受 β2 限制。β1=4、β2=25 时逐坐标有 |输出| ≤ β1β2 = 100（附录 B，Eq. 19），而原点附近 β tanh(z/β)=z+$O(z^{3}/\beta^{2})$，与 SwiGLU 一阶一致、β→∞ 时逐点退化为 SwiGLU。和硬截断的区别是饱和边界外仍有非零梯度。对 2.8T 规模的低精度训练来说，这是「防溢出但别改坏形状」的折中。
 
 **Quantile Balancing**（QB，§2.3.3、附录 C/D）：保留「偏置只进 Top-k 选择、不进混合权重」的无辅助损失框架，但把固定步长的 sign 更新换成**一步到位的分位数解**。
 
@@ -379,7 +379,7 @@ r_{\text{opd}}^{d}(y_t\mid e,x,y_{<t})=\operatorname{clip}\!\left(\operatorname{
 ### 失败模式（原文点名的 + 本笔记归纳）
 
 - 原文点名：预训练接 SigLIP 编码器会梯度尖峰（→ 从零训）；LatentMoE 链式矩阵乘会激活爆炸（→ RMSNorm + SiTU）；896 专家下 sign 式均衡会震荡（→ QB）；MTP 投机解码被拒时 KDA 状态无法回滚（→ 重放投影输入）；前缀缓存的部分块共享有三类竞态（→ pin / 延迟可见 / 原子失效）；沙箱在容器方案下出现过内核 panic 与死锁（→ microVM）。
-- 本笔记归纳：SiTU 的 100 上限在长尾大激活上会**截断信息**，而论文只报了稳定性收益；AttnRes 的伪查询是每层新参数，层数继续涨时 O(L²d) 虽可算但 O(Nd) 的块表示仍要跨 stage 传；prefix cache 的 512 token 粒度仍意味着「短于 512 的请求完全不复用」。
+- 本笔记归纳：SiTU 的 100 上限在长尾大激活上会**截断信息**，而论文只报了稳定性收益；AttnRes 的伪查询是每层新参数，层数继续涨时 $O(L^{2}d)$ 虽可算但 $O(Nd)$ 的块表示仍要跨 stage 传；prefix cache 的 512 token 粒度仍意味着「短于 512 的请求完全不复用」。
 
 ### 一个最小的 KDA 递推示意（解读，非作者代码）
 
@@ -395,7 +395,7 @@ for t in range(T):
     o = S.T @ q                        # head-wise RMSNorm 后过 output gate
 ```
 
-注意第 5 行：`alpha` 是 (d_k,) 的逐通道向量，乘在 S 的行方向；`(I - βkkᵀ)` 才是 delta rule 的「擦除」。这正是 KCP 需要「累计转移矩阵」的原因——M_t 依赖当前 token，作用在入态上不可交换。
+注意第 5 行：`alpha` 是 (d_k,) 的逐通道向量，乘在 S 的行方向；$(I - \beta k k^{\top})$ 才是 delta rule 的「擦除」。这正是 KCP 需要「累计转移矩阵」的原因——M_t 依赖当前 token，作用在入态上不可交换。
 
 ---
 

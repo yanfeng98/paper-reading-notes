@@ -8,9 +8,10 @@
   1. 统计 ```math / ```mermaid 围栏块数；为兼容旧文档，也统计 $$ 起止块（含缩进/
      列表内的）与整行 $$…$$（不把普通代码围栏算进去）；
   2. 把整篇 Markdown POST 到 https://api.github.com/markdown（mode=gfm）；
-  3. 统计返回 HTML 中的 <math-renderer>、highlight-source-mermaid，以及未转换的
-     language-math / language-mermaid 残留；
-  4. 源块数必须与渲染数一致、且无残留，否则退出码为 1。
+  3. 统计返回 HTML 中的 js-display-math / js-inline-math / highlight-source-mermaid，
+     以及未转换的 language-math / language-mermaid 残留；
+  4. 显示公式块数必须与 GitHub 渲染数一致、且无残留，否则退出码为 1。行内公式只在
+     斜体/图注等强调块里可能不被 GitHub 解析，差异仅作提示，不影响退出码。
 
 说明:
   - 需要联网；只用于本仓库的公开笔记/汇总，不要把私有内容发到公开 API。
@@ -34,6 +35,46 @@ API = "https://api.github.com/markdown"
 FENCE_OPEN = re.compile(r"^\s*```(\S*)\s*$")
 FENCE_CLOSE = re.compile(r"^\s*```\s*$")
 BLOCK_LANGS = ("math", "mermaid")
+INLINE_MATH = re.compile(
+    r"(?<![\\$])\$(?![\s$])((?:\\.|[^$\\\n])+?)(?<!\s)(?<!\\)\$(?!\$)"
+)
+INLINE_MATH_MARKER = re.compile(
+    r"[_^\\{}]|[=<>≤≥≈≠≃→←↔↦⊕⊙∘∈∉⊂⊆∪∩]|[πθαβγδεζηικλμνξρστυφχψωΔΩΨΦΛΣΠΓΘΞ]"
+)
+INLINE_CODE = re.compile(r"(`+)(.+?)\1")
+
+
+def inline_math_allowed(content: str) -> bool:
+    if not content or not content.strip():
+        return False
+    if content[0].isdigit() and not INLINE_MATH_MARKER.search(content):
+        return False
+    return True
+
+
+def count_inline_math(text: str) -> int:
+    count = 0
+    in_fence = False
+    in_math = False
+    for line in text.split("\n"):
+        if in_fence:
+            if FENCE_CLOSE.match(line):
+                in_fence = False
+            continue
+        match = FENCE_OPEN.match(line)
+        if match:
+            in_fence = True
+            continue
+        stripped = line.strip()
+        if stripped == "$$":
+            in_math = not in_math
+            continue
+        if in_math:
+            continue
+        for found in INLINE_MATH.finditer(INLINE_CODE.sub("", line)):
+            if inline_math_allowed(found.group(1)):
+                count += 1
+    return count
 
 
 def count_blocks(text: str) -> dict[str, int]:
@@ -50,7 +91,11 @@ def count_blocks(text: str) -> dict[str, int]:
         if match:
             in_fence = True
             lang = match.group(1).lower()
-            if lang in counts:
+            # GitHub 不会把列表项内缩进的 ```math 当公式（会输出空 <pre>），
+            # 这类块只由站点渲染；不计入 GitHub 原生渲染检查。
+            indent = len(line) - len(line.lstrip())
+            # 2 空格缩进的列表项围栏 GitHub 仍会渲染；>=4 空格（嵌套列表）不会。
+            if lang in counts and not (lang == "math" and indent >= 4):
                 counts[lang] += 1
             continue
 
@@ -110,12 +155,14 @@ def check(path: str, token: str | None) -> tuple[bool, list[str]]:
         return False, [f"无法读取: {exc}"]
 
     source = count_blocks(text)
+    source["inline_math"] = count_inline_math(text)
     try:
         html, remaining = render_on_github(text, token)
     except RuntimeError as exc:
         return False, [str(exc)]
 
-    rendered_math = html.count("<math-renderer")
+    rendered_math = html.count('<math-renderer class="js-display-math"')
+    rendered_inline_math = html.count('<math-renderer class="js-inline-math"')
     rendered_mermaid = html.count("highlight-source-mermaid")
     leftover_math = html.count("language-math")
     leftover_mermaid = html.count("language-mermaid")
@@ -123,7 +170,15 @@ def check(path: str, token: str | None) -> tuple[bool, list[str]]:
     problems: list[str] = []
     if source["math"] != rendered_math:
         problems.append(
-            f"公式: 源 {source['math']} 块，GitHub 渲染 {rendered_math} 个"
+            f"公式: 源 {source['math']} 块，GitHub 渲染 {rendered_math} 个显示公式"
+        )
+    inline_note = ""
+    if source["inline_math"] != rendered_inline_math:
+        # GitHub 不在斜体/图注等强调块里解析行内公式；站点用 MathJax 单独渲染，
+        # 因此这里只报告差异，不作为失败条件。
+        inline_note = (
+            f"  note: 行内公式 GitHub 渲染 {rendered_inline_math}/{source['inline_math']}"
+            "（强调块内可能不解析，站点不受影响）"
         )
     if source["mermaid"] != rendered_mermaid:
         problems.append(
@@ -140,9 +195,9 @@ def check(path: str, token: str | None) -> tuple[bool, list[str]]:
     limit = f"; API remaining={remaining}" if remaining is not None else ""
     print(
         f"== {path} ==\n"
-        f"  source: math={source['math']} mermaid={source['mermaid']}\n"
-        f"  github: math={rendered_math} mermaid={rendered_mermaid} "
-        f"leftover={leftover_math}/{leftover_mermaid}{limit}\n"
+        f"  source: math={source['math']} inline_math={source['inline_math']} mermaid={source['mermaid']}\n"
+        f"  github: math={rendered_math} inline_math={rendered_inline_math} mermaid={rendered_mermaid} "
+        f"leftover={leftover_math}/{leftover_mermaid}{limit}{inline_note}\n"
         f"  {status}"
     )
     if problems:

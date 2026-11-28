@@ -26,7 +26,7 @@
 **复核记录**（2026-11-03，check-paper-note 首轮）
 
 - **基准**：arXiv 2602.15763v2，sha256 `e20742ff…`、40 页，与首读副本一致；arXiv API 确认 v2 仍是当前最新版（无 v3）。核对方式：PDF 全文文本 + 200–600 dpi 渲染页；Table 1–13 逐格重核；Eq. (1)–(5) 渲染页重核；Figure 1/5 按本文裁剪框复现（300 dpi，1672×992／1672×959，与资产一致）并逐元素点名；Figure 1 的 BrowseComp／Terminal-Bench 面板 600 dpi 放大复读；另派独立子 agent 用另一套方法审计，读数与本次一致。
-- **修正摘要**：① HTML CSR 76.3 vs 82.2 由「持平或略高」改为「低 5.9 分」；② §6 页界改为 p22–30（§6.3.5 跨页）；③ p31 只有 Core Contributors／Contributors 声明按首名字母序；④ §1 引用的 O(L²)/128K 改标 §2.1.1（p5）、同步 RL 空转改标 §3.3（p12）／§4.1.1（p15）；⑤ 脚注 4/5 的「受启发」改为原文措辞（interleaved 明说源自 Claude，preserved 只说 Claude 也采用）；⑥ `pop` 由「整段丢弃」改为「该 token 贡献置零」；⑦ 删除「镜像 1.25」的推断；⑧ Table 4/5 的页码改为 p7，并拆分「不做额外训练」与「190B／64K 继续训练」两套条件；⑨ 20% 复算补第二种口径（按 Figure 1 柱值 +25.3%／+16.5%，按 Table 7 主行 +26.8%／+18.2%）；⑩ 「744B 正文 4 次」改为「全文 4 次（正文 2、表 2）」；⑪ 补 BrowseComp 两档口径与 §6.1.3／§4.2.4 的矛盾（张力第 12 条）；⑫ 补 Figure 1 两个面板混用口径（张力第 11 条）。
+- **修正摘要**：① HTML CSR 76.3 vs 82.2 由「持平或略高」改为「低 5.9 分」；② §6 页界改为 p22–30（§6.3.5 跨页）；③ p31 只有 Core Contributors／Contributors 声明按首名字母序；④ §1 引用的 $O(L^{2})$/128K 改标 §2.1.1（p5）、同步 RL 空转改标 §3.3（p12）／§4.1.1（p15）；⑤ 脚注 4/5 的「受启发」改为原文措辞（interleaved 明说源自 Claude，preserved 只说 Claude 也采用）；⑥ `pop` 由「整段丢弃」改为「该 token 贡献置零」；⑦ 删除「镜像 1.25」的推断；⑧ Table 4/5 的页码改为 p7，并拆分「不做额外训练」与「190B／64K 继续训练」两套条件；⑨ 20% 复算补第二种口径（按 Figure 1 柱值 +25.3%／+16.5%，按 Table 7 主行 +26.8%／+18.2%）；⑩ 「744B 正文 4 次」改为「全文 4 次（正文 2、表 2）」；⑪ 补 BrowseComp 两档口径与 §6.1.3／§4.2.4 的矛盾（张力第 12 条）；⑫ 补 Figure 1 两个面板混用口径（张力第 11 条）。
 - **另补**：Table 7 省略 DeepSeek 列与 Terminal-Bench Claude Code 行（GLM-5 61.1†、GLM-4.7 32.8）；Tool-Decathlon／BrowseComp-ZH 两项落后；slime 尾延迟工程（§3.6）；评测协议差异（MCP-Atlas 超时、τ²-Bench prompt 调整、5 次平均、single-run、Andon Labs、HLE 131k、GPT-4.1 judge）；训练成本粗算改用 40B 激活；可复现性表述收紧为「训练侧不可复现、推理侧未验证」。
 - **未修项与理由**：Figure 1 的 Claude BrowseComp 标 67.8、与 Table 7 的 57.8／37.0 都不符——原文未给该面板口径，无法判断是笔误还是另有设置，保留为张力第 11 条，不代为裁决。
 - **未复核**：v1 内容（未下载）、LMArena／Artificial Analysis 榜单、GitHub／HF 状态（首读时已用 API 核仓库，本轮未重跑）、权重许可。
@@ -58,7 +58,7 @@
 
 论文把瓶颈归为两类（§1，p2）：
 
-1. **计算成本**：长上下文下 dense attention 是 O(L²)，128K 上下文时代价不可接受。GLM-4.5 只做了 MoE，没解决注意力本身。（成本瓶颈是 §1（p2）的原话；O(L²) 与 128K 的具体表述在 §2.1.1，p5。）
+1. **计算成本**：长上下文下 dense attention 是 $O(L^{2})$，128K 上下文时代价不可接受。GLM-4.5 只做了 MoE，没解决注意力本身。（成本瓶颈是 §1（p2）的原话；$O(L^{2})$ 与 128K 的具体表述在 §2.1.1，p5。）
 2. **真实适应性**：静态 benchmark 测不出「跑几小时、跨多个 PR、上下文不断变化」的能力（p2 只讲长时程这条）；长时程 rollout 让同步 RL 出现大量 GPU 空转，见 §3.3（p12）与 §4.1.1（p15）。
 
 对应的三项设计在引言里就已经点名（p3–4）：DSA（成本）、异步 RL 基础设施（利用率）、异步 agent RL 算法（长时程学习质量）；第四项是国产芯片全栈适配（§5）。后训练层面的第四个隐性问题是**多阶段 RL 的能力回退**，用跨阶段蒸馏处理（§3.5）——这一条更像工程经验，而不是论文标题里的卖点。
@@ -81,7 +81,7 @@ token 预算核对：18 + 9 + 1 + 0.5 + 0.05 = **28.55T**，与正文的 28.5T �
 
 **规模**（§2.1，p4；Table 10，p36）：744B 总参数／40B 激活，256 专家（8 routed + 1 shared），75 个 MoE 层 + 3 个 dense 层，hidden 6144，词表 154,880，64 个 attention head（GLM-4.5 为 96），QK head dim 192、V head dim 256，Q LoRA 2048、KV LoRA 512，indexer 32 head × 128 维。层数减少被明确解释为「降低专家并行的通信开销」。
 
-**为什么换 MLA 又要改 Muon**（pp.4–5）：MLA 用 576 维 latent KV cache，显存比 GQA 省、长序列处理更快，但解码时要对 576 维做点积（GQA 只需 128 维），计算更重；更麻烦的是在 Muon 优化器下它**追不平 GQA-8**（2048 维 KV cache）的质量（Table 1：MLA 的 BBH 48.9、HumanEval 33.5，GQA-8 为 53.3／38.5）。作者的修法是 **Muon Split**：原本对多头共享的 up-projection 矩阵 `W^{UQ}`、`W^{UK}`、`W^{UV}` 整体做矩阵正交化，现在按 head 拆成小矩阵各自正交化，使不同 head 的投影权重以不同尺度更新。效果是 MLA 追平 GQA-8（BBH 51.8、HumanEval 36.7），并让 attention logits 在预训练中保持稳定、不需要 clipping。
+**为什么换 MLA 又要改 Muon**（pp.4–5）：MLA 用 576 维 latent KV cache，显存比 GQA 省、长序列处理更快，但解码时要对 576 维做点积（GQA 只需 128 维），计算更重；更麻烦的是在 Muon 优化器下它**追不平 GQA-8**（2048 维 KV cache）的质量（Table 1：MLA 的 BBH 48.9、HumanEval 33.5，GQA-8 为 53.3／38.5）。作者的修法是 **Muon Split**：原本对多头共享的 up-projection 矩阵 $W^{UQ}$、$W^{UK}$、$W^{UV}$ 整体做矩阵正交化，现在按 head 拆成小矩阵各自正交化，使不同 head 的投影权重以不同尺度更新。效果是 MLA 追平 GQA-8（BBH 51.8、HumanEval 36.7），并让 attention logits 在预训练中保持稳定、不需要 clipping。
 
 **MLA-256 的取舍**（p5）：MLA 解码时要做 576 维点积，而 GQA 只要 128 维；DeepSeek-V3 的头数是按 H800 roofline 选的。GLM-5 把 head dim 从 192 提到 256、head 数减少 1/3（96→64），保持训练计算量与参数量不变、降低解码计算；Table 1 显示 MLA-256 + Muon Split 与 MLA + Muon Split 基本持平（MMLU 62.0 vs 62.5、BBH 51.3 vs 51.8、HumanEval 36.6 vs 36.7）。**口径提示**：正文只说 "head dimension" 192→256，而 Table 10 列的是 QK 192、V 256——按表读，256 落在 V head dim 上，QK 仍是 192；两处措辞没有完全对齐。
 
@@ -89,7 +89,7 @@ token 预算核对：18 + 9 + 1 + 0.5 + 0.05 = **28.55T**，与正文的 28.5T �
 
 ### 3.3 DSA：用 20B token 的继续预训练换稀疏注意力
 
-DSA 的做法（§2.1.1，p5–6）：保留全注意力框架，但用轻量 indexer 对每个 query 选 top-k 个 KV（论文另一处提到 indexer 的 `k = 2048`），只对被选中的 KV 做注意力；与固定窗口不同，选择是内容相关的。GLM-5 不是从零训练，而是**从 mid-training 结束的 base 模型做继续预训练**：先 1000 步只训 indexer（每步 14 条 × 202,752 token，lr 5e-3→2e-4），再 20B token 联合适配（恒 lr 1e-5）。对照 DeepSeek-V3.2 的 943.7B token 适配预算，作者强调 20B 就够。
+DSA 的做法（§2.1.1，p5–6）：保留全注意力框架，但用轻量 indexer 对每个 query 选 top-k 个 KV（论文另一处提到 indexer 的 $k = 2048$），只对被选中的 KV 做注意力；与固定窗口不同，选择是内容相关的。GLM-5 不是从零训练，而是**从 mid-training 结束的 base 模型做继续预训练**：先 1000 步只训 indexer（每步 14 条 × 202,752 token，lr 5e-3→2e-4），再 20B token 联合适配（恒 lr 1e-5）。对照 DeepSeek-V3.2 的 943.7B token 适配预算，作者强调 20B 就够。
 
 长上下文结果（Table 3，p5）——**这里有一个值得注意的非单调**：
 
@@ -139,8 +139,8 @@ DSA 的做法（§2.1.1，p5–6）：保留全注意力框架，但用轻量 in
 三个补丁（§4.1.2，pp.16–17）：
 
 1. **TITO gateway**：训练侧直接消费推理引擎产出的 token ID 与元数据，而不是把文本重新 tokenize。重 tokenize 会在空格／归一化／截断／特殊 token 边界上产生错位，进而破坏动作与奖励的逐步对齐；TITO 还让 actor 能立即发出轨迹片段，不必等 learner 侧回处理。
-2. **直接双边重要性采样**：异步下轨迹生成期间推理引擎可能已更新多次，精确跟踪行为策略 `π_old` 不可行（要存一串 checkpoint）。于是直接用 rollout 时记录的 log-prob 当行为策略，重要性比 `r_t = π_θ / π_rollout`，并把 `[1−ε_ℓ, 1+ε_h]` 之外的 token **整段 mask 掉**（不是 PPO 式裁剪）。论文称这比 IcePop 更简单、更稳。
-3. **丢弃过旧与噪声样本**：记录每条轨迹的模型版本序列 `(w_0, …, w_k)`，若 `w' − w_0 > τ` 就丢；沙箱崩溃等环境失败样本剔除，组内有效样本过半就重复补齐、否则整组丢。
+2. **直接双边重要性采样**：异步下轨迹生成期间推理引擎可能已更新多次，精确跟踪行为策略 $\pi_{\mathrm{old}}$ 不可行（要存一串 checkpoint）。于是直接用 rollout 时记录的 log-prob 当行为策略，重要性比 $r_{t} = \pi_\theta / \pi_{\mathrm{rollout}}$，并把 $[1- \varepsilon_\ell, 1+\varepsilon_{h}]$ 之外的 token **整段 mask 掉**（不是 PPO 式裁剪）。论文称这比 IcePop 更简单、更稳。
+3. **丢弃过旧与噪声样本**：记录每条轨迹的模型版本序列 $(w_{0}, \dots , w_{k})$，若 $w' - w_{0} > \tau$ 就丢；沙箱崩溃等环境失败样本剔除，组内有效样本过半就重复补齐、否则整组丢。
 
 另有 **DP-aware routing**：多轮 agent 的后续请求共享前缀，用一致性哈希把同一 rollout 的所有请求固定到同一 DP rank，保持 KV cache 命中；再加轻量负载再平衡防止长期倾斜。
 
@@ -182,7 +182,7 @@ DSA 的做法（§2.1.1，p5–6）：保留全注意力框架，但用轻量 in
 \begin{cases}\rho, & 1/\beta\le\rho\le\beta,\\ 0, & \text{otherwise.}\end{cases}
 ```
 
-直觉：`β=2` 意味着训练／推理概率比落在 `[0.5, 2]` 之外时，**该 token 的贡献被置零**（逐 token 的门控，不是丢弃整条回复）——这是对**训练-推理引擎数值不一致**（而不是对策略更新幅度）的硬门控。真正的策略更新幅度仍由 `r_{i,t}` 的不对称裁剪 `[1−0.2, 1+0.28]` 控制；上下界为什么取 0.8 与 1.28，原文没有解释。
+直觉：$\beta=2$ 意味着训练／推理概率比落在 `[0.5, 2]` 之外时，**该 token 的贡献被置零**（逐 token 的门控，不是丢弃整条回复）——这是对**训练-推理引擎数值不一致**（而不是对策略更新幅度）的硬门控。真正的策略更新幅度仍由 $r_{i,t}$ 的不对称裁剪 `[1−0.2, 1+0.28]` 控制；上下界为什么取 0.8 与 1.28，原文没有解释。
 
 ### 4.2 跨阶段蒸馏：把教师变成优势（Eq. 2，p14）
 
@@ -190,7 +190,7 @@ DSA 的做法（§2.1.1，p5–6）：保留全注意力框架，但用轻量 in
 \hat{A}_{i,t}=\operatorname{sg}\!\left[\log\frac{\pi^{\text{infer}}_{\theta_{\text{teacher}}}(y_{i,t}\mid x,y_{i,<t})}{\pi^{\text{train}}_{\theta}(y_{i,t}\mid x,y_{i,<t})}\right]
 ```
 
-读法：把 GRPO 里的组归一化优势整个替换成「教师与当前策略的 log 概率比」，并 stop-gradient。这样梯度只推动学生提高教师偏好的 token，而不需要每个 prompt 采一组样本——这也是为什么这一阶段 group size 能降到 1、batch 放到 1024。注意教师用的是推理引擎的分布 `π^infer`，学生用训练引擎的 `π^train`，两者本就有数值差；作者把「未来统一到 MQA 模式的训练引擎」列为待办。
+读法：把 GRPO 里的组归一化优势整个替换成「教师与当前策略的 log 概率比」，并 stop-gradient。这样梯度只推动学生提高教师偏好的 token，而不需要每个 prompt 采一组样本——这也是为什么这一阶段 group size 能降到 1、batch 放到 1024。注意教师用的是推理引擎的分布 $\pi^{\mathrm{infer}}$，学生用训练引擎的 $\pi^{\mathrm{train}}$，两者本就有数值差；作者把「未来统一到 MQA 模式的训练引擎」列为待办。
 
 ### 4.3 异步 Agent RL：用 rollout log-prob 当行为策略（Eq. 3–5，p17）
 
@@ -205,7 +205,7 @@ f(x;\epsilon_\ell,\epsilon_h)=
 \begin{cases}x, & 1-\epsilon_\ell<x<1+\epsilon_h,\\ 0, & \text{otherwise.}\end{cases}
 ```
 
-读法：与 Eq. 1 的差别有两处——分母直接是 rollout 时的策略（省掉历史 `π_old`），以及区间外的 token 不是被裁剪到边界而是**置零**（完全退出梯度）。这是一个明确的设计取舍：接受有界的 off-policy 偏差，换取不用维护 checkpoint 历史；代价是落在区间外的那部分样本信息被直接丢掉。
+读法：与 Eq. 1 的差别有两处——分母直接是 rollout 时的策略（省掉历史 $\pi_{\mathrm{old}}$），以及区间外的 token 不是被裁剪到边界而是**置零**（完全退出梯度）。这是一个明确的设计取舍：接受有界的 off-policy 偏差，换取不用维护 checkpoint 历史；代价是落在区间外的那部分样本信息被直接丢掉。
 
 ---
 

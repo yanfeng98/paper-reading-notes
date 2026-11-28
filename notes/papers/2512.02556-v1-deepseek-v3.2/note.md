@@ -37,7 +37,7 @@
 - Figure 3 在 400 dpi 下定标（panel a：0.1/104.0 px；panel b：0.4/121.3 px）；末端读数 0.187 / 0.666、0.249 / 2.154 美元每百万 token。
 - Figure 6 在 400 dpi 下定标（x：100 步=362 px、900 步=2397 px；y：70.0=145.5 px、52.5=1029.5 px）；Summary 散点 60.2 约在 364 步，拟合线末端约 60.9；Discard-all 末端 67.6 约 410 步。
 - Figure 2/6 与 PDF 同坐标 300 dpi 重裁像素差 0；Figure 5 的图例（蓝=RL-Synthetic-Data、绿虚线=SFT、灰虚线=Exp）与 9 个面板标题按 600 dpi 裁剪核对。
-- 本轮修正：版本关系里「实验数字无差异」的反例；Table 2 加粗规则；Figure 6 的散点/拟合线区分；Figure 5 的图例颜色、面板名、「持续高于」与 50 条任务的归属；GRPO 式 (8) 的 `M_{i,t}`；§3.2.3 的名称归因；Table 2 表注 `*` 的范围；τ2 user-agent、non-thinking、SWE 内部框架、HLE text-only、MCP tool 角色等口径；以及若干措辞与笔误。
+- 本轮修正：版本关系里「实验数字无差异」的反例；Table 2 加粗规则；Figure 6 的散点/拟合线区分；Figure 5 的图例颜色、面板名、「持续高于」与 50 条任务的归属；GRPO 式 (8) 的 $M_{i,t}$；§3.2.3 的名称归因；Table 2 表注 `*` 的范围；τ2 user-agent、non-thinking、SWE 内部框架、HLE text-only、MCP tool 角色等口径；以及若干措辞与笔误。
 - 未修/未核：HF 当前版本（本机超时）；Figure 5 逐点读数；Figure 7 图形细节；代码复现。
 
 ---
@@ -46,7 +46,7 @@
 
 一句话：**V3.2 不是重新预训练一个模型，而是在 V3.1-Terminus 上通过继续预训练植入 DSA（稀疏注意力），再用超过预训练成本 10% 的后训练算力、约 8.5 万条 agent 任务做 RL，把开源模型在 reasoning 上推到 GPT-5 附近、在 agentic 任务上明显拉近，同时把 128K 上下文的服务成本压到 V3.1-Terminus 的约 1/3.5（prefill）与 1/8.5（decode）。**
 
-- **DSA（§2.1）**：lightning indexer 给每个历史 token 打分，主注意力只对 top-k（2048）个 KV entry 计算。核心注意力复杂度从 O(L²) 降到 O(Lk)；indexer 仍是 O(L²)，但头数少、可用 FP8，实际开销远小于原来的 MLA。DSA 实例化在 MLA 的 MQA 模式上，KV entry 在所有 query head 间共享。
+- **DSA（§2.1）**：lightning indexer 给每个历史 token 打分，主注意力只对 top-k（2048）个 KV entry 计算。核心注意力复杂度从 $O(L^{2})$ 降到 $O(Lk)$；indexer 仍是 $O(L^{2})$，但头数少、可用 FP8，实际开销远小于原来的 MLA。DSA 实例化在 MLA 的 MQA 模式上，KV entry 在所有 query head 间共享。
 - **继续预训练（§2.1.1）**：先冻结主模型、只用 2.1B token 训练 indexer（dense warm-up），再放开全模型、用 943.7B token 做稀疏训练。indexer 的输入被 detach，只由 KL 损失单独优化；主模型只受语言建模损失。
 - **后训练（§3）**：专家蒸馏（数学、编程、通用逻辑、通用 agent、agentic coding、agentic search 六个域，加写作与通用问答）之后，把 reasoning、agent、human alignment 合并进一个 GRPO 阶段；四个稳定化手段是 unbiased KL、off-policy sequence masking、keep routing、keep sampling mask。
 - **Agent 数据（§3.2.3）**：经 pass@100 过滤后保留 1,827 个 general agent 环境 / 4,417 条任务；Table 1 四类任务合计 85,267 条（本笔记按表求和），与引言「85,000 complex prompts」一致。
@@ -78,7 +78,7 @@
 
 ## 方法与贡献
 
-### 1. DSA：把核心注意力从 O(L²) 变成 O(Lk)
+### 1. DSA：把核心注意力从 $O(L^{2})$ 变成 $O(Lk)$
 
 DSA 由两个组件构成：
 
@@ -91,13 +91,13 @@ I_{t,s}=\sum_{j=1}^{H^{I}} w^{I}_{t,j}\cdot \mathrm{ReLU}\left(q^{I}_{t,j}\cdot 
 \mathbf{u}_{t}=\mathrm{Attn}\left(\mathbf{h}_{t},\left\{\mathbf{c}_{s}\mid I_{t,s}\in \mathrm{Top}\text{-}k(I_{t,:})\right\}\right).
 ```
 
-白话读法：indexer 用 `H^I` 个头的 ReLU 点积加权求和，给每个历史 token 一个分数；主注意力只对分数最高的 k 个 KV entry 计算输出。「ReLU 而不是 softmax」是为了吞吐——分数不需要归一化，选 top-k 只看相对大小；indexer 头数少、可跑 FP8，因此虽然它自身仍是 O(L²)，实际计算远小于被替换掉的 MLA。
+白话读法：indexer 用 $H^{I}$ 个头的 ReLU 点积加权求和，给每个历史 token 一个分数；主注意力只对分数最高的 k 个 KV entry 计算输出。「ReLU 而不是 softmax」是为了吞吐——分数不需要归一化，选 top-k 只看相对大小；indexer 头数少、可跑 FP8，因此虽然它自身仍是 $O(L^{2})$，实际计算远小于被替换掉的 MLA。
 
 **MLA 下的实例化（§2.1）**：DSA 建在 MLA 的 MQA 模式上——每个 latent vector（MLA 的 KV entry）被该 query token 的所有 query head 共享。原因是 kernel 层要求一个 KV entry 服务多个 query，否则稀疏选择带来的访存收益会被抵消。附录 A 的 Figure 7 说明，V3.1-Terminus 在训练/预填时用 MHA 模式、解码时用 MQA 模式，两者可以互相转换；V3.2 则直接把 DSA 放在 MQA 模式上。
 
 ![Figure 2：DSA 在 MLA 下的注意力结构](assets/fig2-dsa-arch.png)
 
-*Figure 2（原文 p4）：绿色部分是 DSA 的选路。输入隐藏态同时进入主注意力的 Q/KV 与 lightning indexer；indexer 输出分数，Top-k Selector 选出被选中的 `{[c_t^KV; k_t^R]}` 对，送入 Multi-Query Attention（`c^KV` 与共享 RoPE key 拼接）。裁剪自 arXiv v1 PDF p4，300 dpi。*
+*Figure 2（原文 p4）：绿色部分是 DSA 的选路。输入隐藏态同时进入主注意力的 Q/KV 与 lightning indexer；indexer 输出分数，Top-k Selector 选出被选中的 $[c_{t}^{\mathrm{KV}}; k_{t}^{R}]$ 对，送入 Multi-Query Attention（$c^{\mathrm{KV}}$ 与共享 RoPE key 拼接）。裁剪自 arXiv v1 PDF p4，300 dpi。*
 
 **两个训练阶段（§2.1.1）**：
 
@@ -112,7 +112,7 @@ I_{t,s}=\sum_{j=1}^{H^{I}} w^{I}_{t,j}\cdot \mathrm{ReLU}\left(q^{I}_{t,j}\cdot 
 \mathcal{L}^{I}=\sum_{t} D_{\mathrm{KL}}\left(p_{t,\mathcal{S}_{t}}\,\|\,\mathrm{Softmax}(I_{t,\mathcal{S}_{t}})\right).
 ```
 
-白话读法：warm-up 时，把主注意力沿序列做 L1 归一化得到目标分布 `p_{t,:}`，让 indexer 的 softmax 去逼近它；稀疏阶段只在被选中的集合 `S_t` 上算同样的 KL。indexer 的输入从计算图中 detach，训练信号只来自 `L^I`；主模型只按语言建模损失优化——两者解耦，避免主损失把选路器拉向与检索质量无关的方向。
+白话读法：warm-up 时，把主注意力沿序列做 L1 归一化得到目标分布 $p_{t,:}$，让 indexer 的 softmax 去逼近它；稀疏阶段只在被选中的集合 $S_{t}$ 上算同样的 KL。indexer 的输入从计算图中 detach，训练信号只来自 $L^{I}$；主模型只按语言建模损失优化——两者解耦，避免主损失把选路器拉向与检索质量无关的方向。
 
 ### 2. 后训练：专家蒸馏 + 混合 RL（§3）
 
@@ -131,21 +131,21 @@ r_{i,t}(\theta)=\frac{\pi_\theta(o_{i,t}\mid q,o_{i,<t})}{\pi_{\mathrm{old}}(o_{
 \hat{A}_{i,t}=R_i-\mathrm{mean}(\mathbf{R}).
 ```
 
-白话读法：GRPO 在同一个问题的 G 条回答之间比较，优势就是「这条回答的奖励减去组均值」——原文只减均值，没有除以组内标准差；然后对重要性采样比做裁剪，再减 KL。式 (8) 里的 `M_{i,t}` 是下文的 off-policy 序列 mask（没有它时就是标准 GRPO）；这个优势定义与一些 GRPO 实现不同，读代码时要对齐。
+白话读法：GRPO 在同一个问题的 G 条回答之间比较，优势就是「这条回答的奖励减去组均值」——原文只减均值，没有除以组内标准差；然后对重要性采样比做裁剪，再减 KL。式 (8) 里的 $M_{i,t}$ 是下文的 off-policy 序列 mask（没有它时就是标准 GRPO）；这个优势定义与一些 GRPO 实现不同，读代码时要对齐。
 
 四个稳定化手段分别针对训练/推理不一致的不同来源：
 
-1. **Unbiased KL estimate**：样本来自旧策略 `π_old`，K3 估计器的梯度会有偏；乘上 `π_θ/π_old` 后梯度无偏。原文指出，当 `π_θ << π_ref` 时，原 K3 会给这些 token 过大的无界权重，导致噪声梯度累积、样本质量下降。
+1. **Unbiased KL estimate**：样本来自旧策略 $\pi_{\mathrm{old}}$，K3 估计器的梯度会有偏；乘上 $\pi_\theta/\pi_{\mathrm{old}}$ 后梯度无偏。原文指出，当 $\pi_\theta \ll \pi_{\mathrm{ref}}$ 时，原 K3 会给这些 token 过大的无界权重，导致噪声梯度累积、样本质量下降。
 ```math
 D_{\mathrm{KL}}\left(\pi_\theta(o_{i,t})\,\|\,\pi_{\mathrm{ref}}(o_{i,t})\right)=\frac{\pi_\theta(o_{i,t}\mid q,o_{i,<t})}{\pi_{\mathrm{old}}(o_{i,t}\mid q,o_{i,<t})}\left(\frac{\pi_{\mathrm{ref}}(o_{i,t}\mid q,o_{i,<t})}{\pi_\theta(o_{i,t}\mid q,o_{i,<t})}-\log\frac{\pi_{\mathrm{ref}}(o_{i,t}\mid q,o_{i,<t})}{\pi_\theta(o_{i,t}\mid q,o_{i,<t})}-1\right).
 ```
-2. **Off-policy sequence masking**：把负优势、且旧/新策略 KL 超过阈值 `δ` 的序列整条 mask 掉；正优势样本不 mask。直觉是「从自己的错误里学」最有效，但高度 off-policy 的负样本会误导优化。
+2. **Off-policy sequence masking**：把负优势、且旧/新策略 KL 超过阈值 $\delta$ 的序列整条 mask 掉；正优势样本不 mask。直觉是「从自己的错误里学」最有效，但高度 off-policy 的负样本会误导优化。
 ```math
 M_{i,t}=\begin{cases}0, & \hat{A}_{i,t}<0\ \text{and}\ \frac{1}{|o_i|}\sum_{t=1}^{|o_i|}\log\frac{\pi_{\mathrm{old}}(o_{i,t}\mid q,o_{i,<t})}{\pi_\theta(o_{i,t}\mid q,o_{i,<t})}>\delta,\\ 1, & \text{otherwise}.\end{cases}
 ```
-   `M_{i,t}` 乘在式 (8) 的策略梯度项（整个 `min(...)`，未裁剪与裁剪两支都在内）上；KL 惩罚项不受 mask 影响。原文这里的记号把序列级统计量写进了逐 token 的 `M_{i,t}`，读的时候按「整条序列共享一个 0/1」理解。
+   $M_{i,t}$ 乘在式 (8) 的策略梯度项（整个 `min(...)`，未裁剪与裁剪两支都在内）上；KL 惩罚项不受 mask 影响。原文这里的记号把序列级统计量写进了逐 token 的 $M_{i,t}$，读的时候按「整条序列共享一个 0/1」理解。
 3. **Keep routing**：MoE 在推理框架与训练框架中的专家路由可能不一致，即使输入相同。把采样时的路由路径保留下来、训练时强制走同一路径，保证优化的是同一组专家参数。该做法自 DeepSeek-V3-0324 起进入 RL 流水线。
-4. **Keep sampling mask**：top-p / top-k 截断会让 `π_old` 与 `π_θ` 的动作空间不一致，违反重要性采样假设。保留采样时的截断 mask 并在训练时套用，使两个策略共享同一动作子空间；原文说 top-p + keep sampling mask 能保住语言一致性。
+4. **Keep sampling mask**：top-p / top-k 截断会让 $\pi_{\mathrm{old}}$ 与 $\pi_\theta$ 的动作空间不一致，违反重要性采样假设。保留采样时的截断 mask 并在训练时套用，使两个策略共享同一动作子空间；原文说 top-p + keep sampling mask 能保住语言一致性。
 
 **V3.2 与 V3.2-Speciale**：V3.2 用 reasoning + agent + alignment 的蒸馏数据做数千步 RL；Speciale 是实验变体，只用 reasoning 数据、降低长度惩罚，并加入 DeepSeekMath-V2 的数据与奖励来加强数学证明。
 
@@ -195,7 +195,7 @@ flowchart LR
 
 - 温度 1.0，上下文 128K；tool-use 基准用标准 function call 格式，模型处于 thinking 模式。
 - MCP-Universe 与 MCP-Mark 在**内部环境**评测，因为官方环境的 search / playwright 配置可能不同——这两行的数字不等于官方 leaderboard。
-- 数学类（AIME、HMMT、IMOAnswerBench、HLE）用统一模板：先逐步推理，最终答案放进 `\boxed{}`。
+- 数学类（AIME、HMMT、IMOAnswerBench、HLE）用统一模板：先逐步推理，最终答案放进 $\boxed{}$。
 - HLE 另用官方模板测了 V3.2-Thinking，得 23.9；Table 2 里的 25.1 是自定义模板口径。
 - HLE 是 text-only 子集；MCP 基准把工具输出放在 `tool` 角色；Table 2 的开源对比只选支持 thinking in tool use 的模型。
 - τ2 用模型自己扮演 user agent（§4.1），跨模型比较时 user simulator 不同，分数不完全可比。
@@ -214,7 +214,7 @@ Table 2 的表注说加粗是「开源/闭源两类各自的最优」。用 PDF 
 
 **本笔记复算**：19 个基准里，V3.2 在 15 个上是开源模型最高；不是最高的四个是 GPQA（Kimi 84.5 > 82.4）、AIME 2025（Kimi 94.5 > 93.1）、IMOAnswerBench（Kimi 78.6 > 78.3）、search 版 HLE（Kimi 44.9 > 40.8）。所以「显著推进 agentic 能力」在 Terminal（+10.7 对 Kimi）、SWE Multilingual（+9.1）、MCP-Mark（+17.6）上成立，但不能写成「所有 agent 基准都领先」——MCP-Universe 对 GPT-5 仍是 45.9 对 47.9。
 
-**τ2 的口径**：Table 2 注说 τ2-Bench 取各分类平均；正文给出 Airline 63.8、Retail 81.1、Telecom 96.2。本笔记复算 `(63.8+81.1+96.2)/3 = 80.37`；表中取 80.3（截断/取整，差 0.07）。
+**τ2 的口径**：Table 2 注说 τ2-Bench 取各分类平均；正文给出 Airline 63.8、Retail 81.1、Telecom 96.2。本笔记复算 $(63.8+81.1+96.2)/3=80.37$；表中取 80.3（截断/取整，差 0.07）。
 
 **非 thinking 模式（附录 C / Table 9）**：同一批 agent 基准上略低但仍可用——Terminal 37.1（thinking 46.4）、SWE Verified 72.1（73.1）、SWE Multilingual 68.9（70.2）、τ2 77.2（80.3）、MCP-Universe 38.6（45.9）、MCP-Mark 26.5（38.0）、Tool-Decathlon 25.6（35.2）。差距在 MCP-Mark（−11.5）与 Tool-Decathlon（−9.6）上最大，说明 thinking 对长尾工具任务更关键；Terminal 的 37.1 与 thinking 的 46.4 都来自 Claude Code 框架，Terminus 下 non-thinking 是 39.3（Table 9 注）。
 
@@ -292,7 +292,7 @@ Figure 3 是 H800 上实际部署的每百万 token 成本，按 token 位置画
 这篇文章关于 RL 的部分，本质上是在处理 **训练/推理不一致**：
 
 - 推理框架为了吞吐会做 kernel 融合、并行采样、top-p/top-k 截断；训练框架复现同样的前向时，数值与动作空间都可能不同。
-- **Keep routing** 解决 MoE 路由不一致；**Keep sampling mask** 解决截断导致动作空间不一致；**off-policy sequence masking** 解决多样本、多 mini-batch 更新带来的策略漂移；**unbiased KL** 解决 KL 估计器在 `π_θ << π_ref` 时的有偏梯度。
+- **Keep routing** 解决 MoE 路由不一致；**Keep sampling mask** 解决截断导致动作空间不一致；**off-policy sequence masking** 解决多样本、多 mini-batch 更新带来的策略漂移；**unbiased KL** 解决 KL 估计器在 $\pi_\theta \ll \pi_{\mathrm{ref}}$ 时的有偏梯度。
 - 这四件事都不是「算法创新」，但对 MoE 的大规模 RL 是稳定性前提。做同类系统时，优先检查这四处是否对齐，往往比换 RL 算法更有效。
 
 ### Agent 运行时的工程细节

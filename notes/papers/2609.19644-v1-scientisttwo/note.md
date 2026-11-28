@@ -29,7 +29,7 @@
 
 ### 复核记录
 
-- **2026-11-08 第一轮（check-paper-note）**：基准 arXiv:2609.19644v1，重新下载官方 PDF，26,081,865 B、71 页、sha256 `98fb7802ec28beea159895a3de219307e019867b16296dfe4a79e68daaef9a17`；核对前笔记 md5 `79a28da3207d2244a35c259e814e1890`。Table 2–11、Figure 1/2/9/10/11 与 3 个公式按 180–300 dpi 渲染页重核；另派独立子 agent 只读审计（其读到的 md5 与上同），其报告逐条复验后采纳。**修正 13 项**：① 补 Figure 1(b) 的逐题分桶图，删除“没有给每个任务的增益分布”的过强说法；② 补 Table 4 的 33/4 与输入集 38/5 的原文口径冲突（表注写 input papers，Appendix B 写 five ICLR submissions）；③ 补 Table 3 的 4/5、33/38、49/64 非配对比较；④ 修正 `A_Coder` 的复用范围（选优用 `A_Selector`，消融用 Ablation Planner/Coding Agent）；⑤ 修正 Table 7 的 method-code 归因（仅关 method-code 为 38/49，11/49；三 agent 全关才是 39/50）；⑥ 拆开 Table 7 表头，区分 refinement 标志与审计指标；⑦ 补 Table 9 的 Rating 来源与 Figure 2（6.5 与 Stanford 一致）；⑧ 补 Appendix B（p30）的“各自复现 baseline、不同硬件、Δ 非 head-to-head”与 Table 15 的 5 篇 ICLR 对比；⑨ 修正 Appendix C 的 artifact 数（7 条 + 1 个 rebuttal，拆最后一条才 9 项）与 Appendix D 的图数（5 张，p62–64 才是 results/ablations）；⑩ 修正页码 p11→p10、p15→p15–16；⑪ 把“同一组作者”改为“同机构/作者有重合”；⑫ 修正“同列”为“同一行/同一数据集”、3,800 与 3765 的关系、Table 8 的方差列、60.0%–96.9% 的措辞；⑬ 修正生成论文摘要 “strictly eliminating” 的表述（results 段 p62 承认 Electricity 0.1135 并解释为保守 β=0.350，笔记改为“未消除退步、只限制幅度”）。**未修/未核实**：Table 4 表注的 “input papers” 是原文自身口径问题，保留并注明；项目页 86 份 PDF、代码仓库缺失、`Content-Length 2,551,163 B` 由本人在 2026-11-08 访问项目页核验，独立子 agent 未复核；未运行代码、未复现实验，Appendix C/D 未逐页，86 份 PDF 未逐份审计。
+- **2026-11-08 第一轮（check-paper-note）**：基准 arXiv:2609.19644v1，重新下载官方 PDF，26,081,865 B、71 页、sha256 `98fb7802ec28beea159895a3de219307e019867b16296dfe4a79e68daaef9a17`；核对前笔记 md5 `79a28da3207d2244a35c259e814e1890`。Table 2–11、Figure 1/2/9/10/11 与 3 个公式按 180–300 dpi 渲染页重核；另派独立子 agent 只读审计（其读到的 md5 与上同），其报告逐条复验后采纳。**修正 13 项**：① 补 Figure 1(b) 的逐题分桶图，删除“没有给每个任务的增益分布”的过强说法；② 补 Table 4 的 33/4 与输入集 38/5 的原文口径冲突（表注写 input papers，Appendix B 写 five ICLR submissions）；③ 补 Table 3 的 4/5、33/38、49/64 非配对比较；④ 修正 $A_{\mathrm{Coder}}$ 的复用范围（选优用 $A_{\mathrm{Selector}}$，消融用 Ablation Planner/Coding Agent）；⑤ 修正 Table 7 的 method-code 归因（仅关 method-code 为 38/49，11/49；三 agent 全关才是 39/50）；⑥ 拆开 Table 7 表头，区分 refinement 标志与审计指标；⑦ 补 Table 9 的 Rating 来源与 Figure 2（6.5 与 Stanford 一致）；⑧ 补 Appendix B（p30）的“各自复现 baseline、不同硬件、Δ 非 head-to-head”与 Table 15 的 5 篇 ICLR 对比；⑨ 修正 Appendix C 的 artifact 数（7 条 + 1 个 rebuttal，拆最后一条才 9 项）与 Appendix D 的图数（5 张，p62–64 才是 results/ablations）；⑩ 修正页码 p11→p10、p15→p15–16；⑪ 把“同一组作者”改为“同机构/作者有重合”；⑫ 修正“同列”为“同一行/同一数据集”、3,800 与 3765 的关系、Table 8 的方差列、60.0%–96.9% 的措辞；⑬ 修正生成论文摘要 “strictly eliminating” 的表述（results 段 p62 承认 Electricity 0.1135 并解释为保守 β=0.350，笔记改为“未消除退步、只限制幅度”）。**未修/未核实**：Table 4 表注的 “input papers” 是原文自身口径问题，保留并注明；项目页 86 份 PDF、代码仓库缺失、`Content-Length 2,551,163 B` 由本人在 2026-11-08 访问项目页核验，独立子 agent 未复核；未运行代码、未复现实验，Appendix C/D 未逐页，86 份 PDF 未逐份审计。
 
 ---
 
@@ -56,14 +56,14 @@
 - **单指标代码优化**：AutoSOTA（Li et al., 2026d）在已有代码库里搜配置/超参，把论文的 headline result 压成一个数值目标。
 - **可验证性导向**：ScientistOne（Meng et al., 2026）做 chain-of-evidence 与完整性审计，但作者认为它缺少“主动的分析扩展”（active analytical expansion）。
 
-ScientistTwo 想补的正是这三件事：**多数据集/多指标评估、消融驱动的假设精炼、动态评审 + rebuttal 闭环**。形式化地，给定科学问题 `G`，系统 `A` 输出论文 `P+` 与可复现代码库 `C+`：
+ScientistTwo 想补的正是这三件事：**多数据集/多指标评估、消融驱动的假设精炼、动态评审 + rebuttal 闭环**。形式化地，给定科学问题 $G$，系统 $A$ 输出论文 `P+` 与可复现代码库 `C+`：
 
 ```math
 (\mathcal{P}^{+},\mathcal{C}^{+})=\mathcal{A}(\mathcal{G}),\qquad
 \mathcal{A}=\{\mathcal{A}_{1},\mathcal{A}_{2},\dots,\mathcal{A}_{N_{\mathrm{a}}}\}
 ```
 
-读法：`A` 不是单个模型，而是一组按科研阶段分工的 agent；输入是问题，输出是“论文 + 代码”这一对产物。论文强调 `P+` 要指出并解决 `G` 中的方法/经验瓶颈，`C+` 要正确实现想法并保持可复现。
+读法：$A$ 不是单个模型，而是一组按科研阶段分工的 agent；输入是问题，输出是“论文 + 代码”这一对产物。论文强调 `P+` 要指出并解决 $G$ 中的方法/经验瓶颈，`C+` 要正确实现想法并保持可复现。
 
 ## 系统总览
 
@@ -85,13 +85,13 @@ Figure 3 把系统画成 6 组 agent：
 | 阶段 | 候选产物 | Critic 判据 | 不通过时 |
 | --- | --- | --- | --- |
 | 找局限 | limitations 集合 | 是否足以指导新的改进 | 补漏，最多 16 轮 |
-| 种子想法 | `N_seed` 个 idea + novelty 分数 | 是否新颖 | 继续生成更多想法 |
+| 种子想法 | $N_{\mathrm{seed}}$ 个 idea + novelty 分数 | 是否新颖 | 继续生成更多想法 |
 | 子集基线 | 复现的 SOTA 结果与代码 | — | — |
 | 子集实验 | idea / code / results | 是否稳定优于**复现的** baseline | `Bad` 丢弃；`Engineer` 调参/改代码，最多 2 轮 |
 | 全集实验 | full-set results | 是否优于**原始论文的** SOTA | 继续工程 |
 | 想法进化 | evolved idea + 执行轨迹 | 实验是否成功 | 用轨迹再进化 |
-| 选最佳 | `h_best` | 跨指标/日志比较 | — |
-| 消融 | `N_p` 个 ablation 结果 | 组件归因是否干净 | 改方法，最多 1 轮 |
+| 选最佳 | $h_{\mathrm{best}}$ | 跨指标/日志比较 | — |
+| 消融 | $N_{p}$ 个 ablation 结果 | 组件归因是否干净 | 改方法，最多 1 轮 |
 | 初稿 | manuscript | — | — |
 | 模拟评审 | review + score | 分数是否达到 8 | 规划并执行 rebuttal 实验，最多 2 轮 |
 | Meta-review | accept / refine | 是否达到 venue bar | 改 idea 并重跑，最多 1 轮 |
@@ -102,7 +102,7 @@ Figure 3 把系统画成 6 组 agent：
 
 ### 1. 找局限与种子想法（§3.1，p6）
 
-Limitation Extractor 先从问题 `G` 中抽取一组局限；Limitation Verifier 判断这组局限是否“足以指导新的改进”。不够就回到 Extractor 补漏，最多 16 轮。然后 Idea Generator 生成初始想法 `h_0`，Novelty Checker 打分；从 `H_0={h_0}` 开始迭代扩展，直到收集 `N_seed` 个候选，再按 novelty 分数降序排列。
+Limitation Extractor 先从问题 $G$ 中抽取一组局限；Limitation Verifier 判断这组局限是否“足以指导新的改进”。不够就回到 Extractor 补漏，最多 16 轮。然后 Idea Generator 生成初始想法 $h_{0}$，Novelty Checker 打分；从 $H_{0}=\{h_{0}\}$ 开始迭代扩展，直到收集 $N_{\mathrm{seed}}$ 个候选，再按 novelty 分数降序排列。
 
 一个值得注意的实现细节：**novelty 判断只检索两篇参考论文**（Appendix A.2，p30："ScientistTwo retrieves two reference papers via Google Search"）。这比“完整文献综述”窄得多；它能过滤明显重复，但不能保证相对于整个领域的新颖性。论文没有报告 novelty checker 与人类/外部检索的一致性。
 
@@ -110,15 +110,15 @@ Limitation Extractor 先从问题 `G` 中抽取一组局限；Limitation Verifie
 
 这一节有两个设计值得单独记：
 
-**第一，先复现 baseline，再谈改进。** Baseline Coding Agent 先在 benchmark 子集上复现 `G` 的主实验，得到 `E_base` 与 `C_base`。子集上的 idea 是与 `E_base` 比，而不是与论文里报告的数字比；这样可以把“复现差距”和“想法本身的好坏”分开。
+**第一，先复现 baseline，再谈改进。** Baseline Coding Agent 先在 benchmark 子集上复现 $G$ 的主实验，得到 $E_{\mathrm{base}}$ 与 $C_{\mathrm{base}}$。子集上的 idea 是与 $E_{\mathrm{base}}$ 比，而不是与论文里报告的数字比；这样可以把“复现差距”和“想法本身的好坏”分开。
 
-**第二，三路判决而不是二路。** 对每个候选 `h`，Subset Critic 输出：
+**第二，三路判决而不是二路。** 对每个候选 $h$，Subset Critic 输出：
 
 - `Bad`：明显差于 baseline，直接丢弃；
 - `Good`：稳定优于 baseline，允许放大到全集；
-- `Engineer`：有潜力但需要调参/改代码，交给 Subset Engineering Agent，最多 `N_eng=2` 轮；两轮后仍不是 `Good` 就当 `Bad` 剪掉。
+- `Engineer`：有潜力但需要调参/改代码，交给 Subset Engineering Agent，最多 $N_{\mathrm{eng}}=2$ 轮；两轮后仍不是 `Good` 就当 `Bad` 剪掉。
 
-这个 `Engineer` 分支很关键：它避免“因为初始超参不好就误杀一个好想法”，同时用轮数上限防止无限调参。全集阶段再用 Full-Set Coding Agent 改写代码，并与**原始论文的 SOTA 结果**比较；只有全集也过线，才得到最终的 `d^h`。
+这个 `Engineer` 分支很关键：它避免“因为初始超参不好就误杀一个好想法”，同时用轮数上限防止无限调参。全集阶段再用 Full-Set Coding Agent 改写代码，并与**原始论文的 SOTA 结果**比较；只有全集也过线，才得到最终的 $d^{h}$。
 
 整个“想法 → 代码 → 结果”的流程被抽象成一个统一接口：
 
@@ -127,55 +127,55 @@ h,\mathcal{E}^{h},\mathcal{C}^{h},d^{h},r^{h}
 =\mathcal{A}_{\mathrm{Coder}}(\mathcal{G},h)
 ```
 
-读法：给问题 `G` 和想法 `h`，Coder 返回想法本身、实验结果 `E^h`、代码 `C^h`、判决 `d^h` 与反馈 `r^h`。进化与候选评估复用这个接口；选优用 `A_Selector`（式 4，p8），消融另有 Ablation Planner/Coding Agent（§3.4，p8），并不都走 `A_Coder`。
+读法：给问题 $G$ 和想法 $h$，Coder 返回想法本身、实验结果 $E^{h}$、代码 $C^{h}$、判决 $d^{h}$ 与反馈 $r^{h}$。进化与候选评估复用这个接口；选优用 $A_{\mathrm{Selector}}$（式 4，p8），消融另有 Ablation Planner/Coding Agent（§3.4，p8），并不都走 $A_{\mathrm{Coder}}$。
 
 ### 3. 想法进化：利用执行轨迹，同时保留探索（§3.3，p7–8）
 
-第 0 轮执行 top-`N_0` 个种子想法，得到轨迹集合 `R_0`。第 `k≥1` 轮：
+第 0 轮执行 top-$N_{0}$ 个种子想法，得到轨迹集合 $R_{0}$。第 $k\ge 1$ 轮：
 
-- **利用（exploitation）**：Idea Evolver `A_Evolve` 汇总历史轨迹，把好/坏结果作为反馈，生成进化后的候选 `I_k`；
-- **探索（exploration）**：从 `H_0` 里按 novelty 顺序取 `N_e` 个**尚未评估**的种子，加入候选池，避免只在早期种子附近打转。
+- **利用（exploitation）**：Idea Evolver $A_{\mathrm{Evolve}}$ 汇总历史轨迹，把好/坏结果作为反馈，生成进化后的候选 $I_{k}$；
+- **探索（exploration）**：从 $H_{0}$ 里按 novelty 顺序取 $N_{e}$ 个**尚未评估**的种子，加入候选池，避免只在早期种子附近打转。
 
-候选池 `H_k = I_k ∪ H_0^(k)`。每个候选都走一遍 `A_Coder`，得到 `R_k`。终止条件：累计 `S` 个 `d^h=Good` 的成功想法，或达到最大轮数 `K`；如果到 `K` 轮一个成功都没有，整个任务终止（不写论文）。
+候选池 $H_{k} = I_{k} \cup H_{0}^{(k)}$。每个候选都走一遍 $A_{\mathrm{Coder}}$，得到 $R_{k}$。终止条件：累计 $S$ 个 $d^{h}=Good$ 的成功想法，或达到最大轮数 $K$；如果到 $K$ 轮一个成功都没有，整个任务终止（不写论文）。
 
 ```math
 \sum_{i=0}^{k}\sum_{h\in\mathcal{H}_i}\mathbb{I}(d^{h}=\mathrm{Good})\ge S
 ```
 
-读法：把第 0 到第 `k` 轮所有候选的“是否 Good”指示函数加起来，达到 `S` 就停。配置里 `S=4`、`K=4`，每轮评估 2 个候选（1 个种子 + 1 个进化想法，A.2 p30）。
+读法：把第 0 到第 $k$ 轮所有候选的“是否 Good”指示函数加起来，达到 $S$ 就停。配置里 $S=4$、$K=4$，每轮评估 2 个候选（1 个种子 + 1 个进化想法，A.2 p30）。
 
-找到至少一个成功想法后，Selector Agent `A_Selector` 比较所有 `Good` 想法在全集上的指标与日志，选出 `h_best`。这一步没有新的实验，只是跨候选比较。
+找到至少一个成功想法后，Selector Agent $A_{\mathrm{Selector}}$ 比较所有 `Good` 想法在全集上的指标与日志，选出 $h_{\mathrm{best}}$。这一步没有新的实验，只是跨候选比较。
 
 ### 4. 消融：把“涨点”拆成可归因的组件（§3.4，p8）
 
-Ablation Planner 针对 `h_best` 生成 `N_p` 个可执行消融计划；Ablation Coding Agent 在每个计划上改 `C_best` 并执行，得到 `E_abl`。然后 Ablation Critic 判断“组件拆解是否干净”：
+Ablation Planner 针对 $h_{\mathrm{best}}$ 生成 $N_{p}$ 个可执行消融计划；Ablation Coding Agent 在每个计划上改 $C_{\mathrm{best}}$ 并执行，得到 $E_{\mathrm{abl}}$。然后 Ablation Critic 判断“组件拆解是否干净”：
 
-- `Good`：`h_best` 定稿，进入写作；
-- `Refine`：说明某些组件可能冗余/反效果，交给 Full-Set Engineering Agent 生成 `h_new`，最多 `N_abl=1` 轮。
+- `Good`：$h_{\mathrm{best}}$ 定稿，进入写作；
+- `Refine`：说明某些组件可能冗余/反效果，交给 Full-Set Engineering Agent 生成 $h_{\mathrm{new}}$，最多 $N_{\mathrm{abl}}=1$ 轮。
 
-这里有一个**防回归检查**：只有当 `E_new` 被 Result Comparison Agent 判为严格优于 `E_best` 时，才把 `(h_best, E_best, C_best)` 替换成新版本；否则保留旧版本。发生替换才重新跑消融。这个“先验证再接受”的检查，比“让 LLM 说改得更好”要稳。
+这里有一个**防回归检查**：只有当 $E_{\mathrm{new}}$ 被 Result Comparison Agent 判为严格优于 $E_{\mathrm{best}}$ 时，才把 $(h_{\mathrm{best}}, E_{\mathrm{best}}, C_{\mathrm{best}})$ 替换成新版本；否则保留旧版本。发生替换才重新跑消融。这个“先验证再接受”的检查，比“让 LLM 说改得更好”要稳。
 
 消融阶段也是全文最有工程借鉴价值的部分：它不只问“新方法是否涨点”，还问“涨点是否来自我声称的那个组件”。Appendix B 的 TeCh 案例（p31）是一个具体例子：ScientistTwo 的 DMC-TeCh 在 6 个指标里赢了 5 个，但 Ablation Critic 发现增益主要来自 EMA + label smoothing 这类通用训练控制，而不是提出的 multi-core 架构，于是**拒绝把它算作贡献**。这是一个“归因门槛”，与 AutoSOTA 的“指标动了就算成功”形成鲜明对比。
 
 ### 5. 写作、模拟评审与 rebuttal（§3.5，p8–9）
 
-Initial Drafter（集成了 PaperOrchestra）把 `h_best`、主结果 `E_best`、消融 `E_abl` 合成一篇会议格式的稿子 `P_new`。
+Initial Drafter（集成了 PaperOrchestra）把 $h_{\mathrm{best}}$、主结果 $E_{\mathrm{best}}$、消融 $E_{\mathrm{abl}}$ 合成一篇会议格式的稿子 $P_{\mathrm{new}}$。
 
-然后 Peer Reviewer（即 ScholarPeer）按 ICLR 的 1–10 分制评审，给出 strengths / weaknesses / questions / `s_review`。如果分数低于阈值（论文举的例子是 8），进入 rebuttal：
+然后 Peer Reviewer（即 ScholarPeer）按 ICLR 的 1–10 分制评审，给出 strengths / weaknesses / questions / $s_{\mathrm{review}}$。如果分数低于阈值（论文举的例子是 8），进入 rebuttal：
 
-1. Rebuttal Planner 把审稿意见拆成 `N_t` 个补充实验任务；
-2. Rebuttal Coding Agent 在 `C_best` 上实现并执行每个任务，得到 `E_reb`；
+1. Rebuttal Planner 把审稿意见拆成 $N_{t}$ 个补充实验任务；
+2. Rebuttal Coding Agent 在 $C_{\mathrm{best}}$ 上实现并执行每个任务，得到 $E_{\mathrm{reb}}$；
 3. Paper Enhancer 把审稿意见与补充结果写回稿子，更新叙述、表格与图；
-4. 再送 Reviewer，最多 `N_peer=2` 轮。
+4. 再送 Reviewer，最多 $N_{\mathrm{peer}}=2$ 轮。
 
 这里的 rebuttal **不是改文字**，而是“审稿人问什么就补做什么实验”；这是它与普通“LLM 改稿”最大的区别。
 
 ### 6. Meta-review：最后一道门（§3.6，p9）
 
-Meta-Review Agent 同时看稿子 `P_new` 与评审 `R_new`，输出 `d_meta ∈ {Accept, Refine}` 和 meta-critique `r_meta`。
+Meta-Review Agent 同时看稿子 $P_{\mathrm{new}}$ 与评审 $R_{\mathrm{new}}$，输出 $d_{\mathrm{meta}} \in \{\mathrm{Accept}, \mathrm{Refine}\}$ 和 meta-critique $r_{\mathrm{meta}}$。
 
-- `Accept`：定稿，输出 `P+ = P_new`、`C+ = C_best`。
-- `Refine`：说明 meta-reviewer 发现了算法/经验上的关键弱点；用 `r_meta` 指导 Full-Set Engineering Agent 改 `h_best`，得到 `h_new/E_new/C_new`。只有 `E_new` 严格优于 `E_best` 才更新核心状态；更新后重跑消融、重写、再审。最多 `N_meta=1` 轮。
+- `Accept`：定稿，输出 $P+ = P_{\mathrm{new}}$、$C+ = C_{\mathrm{best}}$。
+- `Refine`：说明 meta-reviewer 发现了算法/经验上的关键弱点；用 $r_{\mathrm{meta}}$ 指导 Full-Set Engineering Agent 改 $h_{\mathrm{best}}$，得到 `h_new/E_new/C_new`。只有 $E_{\mathrm{new}}$ 严格优于 $E_{\mathrm{best}}$ 才更新核心状态；更新后重跑消融、重写、再审。最多 $N_{\mathrm{meta}}=1$ 轮。
 - 如果 refinement 没有超过 baseline，就丢弃，用之前的 `P_new/C_best` 结束。
 
 ## 配置与成本
@@ -418,7 +418,7 @@ Table 9（p16）展示“用自己发现的方法作为下一轮上下文”的�
 1. **Critic 关卡绑定可执行产物**。每个阶段的 critic 不是给一段文字打分，而是看代码、日志、表格、复跑结果。Listing 1 的 `accept / refine / reject` 三态 + 最大轮数，是一个很适合落到工作流引擎里的状态机。
 2. **子集先筛，全集再放大，并且用两套 baseline**。子集用复现 baseline，全集用原论文 SOTA；这能把“复现差距”和“想法质量”分开。工程上要补的是**子集筛选的假阴性率**：论文没有报告有多少好想法在子集上被误杀，而这决定了子集比例能不能压得很低。
 3. **消融作为归因门槛**。TeCh 的例子说明，系统会拒绝“指标涨了但归因不干净”的方案。这是比“单指标优化”更接近人类审稿的判据；但要定义清楚“归因干净”的可操作标准，否则 critic 会变成主观开关。
-4. **先验证再接受**。消融精炼和 meta-review 精炼都要求 `E_new` 严格优于 `E_best` 才替换核心状态；这比“让 LLM 说改得更好”稳。工程上应把“严格优于”换成配对多种子检验，而不是单个 Result Comparison Agent 的判断。
+4. **先验证再接受**。消融精炼和 meta-review 精炼都要求 $E_{\mathrm{new}}$ 严格优于 $E_{\mathrm{best}}$ 才替换核心状态；这比“让 LLM 说改得更好”稳。工程上应把“严格优于”换成配对多种子检验，而不是单个 Result Comparison Agent 的判断。
 
 成本与运行：
 

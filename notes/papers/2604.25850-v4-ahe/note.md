@@ -22,7 +22,7 @@
 
 - **基准**：重取 arXiv v4 PDF（1,432,986 B、35 页、sha256 `299f2633…3464df`，与笔记记录一致）；同版 HTML 1,935,152 B；独立子 agent 审计 + 本笔记逐条复验。
 - **方式**：Table 1–5 在 250–300 dpi 渲染页逐格；Figure 1–4 对照渲染页；Algorithm 1 对 PDF p.5 逐行；Figure 1 用矢量坐标 + 网格线定标复读；Table 2/3/5 复算；跨条目核对 SIM/RRSI/Harness²/HarnessX/HarnessDev/Self-Harness 的笔记与编号。
-- **本轮修正**：① Algorithm 1 页码由 p.4–5 改为 p.5（三处）；② 伪代码补 `V_t = ∅`（原文第 9–10 行的 `else` 分支）；③ 删除「跨方法只对齐轮数与候选预算」这一无原文依据的说法，改为「原文未说明」；④ SIM 关系改为「起点 harness + 通用 proposer–selector 流程」，不再说 SIM 的循环直接来自 AHE 或继承 rollback；⑤ 角色名改为 Code Agent / Agent Debugger / Evolve Agent；⑥ Table 1/2/3 的加粗与原文 per-column best 对齐，Table 2 注明只摘 success 列；⑦ 澄清「7 类可编辑组件」与「实际增益集中在四层」；⑧ path-tracing 标成 iter 4 0/2 → iter 5 2/2；⑨ Hard 补充也低于 TF-GRPO 55.6%；⑩ 「第一建议」改为「clearest direction」；⑪ 四案例与 Table 3 的连线标为「本笔记综合/推断」；⑫ RRSI 的 3.82M 改为 policy tokens/trial，Self-Harness 补 00198；⑬ HarnessDev 的「AHE 可作被测量对象」标为推断；⑭ 单次 campaign 改为「原文未报告多 seed」；⑮ 补充 §4.3 自身「three alternate base models」与「five alternate bases」并存的张力；⑯ 补充 Appendix A「each table states k」与 Table 1 未写 k 的矛盾；⑰ 实习单位保留英文名，不臆造中文名。
+- **本轮修正**：① Algorithm 1 页码由 p.4–5 改为 p.5（三处）；② 伪代码补 $V_{t} = \varnothing$（原文第 9–10 行的 `else` 分支）；③ 删除「跨方法只对齐轮数与候选预算」这一无原文依据的说法，改为「原文未说明」；④ SIM 关系改为「起点 harness + 通用 proposer–selector 流程」，不再说 SIM 的循环直接来自 AHE 或继承 rollback；⑤ 角色名改为 Code Agent / Agent Debugger / Evolve Agent；⑥ Table 1/2/3 的加粗与原文 per-column best 对齐，Table 2 注明只摘 success 列；⑦ 澄清「7 类可编辑组件」与「实际增益集中在四层」；⑧ path-tracing 标成 iter 4 0/2 → iter 5 2/2；⑨ Hard 补充也低于 TF-GRPO 55.6%；⑩ 「第一建议」改为「clearest direction」；⑪ 四案例与 Table 3 的连线标为「本笔记综合/推断」；⑫ RRSI 的 3.82M 改为 policy tokens/trial，Self-Harness 补 00198；⑬ HarnessDev 的「AHE 可作被测量对象」标为推断；⑭ 单次 campaign 改为「原文未报告多 seed」；⑮ 补充 §4.3 自身「three alternate base models」与「five alternate bases」并存的张力；⑯ 补充 Appendix A「each table states k」与 Table 1 未写 k 的矛盾；⑰ 实习单位保留英文名，不臆造中文名。
 - **未修 / 未核**：仓库 84.7%±2.1、star/许可/commit 日期等渠道项按独立审计要求未复核（本笔记先前用 GitHub API 核过仓库存在性与 MIT，未运行代码）；v1–v3 未逐版 diff；Figure 5–13 未逐张做像素核对。
 
 ---
@@ -84,7 +84,7 @@ AHE 把 harness 实例化在 NexAU 框架上，把 **7 类组件**作为固定�
 
 ### 2. 经验可观测性：Agent Debugger（§3.2）
 
-每个任务用当前 harness 跑 `k` 条 trace。Agent Debugger 把轨迹组织成一个**可导航的文件环境**：每条轨迹消息是一个文件，用普通 shell/脚本工具访问；同一 query 的轨迹放在同一环境里，debugger 被要求分析失败根因或成功模式，产出 per-task 分析报告（含该任务的 pass/fail 状态）。所有报告再聚合成一份 benchmark 级 overview，作为每轮 Evolve Agent 的入口。
+每个任务用当前 harness 跑 $k$ 条 trace。Agent Debugger 把轨迹组织成一个**可导航的文件环境**：每条轨迹消息是一个文件，用普通 shell/脚本工具访问；同一 query 的轨迹放在同一环境里，debugger 被要求分析失败根因或成功模式，产出 per-task 分析报告（含该任务的 pass/fail 状态）。所有报告再聚合成一份 benchmark 级 overview，作为每轮 Evolve Agent 的入口。
 
 原始轨迹也保留（raw 与轻量清洗两版），供 agent 回查报告中的断言；这些内容都以文件形式提供，支持 **progressive disclosure**，避免一次把全部 token 塞进上下文。Figure 2 把这一步标成约 10M token → 约 10K token 的压缩（图内示意数字）。
 
@@ -119,7 +119,7 @@ for t = 1..N:
 return H_best
 ```
 
-读法：先 rollout，再清洗；从第 2 轮起先用上一轮 manifest 对账并回滚，再蒸馏、再编辑；每轮结束把当前 harness 与 manifest 一起 commit，并维护历史最优 `H_best`。`k≥2`，这样每个任务都有 pass-rate 信号，部分通过的任务才能用于比较诊断。
+读法：先 rollout，再清洗；从第 2 轮起先用上一轮 manifest 对账并回滚，再蒸馏、再编辑；每轮结束把当前 harness 与 manifest 一起 commit，并维护历史最优 $H_{\mathrm{best}}$。$k\ge 2$，这样每个任务都有 pass-rate 信号，部分通过的任务才能用于比较诊断。
 
 另有一个 one-shot explore agent 与第 1 轮并行，从 NexAU 源码与公开 coding-agent 参考里"播种"少量可复用 skill；这些 skill 没有特殊保护，从第 2 轮起可以被保留、改写或删除。
 
@@ -137,8 +137,8 @@ return H_best
 
 - **benchmark**：Terminal-Bench 2 全部 89 题，按官方难度 4 easy / 55 medium / 30 hard；每题超时 1 小时（3600 s）。
 - **基础设施**：Harbor 调度与判分，每次 rollout 在全新 E2B 远程 sandbox；InMemoryTracer 记录轨迹并镜像到 Langfuse；Agent Debugger 并发 16、单任务 600 s。
-- **模型与预算**：Code Agent / Agent Debugger 用 GPT-5.4 high；Evolve Agent 与 Explore Agent 用 GPT-5.4 xhigh；Code Agent 200k context、单轮最多 32k 生成、300 turns；Evolve 500 turns；外层 `T=10`、`k=2`、并发 96。
-- **指标**：`pass@1` 为 `k` 次 rollout 的二元成功率均值；基础设施异常/超时的 trial 记 0（不丢弃），与官方 leaderboard 口径一致；token 成本只统计完成的 trial（先剔除异常，避免截断值），单位 k tokens；`Succ/Mtok = pass@1 × 10^6 / 每 trial 平均 token`。
+- **模型与预算**：Code Agent / Agent Debugger 用 GPT-5.4 high；Evolve Agent 与 Explore Agent 用 GPT-5.4 xhigh；Code Agent 200k context、单轮最多 32k 生成、300 turns；Evolve 500 turns；外层 $T=10$、$k=2$、并发 96。
+- **指标**：`pass@1` 为 $k$ 次 rollout 的二元成功率均值；基础设施异常/超时的 trial 记 0（不丢弃），与官方 leaderboard 口径一致；token 成本只统计完成的 trial（先剔除异常，避免截断值），单位 k tokens；$\mathrm{Succ/Mtok}=\frac{\mathrm{pass@1}\times10^6}{\text{每 trial 平均 token}}$。
 - **baseline**：三种人工 harness（OpenCode、Terminus-2、Codex）、同一个 NexAU0 种子上的两种自进化（ACE、Training-Free GRPO），以及 AHE 自己。
 
 ### RQ1：主结果（§4.2、Table 1、Figure 1）
@@ -227,7 +227,7 @@ return H_best
 
 附录 C 用 4 条轨迹（db-wal-recovery、path-tracing、mcmc-sampling-stan、configure-git-webserver）与 8 个 manifest 条目说明机制；这些是**机制示意**，不是对单个编辑的因果估计：
 
-- **db-wal-recovery（iter 2）**：种子 1/2；失败 rollout 用缓存 stdout 重建 WAL、按 `value = id×100` 猜缺失行、用 `json length == 11` 自检。iter 1 的 chg-1 是 68 行 prompt append（8 条规则，不含 SQLite/WAL 关键词），其中 4 条在该轨迹上触发，任务 2/2；chg-1 的 `predicted_fixes` 甚至没列这个任务，说明通用规则可以跨任务生效。
+- **db-wal-recovery（iter 2）**：种子 1/2；失败 rollout 用缓存 stdout 重建 WAL、按 $\mathrm{value}=\mathrm{id}\times100$ 猜缺失行、用 `json length == 11` 自检。iter 1 的 chg-1 是 68 行 prompt append（8 条规则，不含 SQLite/WAL 关键词），其中 4 条在该轨迹上触发，任务 2/2；chg-1 的 `predicted_fixes` 甚至没列这个任务，说明通用规则可以跨任务生效。
 - **path-tracing（iter 4 0/2 → iter 5 2/2）**：失败 rollout 渲染成功后用 `rm -rf` 清理，把交付物删掉，再按 shell 退出码提交。iter 5 的 publish-state guard 在 shell 层拦截删除，任务 2/2。
 - **mcmc-sampling-stan（iter 6）**：连续 5 轮 0/2；失败 rollout 用网格积分当代理、把真实 MCMC 放后台又杀掉、只检查文件存在。iter 6 的 publish-state guard 保护 `analysis.R`，middleware 注入"代理验证/浅验证"提醒，任务 2/2。
 - **configure-git-webserver（iter 8）**：iter 7 时 0/2；失败 rollout 用 `ALLOW_POST_SUCCESS_RESET` 覆盖令牌删掉 `hello.html`、清空 git ref，外部 verifier 收到 404。iter 8 把两类 reset 升级为硬阻塞，并让 middleware 的提醒在下一轮模型上下文中以 FRAMEWORK reminder 出现，任务和 git-multibranch 一起翻转。
@@ -289,7 +289,7 @@ return H_best
 读者应注意的（本笔记判断）：
 
 - **只有一次 campaign**（10 轮）；原文未报告多 seed 或置信区间；Table 1 与 Figure 1 的"提升"是单次轨迹。
-- **Table 1 的分母没有交代**：若按 Table 4 的 `k=2`，Easy 4 题只可能出现 12.5% 的整数倍，ACE 的 91.7% 无法由 8 次 binary rollout 得到；Hard 的 48.9%/55.6% 也不是 1/60 的整数倍。原文说 `k` 随实验变化，但 Table 1 没有写该表的 `k`、分母或是否多次运行取平均，读者无法从表值还原。
+- **Table 1 的分母没有交代**：若按 Table 4 的 $k=2$，Easy 4 题只可能出现 12.5% 的整数倍，ACE 的 91.7% 无法由 8 次 binary rollout 得到；Hard 的 48.9%/55.6% 也不是 1/60 的整数倍。原文说 $k$ 随实验变化，但 Table 1 没有写该表的 $k$、分母或是否多次运行取平均，读者无法从表值还原。
 - **Table 2 的 500 与 7 个 repo 的 460 不一致**，见下节复算。
 - **跨 benchmark 的聚合提升只有 +0.4 pp**，且三个小 repo 回退；摘要的 "highest aggregate success" 虽为真，但不足以支撑"稳定迁移"的强结论。
 - **组件非可加**意味着"把 AHE 的组件搬到别的 harness"不一定按单项增益线性叠加；作者自己把 interaction-aware evolution 留给未来工作。
@@ -305,7 +305,7 @@ return H_best
 3. **"three alternate model families" 与五个 base**：摘要说三个跨厂商模型族，§4.3/Figure 3 实际有五个 alternate base（另两个是 GPT-5.4 medium/xhigh 的同族档位）；+5.1 到 +10.1 pp 只覆盖三个跨厂商 base，全部五个是 +2.3 到 +10.1 pp。而且 §4.3 自身也同时出现 "three alternate base models" 与 "five alternate bases listed in §4.1"，不只是摘要与正文不一致。
 4. **"marginally trails Codex" 的幅度**：Hard 上 AHE 53.3% vs Codex 56.7%（也低于 TF-GRPO 55.6%），差 **3.4 pp**；"marginally" 是作者的措辞，表格给出的差距不算小（相对 Codex 约 −6%）。
 5. **regression precision 的两种口径**：§4.4.2 写跨轮平均 11.8%，附录 D 写累计 P=11.6%（5/43）；一个是"轮均"，一个是"累计计数"，不是矛盾，但正文没有说明这两个口径。
-6. **Table 1 的分母未说明**（见"局限"）：Easy 4 题、ACE 91.7% 与 `k=2` 无法同时成立；Table 1 也没有写 `k`。附录 A 还写 "The rollout count k varies across experiments; each table states it explicitly"，但 Table 1 并未写 `k`。这影响对每个 tier 数字的复现，不一定是计算错误。
+6. **Table 1 的分母未说明**（见"局限"）：Easy 4 题、ACE 91.7% 与 $k=2$ 无法同时成立；Table 1 也没有写 $k$。附录 A 还写 "The rollout count k varies across experiments; each table states it explicitly"，但 Table 1 并未写 $k$。这影响对每个 tier 数字的复现，不一定是计算错误。
 
 ---
 
@@ -314,7 +314,7 @@ return H_best
 - 原文 PDF：`https://arxiv.org/pdf/2604.25850v4`，1,432,986 B、35 页、sha256 见来源信息；`%%EOF` 与 gs 页数确认完整，未使用镜像。
 - 表格：Table 1 p.6、Table 2 p.7、Table 3 p.8、Table 4 p.16、Table 5 p.17，均在 250–300 dpi 渲染页上逐格核对；Table 5 的 Succ/Mtok 按 `pass@1×10^3/Tokens k` 逐项复算。
 - 公式/算法：Algorithm 1 在 p.5 逐行核对；pass@1 与 Succ/Mtok 的定义在附录 A（p.15–17）核对。
-- 图：Figure 1（p.2）用 PDF 矢量坐标读出 best-so-far：网格线 `y=230.46↔68`、`205.48↔70`、`180.5↔72`、`155.52↔74`、`130.54↔76`、`105.56↔78`、`80.58↔80`（24.98 pt / 2 分）；best-so-far 折线 y=209.7→69.7、153.5→74.16、146.5→74.72、132.5→75.84、118.4→76.97。Figure 2（p.4）裁剪框 `(104,73,508,279)`；Figure 1 裁剪框 `(116,72.6,493,258)`。
+- 图：Figure 1（p.2）用 PDF 矢量坐标读出 best-so-far：网格线 $y=230.46\leftrightarrow 68$、$205.48\leftrightarrow 70$、$180.5\leftrightarrow 72$、$155.52\leftrightarrow 74$、$130.54\leftrightarrow 76$、$105.56\leftrightarrow 78$、$80.58\leftrightarrow 80$（24.98 pt / 2 分）；best-so-far 折线 y=209.7→69.7、153.5→74.16、146.5→74.72、132.5→75.84、118.4→76.97。Figure 2（p.4）裁剪框 `(104,73,508,279)`；Figure 1 裁剪框 `(116,72.6,493,258)`。
 - 复算：Table 2 的 7 个 repo N 合计 460、加权 pass@1 76.3%、All 差额反推 40 题均值 67.2%；Table 3 单项增益 +5.6/+3.3/+2.2/−2.3 与和 +11.1；Table 5 All 1.64/1.43/1.27/1.10。
-- 否定性/一致性检索：`500`、`seven repositories`、`repositories`、`k=`、`rollouts per task`；其中 `k` 在 Table 4 明确为 2，但 Table 1 未给。
+- 否定性/一致性检索：`500`、`seven repositories`、`repositories`、$k=$、`rollouts per task`；其中 $k$ 在 Table 4 明确为 2，但 Table 1 未给。
 - 代码：GitHub API 核对仓库存在性、MIT 许可、默认分支 `main`、创建/推送时间与顶层目录；未运行代码，未验证 84.7% 的复现。

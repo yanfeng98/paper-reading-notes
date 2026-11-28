@@ -21,8 +21,8 @@
 
 - 原文 PDF：24 页，5,097,920 B，sha256 `801a3a12aca529978cd8c80042177f8c4787f8067b034f50f5cc713dcf0356ba`（`https://arxiv.org/pdf/2610.22791v1`；alphaXiv 镜像 `https://pdfs.assets.alphaxiv.org/2610.22791v1.pdf` 为同一文件、sha 一致；官方下载耗时约 10 分钟，下载字节数与 `Content-Length` 一致且文件尾为 `%%EOF`）。
 - 同版本 HTML：540,423 B，与响应 `Content-Length` 一致，含全部 A–E 附录。PDF 只用于页码、版式与图表，不混用不同版本。
-- 表格：Table 1 p5、Table 2/3 p6、Table 4 p17、Table 5 p18 在 200 dpi 渲染页逐格核对（Table 1/2/3/5 全文转写，Table 4 只摘录部分行）；Table 1 的 `Avg.` 列按三列算术平均复算一致（如 Self-HPO `(69.5+59.7+65.2)/3 = 64.8`）。文中所有「本笔记复算」的差值均按对应表值计算，不与原文数字混写。
-- 配图裁剪框（pt，页面坐标，300 dpi）：Figure 2 p3 `(100, 72, 512, 240)`；Figure 3 p6 `(100, 72, 512, 204)`；Figure 4 p7 `(100, 72, 512, 200)`；Figure 8 p20 `(100, 72, 512, 345)`。成品尺寸分别为 1718×700、1718×550、1718×534、1718×1138；四张均回看确认四边为白、无黑边/越界，并按元素清单点名：Figure 2 的 H/P 两步、两个面板内的模块与箭头、左右两条循环箭头；Figure 3 的三个面板、图例、纵轴标题与 Base–H1–P1–H2–P2 刻度；Figure 4 的 (a)(b)(c) 三个面板、图例、`+6.1/+17.2/+12.9/−2.2` 标注与 `k=1..8` 轴；Figure 8 的标题、`+/-` diff 行、四条 check 注释与结尾 `raise`。
+- 表格：Table 1 p5、Table 2/3 p6、Table 4 p17、Table 5 p18 在 200 dpi 渲染页逐格核对（Table 1/2/3/5 全文转写，Table 4 只摘录部分行）；Table 1 的 `Avg.` 列按三列算术平均复算一致（如 Self-HPO $(69.5+59.7+65.2)/3=64.8$）。文中所有「本笔记复算」的差值均按对应表值计算，不与原文数字混写。
+- 配图裁剪框（pt，页面坐标，300 dpi）：Figure 2 p3 `(100, 72, 512, 240)`；Figure 3 p6 `(100, 72, 512, 204)`；Figure 4 p7 `(100, 72, 512, 200)`；Figure 8 p20 `(100, 72, 512, 345)`。成品尺寸分别为 1718×700、1718×550、1718×534、1718×1138；四张均回看确认四边为白、无黑边/越界，并按元素清单点名：Figure 2 的 H/P 两步、两个面板内的模块与箭头、左右两条循环箭头；Figure 3 的三个面板、图例、纵轴标题与 Base–H1–P1–H2–P2 刻度；Figure 4 的 (a)(b)(c) 三个面板、图例、`+6.1/+17.2/+12.9/−2.2` 标注与 $k=1..8$ 轴；Figure 8 的标题、`+/-` diff 行、四条 check 注释与结尾 `raise`。
 - 否定性检索（v1 PDF 全文）：`limitation` 0 次、`future work` 0 次、`cost` 0 次、`latency` 0 次、`held-out`/`heldout` 0 次；`token` 只出现在原文 Eq (2) 段的 token positions / token probabilities 与附录 D 的 maximum tokens。即：**没有局限章节、没有成本/时延数字、没有 harness 选择的 held-out 门控**。
 - 仓库侧：`harnesses/seed/agent.py` 只有一行，直接从 `minisweagent.run.benchmarks.swebench` 导入 `ProgressTrackingAgent`；`harnesses/hpo/agent.py` 233 行，常量 `MARGIN=30`、`RESCUE_STEP_MARGIN=15`、`RESCUE_TIME_SECONDS=150.0`、`FB_WORKDIR="/testbed"`；`harnesses/self-hpo/agent.py` 256 行，实现 `Full Files Auditor`、`Decorator Reminder`、`PR Intent Reminder` 并在首次提交时 `return []` 挂起一次。**这是仓库实现，不是论文 Algorithm 1 的逐步描述。**
 
@@ -93,21 +93,21 @@ Table 5（p18）用四个维度对比了同类方法，论文自己的归纳是�
 
 ### 问题形式化
 
-给定任务 `x`、policy `P`、harness `H`，轨迹 `τ` 从 `π_{H,P}(·|x)` 采样，可执行 verifier 给出 `y(x,τ) ∈ {0,1}`。harness–policy 组合的优劣定义为训练集上的期望 resolve rate（原文 Eq (1)）：
+给定任务 `x`、policy $P$、harness $H$，轨迹 $\tau$ 从 $\pi_{H,P}(\cdot |x)$ 采样，可执行 verifier 给出 $y(x,\tau)\in\{0,1\}$。harness–policy 组合的优劣定义为训练集上的期望 resolve rate（原文 Eq (1)）：
 
 ```math
 J(H,P)=\mathbb{E}_{x\sim\mathcal{D}}\,\mathbb{E}_{\tau\sim\pi_{H,P}(\cdot\mid x)}\left[y(x,\tau)\right]
 ```
 
-白话：同一个任务分布上，一套 harness 加一个 policy 平均能解出多少比例；`H` 变、`P` 变，这个期望都变。
+白话：同一个任务分布上，一套 harness 加一个 policy 平均能解出多少比例；$H$ 变、$P$ 变，这个期望都变。
 
 ### 整体循环（Algorithm 1，p4）
 
-输入是 seed harness `H_0`、base policy `P_0`、训练集 `D`、每轮 harness 候选预算 `K`；初始化一个随机搜索集 `S_0 ⊂ D`。每轮：
+输入是 seed harness $H_{0}$、base policy $P_{0}$、训练集 $D$、每轮 harness 候选预算 $K$；初始化一个随机搜索集 $S_{0} \subset D$。每轮：
 
-1. **H-step**：冻结 `P_t`，在 `S_t` 上评估当前 `(H_t, P_t)`，得到分数 `v_0`、轨迹 `T_0` 和经验池 `E`；然后做 `K` 次「提议–评估」——第 `k` 个候选 `H_t^k` 由 `ProposeHarness(H_{t+1}, P_t, E)` 生成，在**同一个** `S_t` 上评估，把结果并入 `E`，保留分数最高的作为 `H_{t+1}`。
-2. **P-step**：冻结 `H_{t+1}`，在 `D` 上跑 RL，把 `P_t` 更新成 `P_{t+1}`，同时留下训练轨迹 `T_RL`。
-3. **换搜索集**：`S_{t+1} = SelectHardTasks(T_RL)`，即这一轮 P-step 中**任何 rollout 都没解出**的任务。
+1. **H-step**：冻结 $P_{t}$，在 $S_{t}$ 上评估当前 $(H_{t}, P_{t})$，得到分数 $v_{0}$、轨迹 $T_{0}$ 和经验池 $E$；然后做 $K$ 次「提议–评估」——第 $k$ 个候选 $H_{t}^{k}$ 由 $\operatorname{ProposeHarness}(H_{t+1}, P_{t}, E)$ 生成，在**同一个** $S_{t}$ 上评估，把结果并入 $E$，保留分数最高的作为 $H_{t+1}$。
+2. **P-step**：冻结 $H_{t+1}$，在 $D$ 上跑 RL，把 $P_{t}$ 更新成 $P_{t+1}$，同时留下训练轨迹 $T_{\mathrm{RL}}$。
+3. **换搜索集**：$S_{t+1} = \operatorname{SelectHardTasks}(T_{\mathrm{RL}})$，即这一轮 P-step 中**任何 rollout 都没解出**的任务。
 4. 直到 hard-task 集合在轮间稳定（原文的停止准则）。
 
 ![Figure 2：Self-HPO 的 H-step 与 P-step](assets/figure2-overview.png)
@@ -118,7 +118,7 @@ J(H,P)=\mathbb{E}_{x\sim\mathcal{D}}\,\mathbb{E}_{\tau\sim\pi_{H,P}(\cdot\mid x)
 
 这一节的几个细节决定了它和「让强模型随便改 prompt」的区别（§2.2，p3；Appendix D，p18–21）：
 
-- **self-proposer 同时是 solver**：H-step 里的 `P_t` 既在搜索集上解题，也负责读失败轨迹、写新 harness。没有额外的 proposer 模型。
+- **self-proposer 同时是 solver**：H-step 里的 $P_{t}$ 既在搜索集上解题，也负责读失败轨迹、写新 harness。没有额外的 proposer 模型。
 - **proposer 看什么**：它是一个有 shell 权限的 coding agent，能读父 harness、搜索集上的轨迹、**搜索集任务的 reference fix**、此前候选的输出，以及本次搜索中更早 proposal 留下的笔记（Figure 7，p19）。
 - **诊断口径**：提示词里给了四类可计算的失败信号——coverage gap（reference fix 需要的文件 vs agent 实际碰过的文件）、precision gap（文件都改对了但修法错）、submission loss（轨迹里有真实改动，但最终提交的 patch 为空或格式坏）、reference-fix archetype 与 agent 产出的类型差异（多文件、签名变更、新 import、guard、错误处理等）。
 - **约束**：候选必须**逐字保留父 harness 的每个方法**，只加**一个**新机制；policy、采样配置（temperature/top-p 0.95）、step limit、max tokens、verifier 全部冻结；**绝不能把 reference patch 或任务事实注入 agent 的上下文**——机制必须在运行时自己算信号。
@@ -129,22 +129,22 @@ J(H,P)=\mathbb{E}_{x\sim\mathcal{D}}\,\mathbb{E}_{\tau\sim\pi_{H,P}(\cdot\mid x)
 
 ### 演化搜索集：让 harness 追着 policy 的失败跑
 
-- `S_0` 从 `D` 均匀抽 300 个任务（Appendix A，p16）。
-- 之后每一轮的 `S_{t+1}` 由上一轮 P-step 的轨迹决定：**在该轮所有 rollout 中都没被解出的任务**算 hard。下一轮 H-step 用更新后的 harness–policy 在这些任务上重新跑轨迹，拿到「新鲜的」失败证据（§2.2，p3–4）。
+- $S_{0}$ 从 $D$ 均匀抽 300 个任务（Appendix A，p16）。
+- 之后每一轮的 $S_{t+1}$ 由上一轮 P-step 的轨迹决定：**在该轮所有 rollout 中都没被解出的任务**算 hard。下一轮 H-step 用更新后的 harness–policy 在这些任务上重新跑轨迹，拿到「新鲜的」失败证据（§2.2，p3–4）。
 - 这样 harness 搜索不会一直围着初始那 300 个任务转；policy 每更新一次，搜索目标就换一批。
 
 这是论文相对 fixed search set 的核心差异，也是 Table 2 在 HPO（外部 proposer）设定下单独消融的组件之一（另一类是 P-step 的 RL/SFT/RFT，见下文）。
 
 ### P-step：在选定的 harness 下做 RL
 
-P-step 从 `P_t` 出发，在 `D` 上采 on-policy 轨迹，用可执行 verifier 给二元结果奖励，优化器是 **GRPO + Balanced Adaptive Rollout（BAR）**（§2.3，p4；Appendix A，p16）。BAR 来自 Orchard（Peng et al., 2026），作用是：当一组 rollout 全成功或全失败时，组内奖励没有对比、GRPO 拿不到梯度；BAR 会**额外采样**，凑出一个成功比例在 0.25–0.75 之间的「奖励平衡组」。
+P-step 从 $P_{t}$ 出发，在 $D$ 上采 on-policy 轨迹，用可执行 verifier 给二元结果奖励，优化器是 **GRPO + Balanced Adaptive Rollout（BAR）**（§2.3，p4；Appendix A，p16）。BAR 来自 Orchard（Peng et al., 2026），作用是：当一组 rollout 全成功或全失败时，组内奖励没有对比、GRPO 拿不到梯度；BAR 会**额外采样**，凑出一个成功比例在 0.25–0.75 之间的「奖励平衡组」。
 
 具体配置（Appendix A，p16）：
 
 - 每任务先采 8 条 rollout，选 4 条组成一个平衡组；继续采样直到有 32 个组通过过滤，得到每 batch 128 条训练轨迹；
 - 每 batch 训练 1 个 epoch，global batch 128，对应一次 optimizer update；
 - Adam，恒定学习率 `1e-6`，weight decay `0.01`，entropy coefficient `1e-4`，**无 KL penalty**；rollout temperature 0.95、top-p 0.95；
-- 裁剪阈值 `ε_low = 0.2`、`ε_high = 0.28`。
+- 裁剪阈值 $\varepsilon_{\mathrm{low}} = 0.2$、$\varepsilon_{\mathrm{high}} = 0.28$。
 
 裁剪目标写作（原文 Eq (2)）：
 
@@ -152,13 +152,13 @@ P-step 从 `P_t` 出发，在 `D` 上采 on-policy 轨迹，用可执行 verifie
 \mathcal{L}_{P}(\theta)=-\mathbb{E}_{i}\left[\frac{1}{|\mathcal{A}(\tau_i)|}\sum_{u\in\mathcal{A}(\tau_i)}\min\left(\rho_{i,u}(\theta)\hat{A}_i,\ \operatorname{clip}\left(\rho_{i,u}(\theta),1-\varepsilon_{\mathrm{low}},1+\varepsilon_{\mathrm{high}}\right)\hat{A}_i\right)\right]
 ```
 
-白话：只在 assistant 生成的 token 位置 `A(τ_i)` 上算策略梯度，`ρ` 是新旧策略的 token 概率比，`Â_i` 是组内相对优势；比率超出 `[0.8, 1.28]` 的部分被裁掉，避免一次更新把策略拉得太远。
+白话：只在 assistant 生成的 token 位置 $A(\tau_{i})$ 上算策略梯度，$\rho$ 是新旧策略的 token 概率比，$\hat{A}_{i}$ 是组内相对优势；比率超出 `[0.8, 1.28]` 的部分被裁掉，避免一次更新把策略拉得太远。
 
 注意：**GRPO 与 BAR 都是既有组件**，这篇的贡献是「H-step 与 P-step 怎么交替、搜索集怎么随 policy 演化」，不是新的 RL 算法。
 
 ### 两种实例化：Self-HPO 与 HPO
 
-- **Self-HPO**：H-step 的 proposer 就是当前 policy `P_t`；不需要外部模型。
+- **Self-HPO**：H-step 的 proposer 就是当前 policy $P_{t}$；不需要外部模型。
 - **HPO**：同一个循环，但 proposer 固定为 **Opus 4.8**，policy 仍然做 RL。论文把它当作「外部监督」的参照点（§2.1，p3；Table 1 Setting 1）。
 
 两者的关系容易被误读：**HPO 是框架名，Self-HPO 是它的自提议实例**；`Table 1` 里 HPO（外部）排在 Self-HPO 前面，且 HPO 的数字更高（71.6 vs 69.5）。论文的标题与摘要主推 Self-HPO，但「外部 proposer 更强」这件事本身也被实验确认了。
@@ -176,7 +176,7 @@ P-step 从 `P_t` 出发，在 `D` 上采 on-policy 轨迹，用可执行 verifie
 - **policy**：Qwen3.5-35B-A3B（Table 4 记总参数 35B、激活 3B；模型名中的 `A3B` 即激活 3B）。
 - **seed harness**：mini-SWE-agent 的 ReAct loop；模型在任务专属 sandbox 里执行 bash 命令，用固定提交命令结束（Appendix D，p18）。
 - **训练数据**：2,484 个任务，来自 SWE-rebench、SWE-rebench V2、Scale-SWE；harness 搜索与 policy 优化共用这份数据（§3.1，p4）。
-- **两个 round**：每轮 6 个 harness 候选（`K=6`），每个 P-step 50 次 RL update（§3.1，p4；Appendix A，p16）。
+- **两个 round**：每轮 6 个 harness 候选（$K=6$），每个 P-step 50 次 RL update（§3.1，p4；Appendix A，p16）。
 - **评测**：SWE-Bench Verified（500 题，主 benchmark）、SWE-Bench Multilingual（300 题，9 种非 Python 语言）、SWE-Bench Pro 的 public V2 集（642 题）。指标是 resolve rate；主结果 `avg@3`，报三次运行的标准差（§3.1，p4–5）。
 - **评测配置**：step limit 250，temperature/top-p 0.95；sandbox/API 错误导致失败的尝试会重跑，分母仍是该 benchmark 的全部任务（Appendix B，p16）。
 
@@ -231,7 +231,7 @@ P-step 从 `P_t` 出发，在 `D` 上采 on-policy 轨迹，用可执行 verifie
 三条结论（§3.3，p6）：
 
 1. **RL 比 SFT/RFT 更适合 P-step**：SFT 换成 Opus 轨迹监督掉 4.4 分；RFT（只用 policy 自己成功轨迹做 rejection sampling）掉 1.1 分。即使都用「成功轨迹」，RL 仍更好。
-2. **演化搜索集有用**：固定初始搜索集掉 1.5 分。这是最干净的一条消融——其他变量都没动，只把 `S_t` 换回 `S_0`。
+2. **演化搜索集有用**：固定初始搜索集掉 1.5 分。这是最干净的一条消融——其他变量都没动，只把 $S_{t}$ 换回 $S_{0}$。
 3. **self-proposer 有代价但可接受**：换成当前 policy 掉 2.1 分，但仍高于两个 self-improving 单侧 baseline（Table 1）。
 
 要注意的是：**这三条消融都在 HPO（外部 proposer）设定下做**，不是在 Self-HPO 上；「w/ Self-proposer」这一行同时换了 proposer、harness 轨迹和后续 policy，是两次完整运行的对比，不是固定其他变量只换 proposer 的受控消融。论文的措辞是「configuration」，读者不应把它当成单变量因果效应。
@@ -260,8 +260,8 @@ P-step 从 `P_t` 出发，在 `D` 上采 on-policy 轨迹，用可执行 verifie
 
 *Figure 4（p7）：(a) 每任务 8 次尝试的 pass@k；(b) 按 Base 成功率分组的 pass@1 变化；(c) RLVR 与 Self-HPO 最后一个 P-step 的零成功组比例。*
 
-- **pass@k**：Self-HPO 在 `k=1..8` 的每个点都高于 Base；pass@8 从 80.0% 到 84.8%（+4.8；阴影为 95% bootstrap CI，Appendix B p17）。说明增益不只是「把已经会的东西做得更稳」，也确实把一部分原本完全解不出的任务推过了线。
-- **按难度分组的 pass@1**：Hard（Base 成功率 `p=0`）+6.1、Medium（`0<p≤0.5`）+17.2、Easy（`0.5<p<1`）+12.9、**Resolved（`p=1`）−2.2**。前三个是可靠性/前沿的提升，最后一个是**回退**：Base 每次都解出的任务，Self-HPO 反而略降。论文明确写了这一点，但没有解释原因，也没有按任务类型拆解这 2.2 分。
+- **pass@k**：Self-HPO 在 $k=1..8$ 的每个点都高于 Base；pass@8 从 80.0% 到 84.8%（+4.8；阴影为 95% bootstrap CI，Appendix B p17）。说明增益不只是「把已经会的东西做得更稳」，也确实把一部分原本完全解不出的任务推过了线。
+- **按难度分组的 pass@1**：Hard（Base 成功率 $p=0$）+6.1、Medium（$0<p\le 0.5$）+17.2、Easy（$0.5<p<1$）+12.9、**Resolved（$p=1$）−2.2**。前三个是可靠性/前沿的提升，最后一个是**回退**：Base 每次都解出的任务，Self-HPO 反而略降。论文明确写了这一点，但没有解释原因，也没有按任务类型拆解这 2.2 分。
 - **零成功组**：在最后一个 Self-HPO P-step 里，零成功组比例在最后十次更新降到 6.5%（原文 p7 明写；图中端点也约 6.5%）；RLVR 在最后 50 次更新大多在 11%–17%。零成功组对 GRPO 没有组内对比、给不出梯度。注意 RLVR 与 Self-HPO 使用相同的 GRPO+BAR 配置（Appendix A，p16），所以两组的差异应归给优化后的 policy/harness，而不是 BAR 本身；Figure 4(c) 只画了**一个** P-step 的轨迹，阴影带的含义原文未说明，也没有跨轮比较。
 
 ### 与前沿模型的摆位（Table 4，p17）
@@ -321,8 +321,8 @@ Table 4 把 Self-HPO 放到 SWE-Bench Verified leaderboard 旁边：Gemini 3 Fla
 
 ### 计算与成本（论文缺位，本笔记按协议估算）
 
-- P-step：2 轮 × 50 updates = 100 次 optimizer update；每次 128 条训练轨迹，**至少约 1.28 万条轨迹**（`128×100`，本笔记按原文协议估算）；BAR 为凑满 32 个有效组会额外采样，实际 rollout 数更高。
-- H-step：第一轮 `S_0=300` 题，当前 harness 先评估 300 次，6 个候选再各跑 300 次，**至少 2,100 次 rollout**（每候选每任务跑一次）；第二轮搜索集是 hard tasks，**原文没有给 `|S_1|` 的大小**，所以第二轮成本无法估算。加上 proposer 作为 coding agent 的 shell 交互与读轨迹，H-step 的 token 成本没有报告。
+- P-step：2 轮 × 50 updates = 100 次 optimizer update；每次 128 条训练轨迹，**至少约 1.28 万条轨迹**（$128\times100$，本笔记按原文协议估算）；BAR 为凑满 32 个有效组会额外采样，实际 rollout 数更高。
+- H-step：第一轮 $S_{0}=300$ 题，当前 harness 先评估 300 次，6 个候选再各跑 300 次，**至少 2,100 次 rollout**（每候选每任务跑一次）；第二轮搜索集是 hard tasks，**原文没有给 $|S_{1}|$ 的大小**，所以第二轮成本无法估算。加上 proposer 作为 coding agent 的 shell 交互与读轨迹，H-step 的 token 成本没有报告。
 - 硬件：一个节点 8×B200，SGLang 服务；RL 与 SFT 用 slime（Appendix A，p16）。**没有 wall-clock、GPU-hours、token 数或 Opus API 费用**。
 
 对想做同类系统的团队，这意味着：论文能告诉你「这样交替有效」，但不能直接用来做预算；H-step 的搜索集大小、候选数、每候选重复次数都是需要自己扫的设计变量。
@@ -330,8 +330,8 @@ Table 4 把 Self-HPO 放到 SWE-Bench Verified leaderboard 旁边：Gemini 3 Fla
 ### 失败模式
 
 - **搜索集选择噪声**：每个候选在搜索集上只跑一次、二值结果；300 题时 1 题 = 0.33 个百分点，选中的 harness 可能只是运气好。论文没有重复评估候选，也没有 held-out 门控。
-- **搜索集过拟合**：H-step 直接在 `S_t` 上选最好，而 `S_t` 又是训练集 `D` 的子集；没有像 Self-Harness 那样的 held-in/held-out 回归门。对 benchmark 的泛化靠的是「训练集与测试集不同」，不是「harness 选择有留出」。
-- **hard task 里混入不可解任务**：`S_{t+1}` 的定义是「从未解出」，既包括 harness 可修的失败，也包括模型/任务本身无解的失败；论文没有区分，也没有报告 hard set 的规模与可修比例。
+- **搜索集过拟合**：H-step 直接在 $S_{t}$ 上选最好，而 $S_{t}$ 又是训练集 $D$ 的子集；没有像 Self-Harness 那样的 held-in/held-out 回归门。对 benchmark 的泛化靠的是「训练集与测试集不同」，不是「harness 选择有留出」。
+- **hard task 里混入不可解任务**：$S_{t+1}$ 的定义是「从未解出」，既包括 harness 可修的失败，也包括模型/任务本身无解的失败；论文没有区分，也没有报告 hard set 的规模与可修比例。
 - **启发式误报**：如 Appendix E 的 PR Intent Reminder；误报的代价是浪费一次模型回合，通常可恢复，但在 step budget 紧时可能反而伤害。
 - **SFT 的 OOD 回退**：2 个 epoch 的 SFT 在 Multi/Pro 低于 Base；论文没有分析是过拟合、数据分布还是训练不足，不能外推成「SFT 不适合 OOD」。
 
@@ -361,7 +361,7 @@ Table 4 把 Self-HPO 放到 SWE-Bench Verified leaderboard 旁边：Gemini 3 Fla
 - **单模型、单 seed harness、两轮**：所有结论都来自 Qwen3.5-35B-A3B + mini-SWE-agent；没有第二个模型、第二个 harness 家族、也没有第三轮之后的曲线。标题里的 "recursive" 在实验上只走到 P2。
 - **没有 harness 选择的方差/重复**：每个候选在搜索集上跑一次，选最好；没有重复评估、没有置信区间、没有 seed 方差。Table 1 的 `avg@3` 是最终评测的重复，不是搜索过程的重复。
 - **没有 held-out 门控**：与 Self-Harness 的 held-in/held-out acceptance gate 相比，Self-HPO 直接在小规模搜索集上选，过拟合风险没有被测量。
-- **没有成本/时延/token**：无法判断「+2.0 分（vs RLVR）」值多少算力；H-step 的 `|S_1|`、proposer 调用次数、Opus 费用都缺。
+- **没有成本/时延/token**：无法判断「+2.0 分（vs RLVR）」值多少算力；H-step 的 $|S_{1}|$、proposer 调用次数、Opus 费用都缺。
 - **数据污染未讨论**：训练集来自 SWE-rebench / SWE-rebench V2 / Scale-SWE，benchmark 是 SWE-Bench Verified/Multi/Pro；论文没有说明是否做了去重或污染检查，OOD 增益应保留这一不确定性。
 - **baseline 适配细节缺失**：论文把 Self-Harness 与 Meta-Harness 分别放在与其 proposer 类型匹配的 Setting 2（self-improving）与 Setting 1（external Opus 4.8）下，并给了相同搜索预算，但没有说明具体适配方式；不能排除 baseline 被弱化的可能。
 - **HF checkpoint 未验证**：本机 2026-11-20/21 多次尝试均无法访问 `huggingface.co`；仓库 README 声称发布两个 checkpoint，但本次只核到 GitHub 代码与 README，未核到权重可下载、可加载。

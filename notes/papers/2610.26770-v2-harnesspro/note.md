@@ -15,15 +15,15 @@
 | 阅读范围 | v2 全文 41 页：正文 §1–6（p1–10）、References（p10–12）、附录 A–C（p13–23）逐页读取（含关键 listing）；附录 D（p23–41，演化后 harness 产物清单）读了 D 的结构、D.1 的 medium/lite/heavy policy 与 rubric 关键段、D.2/D.3 的产物结构与示例，未逐行核对全部 listing。**已渲染页核对**：Table 1（p3）、Table 2（p8）、Table 3（p9）、Table 4（p14）逐格；公式 (1)（p3）、(2)–(9)（p5–6）、(10)–(12)（p13）逐符号；Algorithm 1（p5）逐行；Figure 1（p4，当前 v2 副本）、Figure 2/3（p6）、Figure 4（p9）看图核对。**未做像素测量**：Figure 4 的读数只引用 §5.4 正文给出的数值，未从坐标轴取数。**Figure 1 已作为配图转载**（当前 v2 副本完整；2026-10-25 旧副本的缺陷见「核对凭据」） |
 | 配图 | `assets/figure1-overview.png`（当前 v2 p4 渲染页裁剪，300 dpi）、`assets/figure3-recursion.png`（v2 p6 渲染页裁剪，400 dpi）、`assets/figure4-evolution.png`（v2 p9 渲染页裁剪，400 dpi）；裁剪框与边缘/像素差检查见「核对凭据」。许可见上，引用请注明出处 |
 | 归档说明 | arXiv 来源，按仓库策略不归档 PDF；清单编号 00218（编号单元格暂指 arXiv 官方页，归档到上游后改指 PDF） |
-| 复核记录 | 2026-10-26 按 check-paper-note 复核：基准为当前 arXiv v2（41 页，sha `c633082a…`；2026-10-25 首次阅读副本 `ce88e54a…` 的 p4 Figure 1 不完整，当前副本完整）。逐项核对 Table 1–4、公式 (1)/(7)/(8)/(9)、§5.2–5.5 数字、Figure 1–4、README 00218 行、代码/许可；另由独立子 agent 做三轮只读审计。修正：Figure 1 版本判断与配图（补 `figure1-overview.png`）、v2 sha、假阳性/precision 表述、v1/v2 单位名与作者标记（Z.AI Co., Ltd.→Z.AI；Kuaishou–Kuaishou Technology→Kling AI；补充共同一作/通讯作者标记）、3 处引用定位、2 个文件名与少量口径措辞；另补充 ProgramBench 固定 high-effort profile、C.1 input token 数、演化成本枚举中的验证集评估；第三轮修正 planner/editor 归属、heavy vs Vanilla 概括、`H_i^t` 记号、lite 延迟与 Balance 限定、harness 产物表归属，并补 medium vs RHO+Iteration 与 GLM 对比、引文补 task、Eq (8) 零分母边界说明。未发现实验数字/公式/结论错误。未修项：§5.1「3 次运行」的语义原文未说明，保留为待确认问题 |
+| 复核记录 | 2026-10-26 按 check-paper-note 复核：基准为当前 arXiv v2（41 页，sha `c633082a…`；2026-10-25 首次阅读副本 `ce88e54a…` 的 p4 Figure 1 不完整，当前副本完整）。逐项核对 Table 1–4、公式 (1)/(7)/(8)/(9)、§5.2–5.5 数字、Figure 1–4、README 00218 行、代码/许可；另由独立子 agent 做三轮只读审计。修正：Figure 1 版本判断与配图（补 `figure1-overview.png`）、v2 sha、假阳性/precision 表述、v1/v2 单位名与作者标记（Z.AI Co., Ltd.→Z.AI；Kuaishou–Kuaishou Technology→Kling AI；补充共同一作/通讯作者标记）、3 处引用定位、2 个文件名与少量口径措辞；另补充 ProgramBench 固定 high-effort profile、C.1 input token 数、演化成本枚举中的验证集评估；第三轮修正 planner/editor 归属、heavy vs Vanilla 概括、$H_{i}^{t}$ 记号、lite 延迟与 Balance 限定、harness 产物表归属，并补 medium vs RHO+Iteration 与 GLM 对比、引文补 task、Eq (8) 零分母边界说明。未发现实验数字/公式/结论错误。未修项：§5.1「3 次运行」的语义原文未说明，保留为待确认问题 |
 
 **核对凭据（当前 v2 基准可复现）**
 
 - v2 PDF（2026-10-25 使用的副本）：41 页，sha256 `ce88e54a2c4c8353094db6481fc28f22f1db6adbdea00560dfe8ff11eb8a46a9`（当时从 `https://arxiv.org/pdf/2610.26770v2` 获取；生成方式/为何与当前 v2 不同未确认；2026-10-26 同一 URL 已返回 `c633...`，旧副本无法再从该 URL 重取；本次临时文件已清理）；其 p4 Figure 1 在 PDF 内容流中不完整（panel 2/3 主体为空）。
 - v2 PDF（2026-10-26 复核基准）：41 页，sha256 `c633082abff0c6cd4fa3d63f21e689c34f92369068ee0ed13c74be0f2f54b093`（2026-10-26 从同一 URL 重取得到的当前版本；本次临时文件已清理）；p4 Figure 1 完整。两版除 p4 外逐页文本一致，Table 2 关键数字一致。
 - v1 PDF：41 页，sha256 `da167e436b2f2c2b5898789d27c22820b92ccb922a8d420e51c341227d9c8676`（重取：`curl -sL https://arxiv.org/pdf/2610.26770v1 -o v1.pdf`；本次临时文件已清理；重取一致）。v1↔当前 v2 逐页文本 diff：仅 p1–p6 有排版位移与上述单位/作者标记变化，实验数字一致；p4 的 Figure 1 两版都完整。
-- 渲染核对：`pymupdf` 以 220 dpi 渲染 p3/p6/p8/p9/p14，逐格读 Table 2/3 与公式；Table 4 在 p14。公式 (10)–(12) 在 p13，DPP 参数 `ε=0.1`、`θ=0.7`、`k=10`。
-- Figure 3 裁剪框：p6，clip `(343, 486, 507, 616)` pt，400 dpi，成品 912×723；Figure 4 裁剪框：p9，clip `(105, 80, 507, 199)` pt，400 dpi，成品 2234×662。两张均回看确认：无黑边、无越界、无截断；元素清单——Figure 3 的 `H_0^0`、Epoch 1/2/3、Filtering and Selection、Lite/Medium/Heavy、Output 全部在框内；Figure 4 的三面板、坐标轴标签、图例、`Epoch 1/2/3/4` 与 `(a)–(c)` 面板标题全部在框内。另用第二次独立打开 PDF 的同区域渲染做像素差比对：两张的 diff bbox 均为空，边缘 2 px 内的近黑像素数均为 0。
+- 渲染核对：`pymupdf` 以 220 dpi 渲染 p3/p6/p8/p9/p14，逐格读 Table 2/3 与公式；Table 4 在 p14。公式 (10)–(12) 在 p13，DPP 参数 $\varepsilon=0.1$、$\theta=0.7$、$k=10$。
+- Figure 3 裁剪框：p6，clip `(343, 486, 507, 616)` pt，400 dpi，成品 912×723；Figure 4 裁剪框：p9，clip `(105, 80, 507, 199)` pt，400 dpi，成品 2234×662。两张均回看确认：无黑边、无越界、无截断；元素清单——Figure 3 的 $H_{0}^{0}$、Epoch 1/2/3、Filtering and Selection、Lite/Medium/Heavy、Output 全部在框内；Figure 4 的三面板、坐标轴标签、图例、`Epoch 1/2/3/4` 与 `(a)–(c)` 面板标题全部在框内。另用第二次独立打开 PDF 的同区域渲染做像素差比对：两张的 diff bbox 均为空，边缘 2 px 内的近黑像素数均为 0。
 - Figure 1 版本核验：2026-10-25 旧副本 p4 的 Form XObject（xref 2386）内容流为 `q /fzFrm0 Do Q` 后接浅紫矩形与 5 个 `fzFrm*` 贴片；其 `fullpage` 流（xref 2506，54,404 B）只含 panel 1 元素与三个 panel 标题（x≈619、x≈897），panel 2/3 主体为空。2026-10-26 当前 v2 副本 p4 的 Figure 1 完整（文本层含 `Trajectory analyzer`、`Diagnosis records`、`Evolution planner`、`Harness editor`、`Test synthesizer`、`Harness Filtering`、`Mode selection` 等；`fullpage` 流 241,912 B），本笔记配图取自当前副本。Figure 1 裁剪框：p4，clip `(105, 80, 507, 220)` pt，300 dpi，成品 1676×584；回看确认三 panel、标题、图例、底部 `Representative Pareto frontier candidates` 全在框内；边缘 2 px 近黑像素 0；第二次独立渲染的像素差 bbox 为空。
 - 否定性检索：v2 全文检索 `RRSI`、`Regularized Recursive`、`HarnessDev`、`Prime Agent`、`Dream` 均为 0 次；`HarnessX` 在 §2 与 References 中出现；RHO 是主 baseline。仓库 README 与 arXiv 的编号/标题/年份/单位已交叉核对。
 - 代码仓库 API 值：`created_at 2026-09-24T08:50:03Z`、`pushed_at 2026-10-19T16:20:23Z`、`stargazers_count 84`、`license MIT`、`default_branch main`；README 自述的 quickstart 依赖 Linux、Python 3.12/3.13、`uv`、Docker Compose、Codex CLI 0.147.0。
@@ -50,7 +50,7 @@
 
 ### Harness 与递归自改进
 
-论文把 harness 定义为管理基础模型与环境交互的软件运行时层，包含 prompts、tools/skills、context/memory 机制、hooks、verification policies（§3）。给定任务 `x`，harness `h` 执行后得到轨迹 `τ_h(x)`，记录工具调用、环境反馈与最终产物。递归自改进（RSI）用过去任务的轨迹诊断问题，再改 harness，让未来任务做得更好（§1、§3）。
+论文把 harness 定义为管理基础模型与环境交互的软件运行时层，包含 prompts、tools/skills、context/memory 机制、hooks、verification policies（§3）。给定任务 `x`，harness $h$ 执行后得到轨迹 $\tau_{h}(x)$，记录工具调用、环境反馈与最终产物。递归自改进（RSI）用过去任务的轨迹诊断问题，再改 harness，让未来任务做得更好（§1、§3）。
 
 已有工作沿着这条线推进：AFlow 搜索模型调用算子的图；SkillMOO 优化 skills 并同时考虑成本；RHO 用 LLM 自偏好做 label-free 的 harness 演化；AHE 做可追踪的 harness 编辑（§2）。Table 1（p3）把它们的定位总结为：
 
@@ -88,8 +88,8 @@ Figure 2（p6）给出一个初步实验：在 Terminal-Bench 2 与 SWE-Bench Pr
 ### 4.1 总览：一轮演化做什么
 
 1. **选训练 coreset**：用 DPP（Determinantal Point Process）核从训练任务里选 10 个任务，兼顾难度与多样性；coreset 在演化前选一次，之后固定（§4.1、§A.1）。
-2. **维护候选集**：第 `t` 轮候选集为 `A_t`，初始只有 seed harness `h_0`。
-3. **并行 rollout**：每个候选在每个训练任务上独立跑 `G=3` 次，得到轨迹与指标向量（pass、cost、latency）（§4.2；`G=3` 见 §5.1）。
+2. **维护候选集**：第 $t$ 轮候选集为 $A_{t}$，初始只有 seed harness $h_{0}$。
+3. **并行 rollout**：每个候选在每个训练任务上独立跑 $G=3$ 次，得到轨迹与指标向量（pass、cost、latency）（§4.2；$G=3$ 见 §5.1）。
 4. **轨迹诊断**：trajectory analyzer 联合看这 3 条轨迹，输出问题、影响、来源与证据（轨迹文件路径 + 事件区间）；跨任务聚合；超过 64K token 时摘要（§4.2）。
 5. **计划与编辑**：planner 按三种不同偏好各出一份计划（省成本 / 平衡 / 保性能），editor 在独立 workspace 里实现，并把结果 commit 到 Git；每个父候选产生 3 个新候选（§4.2）。
 6. **评估与选择**：在验证集上用固定的生成测试评估「父候选 + 新候选」，先按初始 harness 的 pass rate 设 floor、再做 Pareto 过滤，最后按归一化加权平方距离选出 lite/medium/heavy 三个代表，进入下一轮（§4.3）。
@@ -117,7 +117,7 @@ flowchart LR
 
 ### 4.2 三个 agent 加一个 test synthesizer
 
-**Trajectory analyzer**：对每个候选 `h` 与任务 `x`，联合分析 `G` 条独立 rollout，而不是只看一条；输出 `z(h, x)`，包含识别出的 problem、对 performance/cost 的影响、来源与证据（轨迹摘要或片段、轨迹文件路径、相关事件范围）。跨任务聚合为 `z(h)`；超过 64K token 会摘要（§4.2、Eq. 2）。
+**Trajectory analyzer**：对每个候选 $h$ 与任务 `x`，联合分析 $G$ 条独立 rollout，而不是只看一条；输出 `z(h, x)`，包含识别出的 problem、对 performance/cost 的影响、来源与证据（轨迹摘要或片段、轨迹文件路径、相关事件范围）。跨任务聚合为 `z(h)`；超过 64K token 会摘要（§4.2、Eq. 2）。
 
 **Evolution planner**：对每个候选出三份计划，分别由三条 instruction 引导（§4.2、§B）：
 
@@ -125,15 +125,15 @@ flowchart LR
 - `I2`：平衡可靠性与成本；要求「改进 trade-off，而不是把另外两个方向平均一下」。
 - `I3`：优先提升任务成功，同时继续消除可避免开销；把额外计算投到能解决真实失败的地方。
 
-planner 能看到诊断、指标、以及候选之间的代码 diff（`Diff(h_i, h_k)`），但默认不给完整轨迹；需要时可凭诊断里的文件路径去查。验证集与测试集对 planner 隐藏，以避免 benchmark leakage（§4.2）。
+planner 能看到诊断、指标、以及候选之间的代码 diff（$\operatorname{Diff}(h_{i}, h_{k})$），但默认不给完整轨迹；需要时可凭诊断里的文件路径去查。验证集与测试集对 planner 隐藏，以避免 benchmark leakage（§4.2）。
 
 **Harness editor**：按计划在独立 workspace 修改候选，产出可执行的新 harness，并 commit 到 Git 以便追踪/回滚；每个父候选的 3 份计划对应 3 个新候选（§4.2、Eq. 3–5）。
 
-**Test synthesizer**：对每个训练/验证任务 `x`，从任务描述与初始轨迹 `τ_{h_0}(x)` 生成测试 `S(x)`，并在整个演化过程中固定（§4.3、Eq. 6）。实现上是一个 Codex invocation：写 10 个可执行测试用例，用冻结的 Empty 产物做执行诊断，再自审；输出 `test_generated.py`、`case_manifest.json`、`coverage.json`、`repair-log.json`、`self-review.json`；通过一个 MCP 工具在 fresh Empty container 里运行，工具只返回执行诊断，不返回官方测试/grader/标签（§C.3、Listings 4–6）。
+**Test synthesizer**：对每个训练/验证任务 `x`，从任务描述与初始轨迹 $\tau_{h_0}(x)$ 生成测试 `S(x)`，并在整个演化过程中固定（§4.3、Eq. 6）。实现上是一个 Codex invocation：写 10 个可执行测试用例，用冻结的 Empty 产物做执行诊断，再自审；输出 `test_generated.py`、`case_manifest.json`、`coverage.json`、`repair-log.json`、`self-review.json`；通过一个 MCP 工具在 fresh Empty container 里运行，工具只返回执行诊断，不返回官方测试/grader/标签（§C.3、Listings 4–6）。
 
 ### 4.3 过滤与选择
 
-每轮在验证集上评估候选，得到 `PR_val(h)`、`C_val(h)`、`L_val(h)`。先丢掉低于初始 harness 验证 pass rate 的候选，再丢掉被其他候选 Pareto 支配的候选，得到 `Ã_{t+1}`（§4.3、Eq. 7）。然后对每个候选算两个归一化偏差：离最高 pass rate 多远、离最低成本多远（Eq. 8）；每个模式用一组权重 `(α_m, β_m)` 算加权平方距离 `J_m(h)`，选 `J_m` 最小的候选（Eq. 9）。权重固定为：lite `(1, 2)`、medium `(1, 1)`、heavy `(2, 1)`（§A.2）。每轮最多保留 3 个 harness；若过滤后不足 3 个不同 harness，实际保留更少（Figure 3 脚注 2，并见 Figure 4）。
+每轮在验证集上评估候选，得到 $PR_{\mathrm{val}}(h)$、$C_{\mathrm{val}}(h)$、$L_{\mathrm{val}}(h)$。先丢掉低于初始 harness 验证 pass rate 的候选，再丢掉被其他候选 Pareto 支配的候选，得到 $\tilde{A}_{t+1}$（§4.3、Eq. 7）。然后对每个候选算两个归一化偏差：离最高 pass rate 多远、离最低成本多远（Eq. 8）；每个模式用一组权重 $(\alpha_{m}, \beta_{m})$ 算加权平方距离 $J_{m}(h)$，选 $J_{m}$ 最小的候选（Eq. 9）。权重固定为：lite `(1, 2)`、medium `(1, 1)`、heavy `(2, 1)`（§A.2）。每轮最多保留 3 个 harness；若过滤后不足 3 个不同 harness，实际保留更少（Figure 3 脚注 2，并见 Figure 4）。
 
 ### 贡献与证据边界
 
@@ -165,7 +165,7 @@ planner 能看到诊断、指标、以及候选之间的代码 diff（`Diff(h_i,
 \quad \text{s.t.}\quad \mathrm{PR}(h)\ge \mathrm{PR}(h_0).
 ```
 
-**白话读法**：同时希望 pass rate 高、每任务成本低；但任何候选的 pass rate 不能低于初始 harness `h_0`。这是一个带约束的双目标问题，作者不返回单个最优解，而是找 Pareto 前沿上的三个代表点（§3、Eq. 1）。
+**白话读法**：同时希望 pass rate 高、每任务成本低；但任何候选的 pass rate 不能低于初始 harness $h_{0}$。这是一个带约束的双目标问题，作者不返回单个最优解，而是找 Pareto 前沿上的三个代表点（§3、Eq. 1）。
 
 ### Pareto 过滤
 
@@ -176,7 +176,7 @@ planner 能看到诊断、指标、以及候选之间的代码 diff（`Diff(h_i,
 \ \wedge\ \nexists h'\in\tilde{\mathcal{C}}_t:\ h'\prec h\right\}.
 ```
 
-**白话读法**：先把验证 pass rate 低于初始 harness 的候选删掉；再删掉「被别的候选支配」的候选——所谓 `h' ≺ h`，就是 `h'` 在 pass rate 与成本两项上都不比 `h` 差，且至少一项更好。剩下的 `Ã_{t+1}` 才是可选的 Pareto 候选（§4.3、Eq. 7）。
+**白话读法**：先把验证 pass rate 低于初始 harness 的候选删掉；再删掉「被别的候选支配」的候选——所谓 `h' ≺ h`，就是 `h'` 在 pass rate 与成本两项上都不比 $h$ 差，且至少一项更好。剩下的 $\tilde{A}_{t+1}$ 才是可选的 Pareto 候选（§4.3、Eq. 7）。
 
 ### 归一化加权平方距离选择
 
@@ -192,9 +192,9 @@ J_m(h)=\alpha_m\,d_{\mathrm{perf}}(h)^2+\beta_m\,d_{\mathrm{cost}}(h)^2,
 h^{t+1}_m=\arg\min_{h\in\tilde{\mathcal{A}}_{t+1}} J_m(h).
 ```
 
-**白话读法**：`P_max/P_min` 与 `C_max/C_min` 是当前过滤后候选池里 pass rate 与成本的最大/最小值；两个偏差都归一化到 0 到 1。`J_m` 是加权平方距离，权重决定这个模式更在乎性能还是成本：lite 用 `(1, 2)`（成本权重更大），medium 用 `(1, 1)`，heavy 用 `(2, 1)`（性能权重更大）。每个模式独立选 `J_m` 最小的候选（§4.3、Eq. 8–9、§A.2）。
+**白话读法**：`P_max/P_min` 与 `C_max/C_min` 是当前过滤后候选池里 pass rate 与成本的最大/最小值；两个偏差都归一化到 0 到 1。$J_{m}$ 是加权平方距离，权重决定这个模式更在乎性能还是成本：lite 用 `(1, 2)`（成本权重更大），medium 用 `(1, 1)`，heavy 用 `(2, 1)`（性能权重更大）。每个模式独立选 $J_{m}$ 最小的候选（§4.3、Eq. 8–9、§A.2）。
 
-**一个直觉上的注意点**：归一化用的是**当前候选池的极值**，所以同一个 harness 在不同候选池里的 `J_m` 会变；这套选择是「在当轮候选里选代表」，不是给 harness 打一个绝对分。论文没有讨论候选池变化对选择稳定性的影响（见「局限」）。另外，如果过滤后候选池的 pass rate 或成本全部相同（`P_max=P_min` 或 `C_max=C_min`），归一化分母为 0，论文没有讨论这种 tie-breaking。
+**一个直觉上的注意点**：归一化用的是**当前候选池的极值**，所以同一个 harness 在不同候选池里的 $J_{m}$ 会变；这套选择是「在当轮候选里选代表」，不是给 harness 打一个绝对分。论文没有讨论候选池变化对选择稳定性的影响（见「局限」）。另外，如果过滤后候选池的 pass rate 或成本全部相同（$P_\max=P_\min$ 或 $C_\max=C_\min$），归一化分母为 0，论文没有讨论这种 tie-breaking。
 
 ---
 
@@ -204,7 +204,7 @@ h^{t+1}_m=\arg\min_{h\in\tilde{\mathcal{A}}_{t+1}} J_m(h).
 
 - **Benchmark 与留出**：Terminal-Bench 2（留出 59 个任务）、SWE-Bench Pro（100）、ProgramBench（100）；其余任务里用 DPP 选 10 个作为训练 coreset，剩下的是验证集（§5.1、§A.1）。
 - **Backbone / agent**：GPT-5.5 × Codex 0.147.0；GLM-5.2 × Claude Code 2.1.231（§5.1）。
-- **演化预算**：每个候选在每个训练任务上 `G=3` 次 rollout；Terminal-Bench 2 与 SWE-Bench Pro 跑 3 个 epoch，ProgramBench 跑 4 个；每轮最多保留 3 个 harness（§5.1）。
+- **演化预算**：每个候选在每个训练任务上 $G=3$ 次 rollout；Terminal-Bench 2 与 SWE-Bench Pro 跑 3 个 epoch，ProgramBench 跑 4 个；每轮最多保留 3 个 harness（§5.1）。
 - **Baseline**：Vanilla（原始 Codex/Claude Code harness）、Dynamic Cheatsheet、ReasoningBank、Sleep-time Compute、RHO；另外两个 RHO 变体用来分离「成本感知」与「递归」的贡献：`Balance`（只改 RHO 的优化指令，要求以更低成本取得更好或不降的任务性能）与 `RHO+Iteration`（Balance 跑同样多轮，每轮用 RHO 的 best-of-N 选一个继续）（§5.1）。
 - **指标**：pass rate（Terminal-Bench 2 / SWE-Bench Pro 要求全部官方测试通过；ProgramBench 按官方协议取每个任务测试通过比例的宏平均）、每任务平均成本（美元）、平均执行时间（秒）；延迟是辅助指标，因为会受服务器负载/网络影响（§3、§5.1）。
 - **重复次数**：Terminal-Bench 2 与 SWE-Bench Pro 报 3 次运行的 mean ± sample std，ProgramBench 报 2 次（§5.1）。论文没有明确说明这 3 次是「独立重新演化 3 次」还是「同一批冻结 harness 重复测试 3 次」；Figure 4 的题注写的是 "Final-epoch points show means across repeated test runs"，更接近后者。这个歧义会影响 std 的解释（见「局限」）。
@@ -228,7 +228,7 @@ h^{t+1}_m=\arg\min_{h\in\tilde{\mathcal{A}}_{t+1}} J_m(h).
 把六行放在一起看：
 
 - **heavy 在两种 backbone、三个 benchmark 上都比 RHO 的 pass rate 高、成本低**；pass rate 增益最小的是 GPT-5.5 的 SWE-Bench Pro（+0.7 pp），最大的是 Terminal-Bench 2（+4.5 pp）；成本降幅最小的是 GLM-5.2 的 ProgramBench（−12.1%），最大的是 GLM-5.2 的 SWE-Bench Pro（−53.5%）。
-- **摘要的 +2.0 pp / −26.1% 是 GPT-5.5 三行的算术平均**：pass rate 差 `(4.5+0.7+0.8)/3 = 2.0`；相对成本降幅 `(33.9+26.5+17.8)/3 = 26.1`（本笔记复算，取一位小数）。GLM-5.2 的对应均值是 `(3.4+2.3+1.1)/3 ≈ 2.3 pp` 与 `(38.0+53.5+12.1)/3 ≈ 34.5%`（本笔记复算），摘要没有给这两个数。
+- **摘要的 +2.0 pp / −26.1% 是 GPT-5.5 三行的算术平均**：pass rate 差 $(4.5+0.7+0.8)/3=2.0$；相对成本降幅 $(33.9+26.5+17.8)/3=26.1$（本笔记复算，取一位小数）。GLM-5.2 的对应均值是 $(3.4+2.3+1.1)/3\approx2.3\ \mathrm{pp}$ 与 $(38.0+53.5+12.1)/3\approx34.5\%$（本笔记复算），摘要没有给这两个数。
 - **medium / lite 的定位**：GPT-5.5 下 medium 在 Terminal-Bench 2 与 RHO 打平（76.3%），成本 0.56 对 1.09（−48.6%）；在 SWE-Bench Pro 是 79.0% 对 80.0%（低 1.0 pp），成本 1.26 对 2.68（−53.0%）；ProgramBench 67.9% 对 68.8%（低 0.9 pp），成本 2.90 对 3.59（−19.2%）。GPT-5.5 的 lite 在三个 benchmark 上都高于 Vanilla 的 pass rate，成本分别比 Vanilla 低 51.7%、57.4%、17.7%（本笔记复算）。GLM-5.2 下 medium/lite 的 pass rate 也都高于 Vanilla；lite 三项成本都更低，medium 在 ProgramBench 的成本高于 Vanilla（13.74 对 11.34），TB2/SWE 更低（本笔记核对 Table 2）。
 - **与 RHO+Iteration 比**：GPT-5.5 下 RHO+Iteration 在 Terminal-Bench 2 是 76.3% / 0.82 / 328；heavy 是 80.8% / 0.72 / 310（+4.5 pp、−12.2% 成本），medium 与它打平（76.3%），成本 0.56 对 0.82（−31.7%）。SWE-Bench Pro 是 80.0% / 1.90 / 375 对 heavy 80.7% / 1.97 / 333（+0.7 pp，但成本高 3.7%）；ProgramBench 是 68.3% / 3.13 / 789 对 heavy 69.6% / 2.95 / 888（+1.3 pp、−5.8% 成本）。所以 heavy 并非在每一项上都比 RHO+Iteration 便宜；medium 在 Terminal-Bench 2 上则以更低成本打平。
 - **延迟**：heavy 相对 RHO 在六个组合上都是更低（例如 GLM-5.2 的 SWE-Bench Pro 从 520 秒降到 412 秒）；但 GPT-5.5 的 lite 在 ProgramBench 是 985 秒对 RHO 的 928 秒（更慢），GLM-5.2 的 lite 则是 3907 秒对 6434 秒（更快）。论文的措辞是 "in most cases"（§5.2），不是全部。
@@ -258,7 +258,7 @@ Figure 4（p9）把三个 benchmark 的逐 epoch 点画在「成本-性能」平
 
 ![Figure 3: 递归 harness 更新、过滤与选择示意（v2 p6）](assets/figure3-recursion.png)
 
-*Figure 3（原文 p6）：每一轮从候选集里过滤并选出 lite/medium/heavy，三个被选中的 harness 再进入下一轮；图中 `H_i^t` 的上标是轮次、下标是候选编号（如 `H_1^2` 表示第 2 轮的候选 1）。裁剪自 v2 PDF，许可见来源信息。*
+*Figure 3（原文 p6）：每一轮从候选集里过滤并选出 lite/medium/heavy，三个被选中的 harness 再进入下一轮；图中 $H_{i}^{t}$ 的上标是轮次、下标是候选编号（如 $H_{1}^{2}$ 表示第 2 轮的候选 1）。裁剪自 v2 PDF，许可见来源信息。*
 
 ![Figure 4: HarnessPro 在三个 benchmark 上的演化动态（v2 p9）](assets/figure4-evolution.png)
 
@@ -327,7 +327,7 @@ Table 3（p9）用 GPT-5.5 × Codex 做消融，报告 pass rate、每任务成�
 3. **「3 次运行」的含义不清**：§5.1 说 Terminal-Bench 2 / SWE-Bench Pro 的 mean±std 来自 3 次运行，ProgramBench 来自 2 次；Figure 4 题注说最终点是 "means across repeated test runs"。如果只是同一批冻结 harness 重复测试，std 反映的是测试噪声，不是演化过程本身的方差；如果是独立重新演化，论文应该说明每次演化是否用不同随机种子/不同 coreset。这个歧义影响对结果稳健性的判断。
 4. **只覆盖 2 个 backbone × 3 个 benchmark**：GPT-5.5 × Codex 与 GLM-5.2 × Claude Code，任务类型是 terminal、repository-level SWE、program reconstruction。对更弱的模型、非代码 agent、长程交互或工具生态不同的场景，成本-性能前沿可能不同；论文没有做跨模型规模的 scaling 分析。
 5. **没有与同类 harness RSI 方法做完整实证对比**：Table 1 把 AFlow、SkillMOO、RHO、AHE 放在一起做定位比较，但实验里主要 baseline 是 RHO 及其变体；AFlow/SkillMOO/AHE 没有在同样三个 benchmark 上跑。因此「比同类方法好」的证据主要是相对 RHO，而不是相对所有同类。
-6. **超参与选择规则的敏感性没有消融**：coreset 大小 `k=10`、`G=3`、epoch 数（3/4）、每轮最多保留 3 个、权重 `(1,2)/(1,1)/(2,1)`、DPP 的 `ε=0.1`/`θ=0.7` 都是固定的；论文没有报告这些选择对结果的影响。归一化选择依赖当前候选池的极值，换候选池可能改变代表点；也没有讨论权重是否需要按部署预算重新调。
+6. **超参与选择规则的敏感性没有消融**：coreset 大小 $k=10$、$G=3$、epoch 数（3/4）、每轮最多保留 3 个、权重 `(1,2)/(1,1)/(2,1)`、DPP 的 $\varepsilon=0.1$/$\theta=0.7$ 都是固定的；论文没有报告这些选择对结果的影响。归一化选择依赖当前候选池的极值，换候选池可能改变代表点；也没有讨论权重是否需要按部署预算重新调。
 7. **成本是 token 价格，不是总算力/总时长**：成本按公开 API 价格换算，计入 cached/uncached token 用量，但未单独分析缓存命中率变化、并行/重试或基础设施费用对结果的影响；延迟是 wall-clock 且受负载影响。不同 provider/部署方式下的「成本」可能不同。
 8. **代码仓库的可复现性未验证**：仓库结构、MIT 许可、harness 产物与脚本都在，但本笔记没有实际跑通；README 的 "Paper (coming soon)" 徽章也说明仓库自述状态可能滞后。复现前需要确认 evolution pipeline（analyzer/planner/editor/test synthesizer）是否完整开源，而不只是冻结的 harness 产物。
 
@@ -336,7 +336,7 @@ Table 3（p9）用 GPT-5.5 × Codex 做消融，报告 pass rate、每任务成�
 - 3 次运行是独立重新演化，还是同一批 harness 的重复测试？如果是后者，演化方差有多大？
 - 演化一次的总成本（rollout + agent 调用 + 测试合成）是多少？与单轮 RHO 相比如何？
 - 生成测试的 precision/假阳性、跨任务覆盖率、以及候选对固定测试的过拟合程度，能否给出更多数据？
-- 如果把 `k`、`G`、epoch 数、权重或 coreset 选择方法换掉，Pareto 前沿会怎么移动？
+- 如果把 $k$、$G$、epoch 数、权重或 coreset 选择方法换掉，Pareto 前沿会怎么移动？
 - 在非代码任务或更弱模型上，这套方法是否仍然有效？
 
 ---

@@ -27,7 +27,7 @@
 - Table 5 的 Long Code Arena Commit 反例基线从 GDN-H 改为 MLA（32.7 vs 33.2，2 处）。
 - Table 9 的 RULER@128k 行 Moonlight 值从 66.9 改为「—（超过 8K 未评）」；66.9 属 MMLU-Redux，并加注防错配。
 - Figure 4 的 2048 token 结论改为「Palindrome/MQAR 下降、Stack 上 KDA/GDN 仍为 100」；Mamba2 的失败点改为 Palindrome/MQAR 512、Stack 1024。
-- Figure 3 图注的共享专家数改为 `N_s`（本文 `N_s=1`）。
+- Figure 3 图注的共享专家数改为 $N_{s}$（本文 $N_{s}=1$）。
 - Figure 2 的 64K 读数补充「约 1.6×」，与原文 nearly 2× up to 64k 的措辞并列。
 - KV cache 25% 明确为相对 full-MLA 基线；成本 crossover 的「token/head」改为「T ≈ 496 token」。
 - 专家数口径改为：total/activated 下 256/8=32 自洽，但「8 含 1 共享」意味着路由 7 个。
@@ -40,10 +40,10 @@
 
 ## 核心结论
 
-一句话：**Kimi Linear 把 Gated DeltaNet 的标量遗忘门换成逐通道门（KDA），用受限 DPLR（把 `a`、`b` 都绑到 `k` 上）加 UT 变换把它做成可分块并行的核；再按 3:1 交错 KDA 与 NoPE 的 MLA，在同配方、同 1.4T token 的对照里多数基准超过全注意力基线（作者称「首次」），并把 1M 上下文相对 full-MLA 基线的 KV cache 按层数比例降到约四分之一、解码吞吐在更大 batch 下最高提到 6.3×。**
+一句话：**Kimi Linear 把 Gated DeltaNet 的标量遗忘门换成逐通道门（KDA），用受限 DPLR（把 $a$、$b$ 都绑到 $k$ 上）加 UT 变换把它做成可分块并行的核；再按 3:1 交错 KDA 与 NoPE 的 MLA，在同配方、同 1.4T token 的对照里多数基准超过全注意力基线（作者称「首次」），并把 1M 上下文相对 full-MLA 基线的 KV cache 按层数比例降到约四分之一、解码吞吐在更大 batch 下最高提到 6.3×。**
 
-- **KDA（§2.2、§3）**：在 delta rule 的 rank-1 修正前加一个逐通道的对角遗忘门 `Diag(α_t)`，`α` 有 `d_k` 个分量而不是一个标量；作者把这一改动解释为「更细粒度的权重衰减」，并用合成任务说明它比 GDN 收敛更快、比 Mamba2 更能记住历史。
-- **分块并行（§3.1、§6.2）**：把递推展开成块内/块间两部分，用 WY 表示与 UT 变换把 rank-1 更新压成稠密矩阵乘；转移矩阵写成 DPLR 的受限形式（把 `a`、`b` 绑到 `k` 上），使二级分块矩阵计算从 4 个减到 2 个，并再省掉约 3 个矩阵乘。作者称算子效率约提升 100%，原文称核在 64K 以内近 2×（图上 16K–32K 约 2×，64K 约 1.6×，图内读数）。
+- **KDA（§2.2、§3）**：在 delta rule 的 rank-1 修正前加一个逐通道的对角遗忘门 $\operatorname{Diag}(\alpha_{t})$，$\alpha$ 有 $d_{k}$ 个分量而不是一个标量；作者把这一改动解释为「更细粒度的权重衰减」，并用合成任务说明它比 GDN 收敛更快、比 Mamba2 更能记住历史。
+- **分块并行（§3.1、§6.2）**：把递推展开成块内/块间两部分，用 WY 表示与 UT 变换把 rank-1 更新压成稠密矩阵乘；转移矩阵写成 DPLR 的受限形式（把 $a$、$b$ 绑到 $k$ 上），使二级分块矩阵计算从 4 个减到 2 个，并再省掉约 3 个矩阵乘。作者称算子效率约提升 100%，原文称核在 64K 以内近 2×（图上 16K–32K 约 2×，64K 约 1.6×，图内读数）。
 - **架构（§4、§5.2）**：骨干沿用 Moonlight，48B 总参数 / 3B 激活，256 专家中激活 8 个（作者写法是「含 1 个共享专家」），首层为 dense；每 3 层 KDA 接 1 层 MLA，所有 MLA 用 NoPE，位置与近因信息交给 KDA；输出门用低秩 Sigmoid，卷积层保留。
 - **证据（§5）**：主对照是 1.4T token、同骨干同参数量的 MLA / GDN-H / Kimi Linear 三组；Table 3（预训练）14 项中 12 项单独最优、MATH 并列、EvalPlus 落后 GDN-H；Table 4（SFT）12 项中 9 项最优，LiveBench、MATH500、EvalPlus 落后；Table 5（长上下文）平均 54.5，高于 MLA 52.2、GDN-H 51.2、Kimi Linear (RoPE) 51.8。
 - **效率（§5.6、§6.3）**：预填充在 512K / 1M 分别为 2.3× / 2.9×；batch=1 的 TPOT 在 512K / 1M 为 1.8× / 2.2×；6.3× 是 Fig 1b 的数字（1.84 ms vs 11.48 ms，原文归因于 larger batches；摘要/结论称 decoding throughput，Fig 1b 标的是 TPOT），不是 batch=1 的 TPOT。
@@ -60,7 +60,7 @@ softmax 注意力的成本随序列长度二次增长，KV cache 线性增长；
 过去几年缩小差距主要靠两条线：
 
 - **门控/衰减**：从数据无关的标量衰减（RetNet）到数据相关的标量门（Mamba2），再到逐通道对角门（GLA）。门控决定「旧记忆以多快速度被忘掉」，是线性注意力表达力的核心旋钮。
-- **delta rule**：DeltaNet 把状态更新解释成对重构损失 `‖S^⊤k − v‖²` 的在线梯度下降，因而有 rank-1 的「写错就改」修正；GDN 在此基础上加标量遗忘门，相当于对 fast weight 做权重衰减。
+- **delta rule**：DeltaNet 把状态更新解释成对重构损失 $\| S^\top k - v\| ^{2}$ 的在线梯度下降，因而有 rank-1 的「写错就改」修正；GDN 在此基础上加标量遗忘门，相当于对 fast weight 做权重衰减。
 
 Kimi Linear 的出发点很直接：**GDN 的门是每个 head 一个标量，粒度太粗；GLA 有逐通道门但没有 delta rule**。把两者合起来，就是 KDA。
 
@@ -75,7 +75,7 @@ Kimi Linear 的出发点很直接：**GDN 的门是每个 head 一个标量，�
 
 ### 位置编码：让 KDA 承担「位置」，MLA 用 NoPE
 
-RoPE 是当前全注意力的事实标准，但它对 base frequency 敏感，扩上下文时常要调频率或上 YaRN。本文的选择是：**所有 MLA 层用 NoPE，位置与近因信息完全交给 KDA 的衰减门**。理由在 §6.1 展开：门控 delta rule 的转移矩阵是数据相关、可学习的，可以看成一种比 RoPE 更一般的「乘性位置编码」；逐通道的 `α` 又提供了类似 RoPE 逐维频率的细粒度。NoPE 还带来一个工程好处：MLA 在推理时可以转成纯 MQA。
+RoPE 是当前全注意力的事实标准，但它对 base frequency 敏感，扩上下文时常要调频率或上 YaRN。本文的选择是：**所有 MLA 层用 NoPE，位置与近因信息完全交给 KDA 的衰减门**。理由在 §6.1 展开：门控 delta rule 的转移矩阵是数据相关、可学习的，可以看成一种比 RoPE 更一般的「乘性位置编码」；逐通道的 $\alpha$ 又提供了类似 RoPE 逐维频率的细粒度。NoPE 还带来一个工程好处：MLA 在推理时可以转成纯 MQA。
 
 ---
 
@@ -85,10 +85,10 @@ RoPE 是当前全注意力的事实标准，但它对 base frequency 敏感，�
 
 先把三条更新规则排在一起（都用原文符号，省略归一化）：
 
-- 线性注意力：`S_t = S_{t−1} + k_t v_t^⊤`，没有遗忘。
-- DeltaNet：`S_t = (I − β_t k_t k_t^⊤) S_{t−1} + β_t k_t v_t^⊤`，rank-1 修正。
-- GDN：`S_t = α_t (I − β_t k_t k_t^⊤) S_{t−1} + β_t k_t v_t^⊤`，标量门 `α_t`。
-- KDA：把标量 `α_t` 换成 `Diag(α_t)`，并放在 Householder 修正之前：
+- 线性注意力：$S_{t} = S_{t- 1} + k_{t} v_{t}^\top$，没有遗忘。
+- DeltaNet：$S_{t} = (I - \beta_{t} k_{t} k_{t}^\top ) S_{t- 1} + \beta_{t} k_{t} v_{t}^\top$，rank-1 修正。
+- GDN：$S_{t} = \alpha_{t} (I - \beta_{t} k_{t} k_{t}^\top ) S_{t- 1} + \beta_{t} k_{t} v_{t}^\top$，标量门 $\alpha_{t}$。
+- KDA：把标量 $\alpha_{t}$ 换成 $\operatorname{Diag}(\alpha_{t})$，并放在 Householder 修正之前：
 
 ```math
 \mathbf{S}_t = \left(\mathbf{I} - \beta_t \mathbf{k}_t \mathbf{k}_t^\top\right)\operatorname{Diag}(\alpha_t)\mathbf{S}_{t-1} + \beta_t \mathbf{k}_t \mathbf{v}_t^\top,
@@ -96,15 +96,15 @@ RoPE 是当前全注意力的事实标准，但它对 base frequency 敏感，�
 \mathbf{o}_t = \mathbf{S}_t^\top \mathbf{q}_t
 ```
 
-读法：状态先按通道乘一个遗忘系数（每个 key 维度独立衰减），再减去「沿当前 key 方向的分量」（delta rule 的写错修正），最后写入 `β_t k_t v_t^⊤`；输出是状态对 query 的投影。`α` 是 `d_k` 维，`β` 是标量式写入强度。
+读法：状态先按通道乘一个遗忘系数（每个 key 维度独立衰减），再减去「沿当前 key 方向的分量」（delta rule 的写错修正），最后写入 $\beta_{t} k_{t} v_{t}^\top$；输出是状态对 query 的投影。$\alpha$ 是 $d_{k}$ 维，$\beta$ 是标量式写入强度。
 
-**参数化（§4）**：每个 head 的 `q/k` 先过 ShortConv + Swish，再做 L2Norm；`v` 过 ShortConv + Swish；`α` 用低秩投影 `W↑_α W↓_α x_t`（秩等于 head 维）加一个与 GDN/Mamba 类似的衰减函数，落在 `[0,1]^{d_k}`；`β` 用 Sigmoid。输出先做 head-wise RMSNorm，再乘一个低秩 Sigmoid 门，最后过 `W_o`。head 维固定 128，`d_k = d_v = 128`。
+**参数化（§4）**：每个 head 的 `q/k` 先过 ShortConv + Swish，再做 L2Norm；$v$ 过 ShortConv + Swish；$\alpha$ 用低秩投影 $W^{\uparrow}_\alpha W^{\downarrow}_\alpha x_{t}$（秩等于 head 维）加一个与 GDN/Mamba 类似的衰减函数，落在 $[0,1]^{d_k}$；$\beta$ 用 Sigmoid。输出先做 head-wise RMSNorm，再乘一个低秩 Sigmoid 门，最后过 $W_{o}$。head 维固定 128，$d_{k} = d_{v} = 128$。
 
-**为什么逐通道**：作者把 RoPE 的逐维频率与 GDN 的单标量门对比，认为标量门缺少「每个特征维度独立调节遗忘速度」的能力；KDA 的 `Diag(α)` 补上这一维，让有限状态能更精细地保留/丢弃信息。合成任务（§5.1）是这一论点的直接证据：在 palindrome、MQAR、stack 三个任务上，256 token 时三者并列 100，512→2048 token 区间 KDA 保持最高或并列，且比 GDN 收敛更快；Mamba2 只有乘法衰减、没有 delta rule：Palindrome/MQAR 从 512 token 起降到 0，Stack 从 1024 token 起降到 0。
+**为什么逐通道**：作者把 RoPE 的逐维频率与 GDN 的单标量门对比，认为标量门缺少「每个特征维度独立调节遗忘速度」的能力；KDA 的 $\operatorname{Diag}(\alpha)$ 补上这一维，让有限状态能更精细地保留/丢弃信息。合成任务（§5.1）是这一论点的直接证据：在 palindrome、MQAR、stack 三个任务上，256 token 时三者并列 100，512→2048 token 区间 KDA 保持最高或并列，且比 GDN 收敛更快；Mamba2 只有乘法衰减、没有 delta rule：Palindrome/MQAR 从 512 token 起降到 0，Stack 从 1024 token 起降到 0。
 
 ### 2. 分块并行：WY/UT + 受限 DPLR（§3.1、§6.2）
 
-把递推按块长 `C` 展开，块内状态可以写成「前序块状态 × 转移矩阵 + 块内 rank-1 更新之和」。WY 表示把一串 rank-1 更新压成 `P`、`H` 两个矩阵，再用 UT 变换把非矩阵乘的 FLOPs 降下来。记 `γ` 为累计衰减、`Γ` 为按块的累计衰减堆叠、`⊙` 为逐元素乘，则状态更新与输出可以写成：
+把递推按块长 $C$ 展开，块内状态可以写成「前序块状态 × 转移矩阵 + 块内 rank-1 更新之和」。WY 表示把一串 rank-1 更新压成 $P$、$H$ 两个矩阵，再用 UT 变换把非矩阵乘的 FLOPs 降下来。记 $\gamma$ 为累计衰减、$\Gamma$ 为按块的累计衰减堆叠、$\odot$ 为逐元素乘，则状态更新与输出可以写成：
 
 ```math
 \mathbf{S}_{[t+1]} = \operatorname{Diag}\left(\gamma^C_{[t]}\right)\mathbf{S}_{[t]} + \left(\Gamma^{i\to C}_{[t]}\odot \mathbf{K}_{[t]}\right)^\top\left(\mathbf{U}_{[t]} - \mathbf{W}_{[t]}\mathbf{S}_{[t]}\right)
@@ -115,24 +115,24 @@ RoPE 是当前全注意力的事实标准，但它对 base frequency 敏感，�
 + \underbrace{\operatorname{Tril}\left(\left(\Gamma^{1\to C}_{[t]}\odot \mathbf{Q}_{[t]}\right)\left(\mathbf{K}_{[t]}/\Gamma^{1\to C}_{[t]}\right)^\top\right)\left(\mathbf{U}_{[t]} - \mathbf{W}_{[t]}\mathbf{S}_{[t]}\right)}_{\text{intra-chunk}}
 ```
 
-读法：第一项是块间项，用上一块留下的状态 `S_[t]` 做全局交互；第二项是块内项，用带因果掩码的 `QK^⊤` 做块内注意力；`U − W S` 是「伪 value」，把 delta rule 的修正吸收进矩阵乘。`W`、`U` 由 UT 变换得到：先构造下三角矩阵 `M`，用前向替换求逆，再令 `W = M(Γ⊙K)`、`U = MV`（Eq. 6–7）。这样块内大部分计算都是 Tensor Core 友好的矩阵乘，只有求逆是逐行的非矩阵乘。
+读法：第一项是块间项，用上一块留下的状态 $S_{[t]}$ 做全局交互；第二项是块内项，用带因果掩码的 $QK^\top$ 做块内注意力；`U − W S` 是「伪 value」，把 delta rule 的修正吸收进矩阵乘。$W$、$U$ 由 UT 变换得到：先构造下三角矩阵 $M$，用前向替换求逆，再令 $W = M(\Gamma\odot K)$、$U = MV$（Eq. 6–7）。这样块内大部分计算都是 Tensor Core 友好的矩阵乘，只有求逆是逐行的非矩阵乘。
 
-**受限 DPLR（§6.2）**：一般 DPLR 的转移矩阵是 `D − a_t b_t^⊤`。KDA 把它写成同一形式，但令 `D = Diag(α_t)`、`a_t = β_t k_t`、`b_t = k_t ⊙ α_t`——也就是把 `a`、`b` 都绑到 `k` 上：
+**受限 DPLR（§6.2）**：一般 DPLR 的转移矩阵是 $D - a_{t} b_{t}^\top$。KDA 把它写成同一形式，但令 $D = \operatorname{Diag}(\alpha_{t})$、$a_{t} = \beta_{t} k_{t}$、$b_{t} = k_{t} \odot \alpha_{t}$——也就是把 $a$、$b$ 都绑到 $k$ 上：
 
 ```text
 S_t = (D − a_t b_t^⊤) S_{t−1} + k_t v_t^⊤
 D = Diag(α_t),  a_t = β_t k_t,  b_t = k_t ⊙ α_t
 ```
 
-作者称这保留了 DPLR 的细粒度衰减，同时避免一般 DPLR 在分块形式里对 `1/Γ` 的数值敏感与二级分块开销：KDA 把二级分块矩阵计算从 4 个减到 2 个，再省掉约 3 个矩阵乘，算子效率约提升 100%。严格说这是**受限** DPLR，不是一般 DPLR 的完整表达力（§6.2 自己也用 constrained variant 这个说法）。图 2 的 kernel 实测：batch=1、16 heads，16K–32K 约 2×，64K 约 1.6×（原文措辞是 nearly 2× up to 64k；64K 点接近图顶，读数有外推成分）。
+作者称这保留了 DPLR 的细粒度衰减，同时避免一般 DPLR 在分块形式里对 $1/\Gamma$ 的数值敏感与二级分块开销：KDA 把二级分块矩阵计算从 4 个减到 2 个，再省掉约 3 个矩阵乘，算子效率约提升 100%。严格说这是**受限** DPLR，不是一般 DPLR 的完整表达力（§6.2 自己也用 constrained variant 这个说法）。图 2 的 kernel 实测：batch=1、16 heads，16K–32K 约 2×，64K 约 1.6×（原文措辞是 nearly 2× up to 64k；64K 点接近图顶，读数有外推成分）。
 
-**附录与对照表**：Appendix B 用归纳法给出 Prop. 1/2（`P`、`H` 的 WY 形式）的证明；Table 6 把 SA、SA+RoPE、LA、Mamba2、GLA、DeltaNet、FoX、DeltaFormer、PaTH-FoX、GDN、Comba、RWKV7、KDA 的递推/并行形式并列；Table 7 用 TTT 框架对比各机制的目标函数与更新规则。想快速定位 KDA 相对 GDN/GLA/DPLR 的位置，这两张表比正文更直观。
+**附录与对照表**：Appendix B 用归纳法给出 Prop. 1/2（$P$、$H$ 的 WY 形式）的证明；Table 6 把 SA、SA+RoPE、LA、Mamba2、GLA、DeltaNet、FoX、DeltaFormer、PaTH-FoX、GDN、Comba、RWKV7、KDA 的递推/并行形式并列；Table 7 用 TTT 框架对比各机制的目标函数与更新规则。想快速定位 KDA 相对 GDN/GLA/DPLR 的位置，这两张表比正文更直观。
 
 ### 3. 架构：3:1 混合 + NoPE + 低秩输出门（§4、§5.2）
 
 ![Figure 3：Kimi Linear 架构](assets/fig3-architecture.png)
 
-*Figure 3（arXiv:2510.26692v2，CC BY-NC-ND 4.0，由 arXiv HTML 内联 SVG 以 4× 截图，并与 p6 渲染页逐元素对照）：下方 `N×` 块 = KDA + MoE，上方 `1×` 块 = MLA + MoE；`N = 3`。右侧上为 MoE 细节（`N_s` 个共享专家 + `N_r` 个路由专家，Router 打分；本文 `N_s = 1`），右侧下为 KDA 细节（q/k 经 Linear→Conv→L2，v 经 Linear→Conv，α/β 经 σ，输出再乘 Sigmoid 门）。原文顶部/底部的 Outputs/Inputs 标签为白色，白底上不可见；本图保留原文渲染。*
+*Figure 3（arXiv:2510.26692v2，CC BY-NC-ND 4.0，由 arXiv HTML 内联 SVG 以 4× 截图，并与 p6 渲染页逐元素对照）：下方 $N\times$ 块 = KDA + MoE，上方 $1\times$ 块 = MLA + MoE；$N = 3$。右侧上为 MoE 细节（$N_{s}$ 个共享专家 + $N_{r}$ 个路由专家，Router 打分；本文 $N_{s} = 1$），右侧下为 KDA 细节（q/k 经 Linear→Conv→L2，v 经 Linear→Conv，α/β 经 σ，输出再乘 Sigmoid 门）。原文顶部/底部的 Outputs/Inputs 标签为白色，白底上不可见；本图保留原文渲染。*
 
 模型配置（§5.4）：
 
@@ -142,10 +142,10 @@ D = Diag(α_t),  a_t = β_t k_t,  b_t = k_t ⊙ α_t
 | MoE | 256 专家中激活 8 个（原文写「含 1 个共享专家」）；首层 dense，无 MoE |
 | 注意力 | 每 3 层 KDA 接 1 层 MLA（Full MLA） |
 | MLA 位置编码 | 全部 NoPE |
-| KDA head 维 | `d_k = d_v = 128` |
+| KDA head 维 | $d_{k} = d_{v} = 128$ |
 | 对照训练 token | 1.4T（MLA / GDN-H / Kimi Linear 同配方） |
 | 发布 checkpoint | 5.7T token，支持 1M 上下文 |
-| 预训练 | 4,096 上下文；MuonClip；WSD；lr `1.1 × 10^-3`；batch 32M token；K2 语料 |
+| 预训练 | 4,096 上下文；MuonClip；WSD；lr $1.1 \times 10^{-3}$；batch 32M token；K2 语料 |
 | 长上下文 | 沿用 K2 的 annealing 与 long-context activation 阶段 |
 
 **3:1 的消融（Table 1，p8）**：在 16 heads、16 layers 的第一档 scaling 模型上，同 FLOPs、同超参比较训练/验证 PPL（越低越好）：
@@ -163,13 +163,13 @@ D = Diag(α_t),  a_t = β_t k_t,  b_t = k_t ⊙ α_t
 
 读表：3:1 的验证 PPL 最低；7:1 的训练 PPL 与 3:1 持平，但验证更差；1:1 的验证接近 3:1，但推理开销更大；纯 MLA（0:1）最差。输出门用 Sigmoid 的验证 PPL 最低（5.65），换成 Swish 明显更差（5.81）；去掉门只差 0.02（5.67），作者仍保留 Sigmoid。卷积层去掉也会变差（5.70），作者据此保留短卷积。
 
-**NoPE（§4、§6.1）**：所有 MLA 层不加位置编码，位置信息由 KDA 的衰减门承担。作者的理由有三层：① 门控 delta rule 的转移矩阵是数据相关、可学习的，比 RoPE 的正交旋转更一般；② 逐通道 `α` 提供类似 RoPE 逐维频率的细粒度；③ NoPE 让 MLA 在推理时转成纯 MQA，且扩上下文不用调 RoPE base 或上 YaRN。
+**NoPE（§4、§6.1）**：所有 MLA 层不加位置编码，位置信息由 KDA 的衰减门承担。作者的理由有三层：① 门控 delta rule 的转移矩阵是数据相关、可学习的，比 RoPE 的正交旋转更一般；② 逐通道 $\alpha$ 提供类似 RoPE 逐维频率的细粒度；③ NoPE 让 MLA 在推理时转成纯 MQA，且扩上下文不用调 RoPE base 或上 YaRN。
 
-**输出门（§4、Eq. 10）**：`o_t = W_o(Sigmoid(W↑_g W↓_g x_t) ⊙ RMSNorm(KDA(q_t,k_t,v_t,α_t,β_t)))`。低秩参数化是为了与遗忘门做公平参数量对比；作者称它与全秩门性能相当，并能缓解 Attention Sink。
+**输出门（§4、Eq. 10）**：$o_{t} = W_{o}(\operatorname{Sigmoid}(W^{\uparrow}_{g} W^{\downarrow}_{g} x_{t}) \odot \mathrm{RMSNorm}(KDA(q_{t},k_{t},v_{t},\alpha_{t},\beta_{t})))$。低秩参数化是为了与遗忘门做公平参数量对比；作者称它与全秩门性能相当，并能缓解 Attention Sink。
 
 ### 4. 训练配方与 scaling law（§5.3、§5.4）
 
-**预训练（§5.4.1）**：1.4T token 的对照实验用 4,096 上下文、MuonClip、WSD、lr `1.1 × 10^-3`、全局 batch 32M token，数据来自 K2 预训练语料，并沿用 K2 的 annealing 与 long-context activation。发布的 checkpoint 扩到 5.7T token（与 Moonlight 对齐），支持 1M 上下文。
+**预训练（§5.4.1）**：1.4T token 的对照实验用 4,096 上下文、MuonClip、WSD、lr $1.1 \times 10^{-3}$、全局 batch 32M token，数据来自 K2 预训练语料，并沿用 K2 的 annealing 与 long-context activation。发布的 checkpoint 扩到 5.7T token（与 Moonlight 对齐），支持 1M 上下文。
 
 **Scaling law（§5.3）**：5 个 Moonlight 式 MoE 模型，激活参数 653M–1.7B，8/64 专家，Muon，4,096 上下文，训练 token 38.8B–128B（Table 2）。MLA 侧按 Chinchilla 方法对每个规模做超参网格搜索；KDA 侧固定 3:1，其余「严格沿用 MLA 配置，不做修改」。拟合曲线为：
 
@@ -195,7 +195,7 @@ Kimi Linear:  loss = 2.2879 × C^(−0.0527)
 
 ### 2. 合成任务与消融（§5.1、§5.2）
 
-- 合成任务用 2 层、2 heads、head 维 128 的小模型，最多 20,000 步，学习率在 `{5×10^-5, 1×10^-4, 5×10^-4, 1×10^-3}` 中搜；比较 256→2048 token 的峰值准确率，以及 1024 token 固定长度下的收敛速度。
+- 合成任务用 2 层、2 heads、head 维 128 的小模型，最多 20,000 步，学习率在 $\{5\times 10^{-5}, 1\times 10^{-4}, 5\times 10^{-4}, 1\times 10^{-3}\}$ 中搜；比较 256→2048 token 的峰值准确率，以及 1024 token 固定长度下的收敛速度。
 - 结果（Figure 4）：256 token 时三者并列 100；512→2048 token 区间 KDA 在 palindrome、MQAR、stack 三个任务上保持最高或与 GDN 并列，2048 token 时 Palindrome 与 MQAR 上各模型都下降，Stack 上 KDA 与 GDN 仍为 100；各任务上 KDA 都不低于 GDN；Mamba2 在 Palindrome/MQAR 从 512 token 起、在 Stack 从 1024 token 起降到 0（作者归因于它只有乘法衰减、没有 delta rule）。
 - 消融（Table 1）：见上一节的表；3:1、Sigmoid 输出门、短卷积三项都被保留。
 
@@ -266,7 +266,7 @@ Table 4 是同配方 SFT 后的 instruct 模型。原文 12 行，这里保留 9
 - **图注数字（Figure 1a）**：图注称 RULER@128k 有 3.98× 加速，正文没有解释这个数字的口径；它与 Fig 7 的 prefill 2.3×/2.9× 不是同一张图。
 - **解码（Figure 7b，batch=1）**：512K 为 1.8×，1M 为 2.2×；TPOT 曲线在长序列上明显低于 MLA。
 - **更大 batch（Figure 1b）**：1M 上下文、更大 batch 下，作者称 6.3× 更快 TPOT（1.84 ms vs 11.48 ms）。按两值相除为 6.24×（本笔记复算），原文写 6.3×。
-- **内存**：KDA 每 head 的状态固定为 `d_k × d_v = 128 × 128`，不随序列增长；混合模型只有 1/4 层是 MLA、需要 KV cache，因此按层数比例 KV cache 约为 full-MLA 基线的 25%，即最高减少 75%。这是架构比例的理论值，论文没有给实测显存。
+- **内存**：KDA 每 head 的状态固定为 $d_{k} \times d_{v} = 128 \times 128$，不随序列增长；混合模型只有 1/4 层是 MLA、需要 KV cache，因此按层数比例 KV cache 约为 full-MLA 基线的 25%，即最高减少 75%。这是架构比例的理论值，论文没有给实测显存。
 
 ### 7. 5.7T 附录（Appendix D，Table 8/9，p28）
 
@@ -295,11 +295,11 @@ Moonlight-Instruct 超过 8K 的任务未评，所以 RULER@128k 与 @1M 两行�
 
 ## 工程视角
 
-- **两套 kernel**：预填充走分块并行核（chunk kernel，块长 64），解码走循环核（recurrent kernel）。KDA 的状态固定为每 head `128 × 128`，解码时每个 KDA 层只做常数级的状态更新；MLA 层仍然要读随序列增长的 KV cache，所以长序列下解码成本由 1/4 的 MLA 层主导。
+- **两套 kernel**：预填充走分块并行核（chunk kernel，块长 64），解码走循环核（recurrent kernel）。KDA 的状态固定为每 head $128 \times 128$，解码时每个 KDA 层只做常数级的状态更新；MLA 层仍然要读随序列增长的 KV cache，所以长序列下解码成本由 1/4 的 MLA 层主导。
 - **KV cache 与 batch**：混合结构把相对 full-MLA 的 KV cache 压到约 25%，省下的显存可以换更大的 batch。论文的 6.3× 就是这么来的：它不是单条序列的 TPOT 加速，而是「同样的显存能塞更多请求」带来的系统级收益；单条序列、batch=1 时只有 2.2×（1M）。原文在 throughput 与 TPOT 之间混用措辞，见「表述张力」第 1 条。
-- **UT 变换的代价**：块内要对下三角矩阵 `M` 做前向替换求逆，这是逐行的非矩阵乘，无法完全用 Tensor Core；论文用 UT 变换把大部分 rank-1 更新转成矩阵乘，并用二级分块处理 `1/Γ` 的数值稳定性。Listing 1（p27）给了完整的 PyTorch 风格伪代码，是复现时最该先读的部分。
+- **UT 变换的代价**：块内要对下三角矩阵 $M$ 做前向替换求逆，这是逐行的非矩阵乘，无法完全用 Tensor Core；论文用 UT 变换把大部分 rank-1 更新转成矩阵乘，并用二级分块处理 $1/\Gamma$ 的数值稳定性。Listing 1（p27）给了完整的 PyTorch 风格伪代码，是复现时最该先读的部分。
 - **NoPE 的推理红利**：MLA 去掉位置编码后可以在推理时转成纯 MQA，减少 KV 头数；扩上下文也不用重调 RoPE base 或加 YaRN。代价是位置信息完全依赖 KDA 的衰减门，如果 KDA 的门学不好，长上下文检索会直接受损——Table 5 的 RoPE 对照说明 NoPE 在这套架构里是加分的，但这是在本架构、本数据上的结论。
-- **成本量级（本笔记复算）**：按式 13/14，只算单 head 的注意力部分，令 `d_h = 128`、`C = 64`，KDA 与全注意力的 FLOPs 在 `T ≈ 496` 时相当（`6T d_h^2 + 3TCd_h + TC^2 = 2T^2 d_h`）。也就是说，T 超过约 496 token 后 KDA 的线性成本低于全注意力的二次成本；实际 crossover 还受投影、kernel 效率、并行度影响，不能直接当成端到端结论。
+- **成本量级（本笔记复算）**：按式 13/14，只算单 head 的注意力部分，令 $d_{h} = 128$、$C = 64$，KDA 与全注意力的 FLOPs 在 $T \approx 496$ 时相当（$6T d_{h}^{2} + 3TCd_{h} + TC^{2} = 2T^{2} d_{h}$）。也就是说，T 超过约 496 token 后 KDA 的线性成本低于全注意力的二次成本；实际 crossover 还受投影、kernel 效率、并行度影响，不能直接当成端到端结论。
 - **落地边界**：论文称 KDA kernel 与 vLLM 实现已开源、且与现有缓存/调度接口 drop-in 兼容；本笔记只核实到 `fla-org/flash-linear-attention` 的 `fla/ops/kda` 目录存在（含 chunk/recurrent/WY 等文件），没有验证 vLLM 集成与端到端吞吐。MoonshotAI/Kimi-Linear 仓库本身只有 README、LICENSE、figures 与 tech_report.pdf，不含训练/推理代码。
 
 ---

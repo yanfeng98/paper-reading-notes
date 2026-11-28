@@ -164,6 +164,7 @@ try {
   const counts = await page.evaluate(() => {
     const content = document.getElementById('doc-content');
     const expectedMath = Number(document.body.dataset.expectedMath || 0);
+    const expectedInlineMath = Number(document.body.dataset.expectedInlineMath || 0);
     const expectedMermaid = Number(document.body.dataset.expectedMermaid || 0);
     const mm250 = (250 / 25.4) * 96;
     const contentWidth = content.getBoundingClientRect().width;
@@ -184,10 +185,18 @@ try {
     const mermaidTooTall = Array.from(content.querySelectorAll('.mermaid svg'))
       .filter((svg) => svg.getBoundingClientRect().height > mm250 + 1)
       .map((svg) => Math.round(svg.getBoundingClientRect().height));
+    const mathTooTall = Array.from(content.querySelectorAll('mjx-container'))
+      .filter((node) => node.getBoundingClientRect().height > mm250 + 1)
+      .map((node) => Math.round(node.getBoundingClientRect().height));
     return {
       math: content.querySelectorAll('.math-display mjx-container').length,
       mathExpected: expectedMath,
+      mathInline: Array.from(content.querySelectorAll('mjx-container'))
+        .filter((node) => !node.closest('.source-card')).length -
+        content.querySelectorAll('.math-display mjx-container').length,
+      mathInlineExpected: expectedInlineMath,
       mathErrors: content.querySelectorAll('mjx-container[data-mjx-error]').length,
+      mathTooTall,
       leftoverMath: content.querySelectorAll('pre > code.language-math').length,
       mermaid: content.querySelectorAll('.mermaid svg').length,
       mermaidExpected: expectedMermaid,
@@ -210,7 +219,11 @@ try {
   if (counts.math !== counts.mathExpected) {
     problems.push(`MathJax: ${counts.math}/${counts.mathExpected} 个显示公式已渲染`);
   }
+  if (counts.mathInline !== counts.mathInlineExpected) {
+    problems.push(`MathJax: ${counts.mathInline}/${counts.mathInlineExpected} 个行内公式已渲染`);
+  }
   if (counts.mathErrors) problems.push(`MathJax: ${counts.mathErrors} 个公式报错`);
+  if (counts.mathTooTall.length) problems.push('公式超过 250mm: ' + counts.mathTooTall.join(','));
   if (counts.leftoverMath) problems.push(`MathJax: ${counts.leftoverMath} 个 math 围栏未转换`);
   if (counts.mermaid !== counts.mermaidExpected) {
     problems.push(`Mermaid: ${counts.mermaid}/${counts.mermaidExpected} 个图已渲染`);

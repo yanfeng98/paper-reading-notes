@@ -1315,6 +1315,18 @@ main { width: 100%; }
   overflow-x: auto;
   text-align: center;
 }
+.prose mjx-container[jax="SVG"] { color: inherit; }
+.prose mjx-container[jax="SVG"]:not([display="true"]) {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0 0.06em;
+}
+.prose mjx-container[jax="SVG"]:not([display="true"]) > svg {
+  max-width: 100%;
+  height: auto;
+}
+.prose td mjx-container[jax="SVG"],
+.prose th mjx-container[jax="SVG"] { max-width: 100%; }
 mjx-container[jax="SVG"][display="true"] {
   max-width: 100%;
   overflow-x: auto;

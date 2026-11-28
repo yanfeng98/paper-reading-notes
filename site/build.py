@@ -60,6 +60,17 @@ NOTE_ROW = re.compile(
 )
 LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 IMAGE = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
+# Inline math (`$...$`) is rendered by MathJax in the reader. The delimiters
+# must hug non-space characters, so prose such as "$4,432 与 $2,377" is not
+# mistaken for a formula. A digit-leading span also needs an explicit math
+# marker; otherwise it is treated as currency.
+INLINE_MATH = re.compile(
+    r"(?<![\\$])\$(?![\s$])((?:\\.|[^$\\\n])+?)(?<!\s)(?<!\\)\$(?!\$)"
+)
+INLINE_MATH_MARKER = re.compile(
+    r"[_^\\{}]|[=<>≤≥≈≠≃→←↔↦⊕⊙∘∈∉⊂⊆∪∩]|[πθαβγδεζηικλμνξρστυφχψωΔΩΨΦΛΣΠΓΘΞ]"
+)
+INLINE_CODE = re.compile(r"(`+)(.+?)\1")
 READ_DATE = re.compile(r"^\|\s*阅读日期\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|")
 READ_DATE_BULLET = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?阅读日期(?:\*\*)?\s*[：:]\s*(\d{4}-\d{2}-\d{2})")
 CJK = re.compile(r"[㐀-鿿]")
@@ -87,6 +98,7 @@ class Entry:
     excerpt: str = ""
     headings: list[str] = field(default_factory=list)
     math_count: int = 0
+    inline_math_count: int = 0
     mermaid_count: int = 0
     image_count: int = 0
     cover_rel: str = ""
@@ -193,8 +205,55 @@ def fence_counts(text: str) -> tuple[int, int]:
     return math_count, mermaid_count
 
 
+def inline_math_allowed(content: str) -> bool:
+    """Return True when a `$...$` span should be treated as math, not money."""
+    if not content.strip():
+        return False
+    if content[0].isdigit() and not INLINE_MATH_MARKER.search(content):
+        return False
+    return True
+
+
+def count_inline_math(text: str) -> int:
+    """Count `$...$` spans outside fences and inline code."""
+    count = 0
+    for _, line in iter_outside_fences(text):
+        stripped = INLINE_CODE.sub("", line)
+        for match in INLINE_MATH.finditer(stripped):
+            if inline_math_allowed(match.group(1)):
+                count += 1
+    return count
+
+
+def math_to_text(value: str) -> str:
+    """Turn a small TeX snippet into readable plain text for cards/search."""
+    greek = {
+        "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ", "epsilon": "ε",
+        "varepsilon": "ε", "zeta": "ζ", "eta": "η", "theta": "θ", "iota": "ι",
+        "kappa": "κ", "lambda": "λ", "mu": "μ", "nu": "ν", "xi": "ξ", "pi": "π",
+        "rho": "ρ", "sigma": "σ", "tau": "τ", "upsilon": "υ", "phi": "φ",
+        "chi": "χ", "psi": "ψ", "omega": "ω", "Gamma": "Γ", "Delta": "Δ",
+        "Theta": "Θ", "Lambda": "Λ", "Xi": "Ξ", "Pi": "Π", "Sigma": "Σ",
+        "Phi": "Φ", "Psi": "Ψ", "Omega": "Ω",
+    }
+    text = value
+    text = re.sub(
+        r"\\(?:mathrm|operatorname|text|mathcal|mathbb|mathfrak|mathbf|mathit)\{([^{}]*)\}",
+        r"\1",
+        text,
+    )
+    text = re.sub(r"\\frac\{([^{}]*)\}\{([^{}]*)\}", r"\1/\2", text)
+    text = re.sub(r"\\([a-zA-Z]+)", lambda m: greek.get(m.group(1), ""), text)
+    text = text.replace("{", "").replace("}", "")
+    text = text.replace("\\", "")
+    return re.sub(r"\s+", " ", text).strip()
+
+
 def plain_text(value: str) -> str:
     text = value
+    # Inline math keeps its source in Markdown, but cards/search need readable
+    # text rather than raw TeX.
+    text = re.sub(r"\$([^$\n]+)\$", lambda match: math_to_text(match.group(1)), text)
     text = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"<https?://[^>]+>", "", text)
@@ -507,6 +566,7 @@ def analyze(
     paper_title = (readme_meta or {}).get("title", "") if kind != "summary" else ""
     excerpt = extract_excerpt(text, kind)
     math_count, mermaid_count = fence_counts(text)
+    inline_math_count = count_inline_math(text)
     links, images = link_targets(text)
     pdf_rel = ""
     if docs_pdf and docs_pdf.exists():
@@ -526,6 +586,7 @@ def analyze(
         excerpt=excerpt,
         headings=extract_headings(text),
         math_count=math_count,
+        inline_math_count=inline_math_count,
         mermaid_count=mermaid_count,
         image_count=len(images),
         cover_rel=first_cover_image(source_path, images) if kind != "summary" else "",
@@ -1101,6 +1162,7 @@ def build_site(out_dir: Path) -> None:
             "assetVersion": asset_version,
             "vendorVersion": vendor_version,
             "expectedMath": entry.math_count,
+            "expectedInlineMath": entry.inline_math_count,
             "expectedMermaid": entry.mermaid_count,
         }
         doc_html = fill_template(
@@ -1132,6 +1194,7 @@ def build_site(out_dir: Path) -> None:
                 "MD_URL": f"./{html.escape(Path(entry.source_path).name)}?v={entry.source_hash}",
                 "PDF_BUTTON": pdf_button(entry),
                 "EXPECTED_MATH": str(entry.math_count),
+                "EXPECTED_INLINE_MATH": str(entry.inline_math_count),
                 "EXPECTED_MERMAID": str(entry.mermaid_count),
                 "PREV_HTML": prev_html,
                 "NEXT_HTML": next_html,
@@ -1198,6 +1261,7 @@ def build_site(out_dir: Path) -> None:
                     "excerpt": entry.excerpt,
                     "headings": entry.headings,
                     "math": entry.math_count,
+                    "inlineMath": entry.inline_math_count,
                     "mermaid": entry.mermaid_count,
                     "images": entry.image_count,
                     "pdf": entry.pdf_rel,
@@ -1224,6 +1288,8 @@ def build_site(out_dir: Path) -> None:
         f"({stats['notes']} read, {stats['pending']} pending); "
         f"{sum(e.math_count for e in notes)} note math + "
         f"{sum(e.math_count for e in summaries)} summary math; "
+        f"{sum(e.inline_math_count for e in notes)} note inline math + "
+        f"{sum(e.inline_math_count for e in summaries)} summary inline math; "
         f"{sum(e.mermaid_count for e in notes)} note Mermaid + "
         f"{sum(e.mermaid_count for e in summaries)} summary Mermaid."
     )

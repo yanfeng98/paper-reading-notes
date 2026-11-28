@@ -29,7 +29,7 @@
 - CSA「4096 token 有效感受野」改为「1024 个 entry 的信息容量约 4096 token；top-k 的选择范围是全部历史」。
 - Table 12「最高是邮件书信」加「n≥100」限定；Figure 12 的「弱在视觉排版」改为「格式美观高于 Opus，但绝对值仍有提升空间」；「非负率」改为「不败率」。
 - MRCR「差一个量级」改为「83.5% vs 59%，差 24.5 个百分点」；Table 1 的 BBH 反例按 0.3 同档规则降为同档内小幅落后。
-- Muon 公式去掉原文没有的 `‖O'_t‖_RMS` 分母，并说明 NS 正交性使 `sqrt(max(n,m))·γ` 自然达到 RMS = γ。
+- Muon 公式去掉原文没有的 $\| O'_{t}\| _{\mathrm{RMS}}$ 分母，并说明 NS 正交性使 $\sqrt{\max(n,m)}\cdot\gamma$ 自然达到 RMS = γ。
 - 补充：MRCR/CorpusQA 的 Opus/Gemini 为作者重测；BrowseComp/HLE w/tools 的 harness；Terminal-Bench 2.0 环境问题；作者数 319 条 = 团队名 + 318 人；README 00172 的 HF 链接在标题列；「comprehensive superiority」在 p5 而非 §4.3.2。
 - 补 5 张配图（Figure 2/3/4/5/9），与 PDF 同坐标重裁的像素差为 0。
 
@@ -39,11 +39,11 @@
 
 **2026-11-08（第 2 轮，同一基准 sha256 `f4cbe4…f5c52`；完整 arXiv v1 `55b2d7…5978d`；复核前快照 md5 `6f2e689aa02eb0bbc9d0f7abf91e65fd`）**：两个独立只读审计（全篇 A–H + 跨篇关系/残留断言）逐条复验后，修复以下问题：
 
-- **mHC**：动态项先乘门控 `α`，再与静态 bias `S` 相加（原文式 3–5 是 `α·(X̂W)+S`），初稿的语序会读成 `α·(X̂W+S)`。
+- **mHC**：动态项先乘门控 $\alpha$，再与静态 bias $S$ 相加（原文式 3–5 是 $\alpha\cdot (\hat{X}W)+S$），初稿的语序会读成 $\alpha\cdot (\hat{X}W+S)$。
 - **版本关系**：MiniLLM 作者从 `Wei et al.` 改为 `Gu et al.`（arXiv v1 p48 为 Y. Gu, L. Dong, F. Wei, M. Huang）；FP4 细节的方向改为「整体上移为 §3.4，原 §5.2.1 只保留集成说明」；浮动体描述收窄为 Figure 6/7、Table 5 换页（Table 1/6/7 页码未变）；「另起一段 FP4」改为「同段末追加」。
 - **局限引文**：`comprehensive theoretical understanding…` 的出处改为 §4.2.3（p26）并补全 `of their underlying mechanisms`；§6（p44）另引 `their underlying principles remain insufficiently understood`。
 - **评测口径**：GPT-5.4 的 API 说明范围改为 1M 长上下文一节（MRCR/CorpusQA），LiveCodeBench 与 SWE 两列未说明原因；Figure 5 的 1.42×/1.92× 补「按 DeepSeek-V4-Flash 架构评估」；Table 1 的「完整表」改为「24 个 benchmark 行（参数/架构 3 行已并入上方配置表）」。
-- **CSA**：补「4096 是等效压缩长度 `k·m`；每个 entry 由 `2m` 个原始 token 压成，若选中的 entry 不相邻，原始 token 覆盖上界为 `2mk = 8192`」。
+- **CSA**：补「4096 是等效压缩长度 $k\cdot m$；每个 entry 由 `2m` 个原始 token 压成，若选中的 entry 不相邻，原始 token 覆盖上界为 $2mk = 8192$」。
 - **写作评测**：Table 12 的「全表最高」改为「最高 100.00%（n=1）、次高 85.71%（n=7）」，并补「学术辅助 73.33%（n=15）」与两个「介绍评价」的类别；Table 13 的基数改为「指令遵循 2,837 次、写作质量 2,198 次」。
 - **跨篇关系**：K2 的 8 个激活专家改为「8 个激活专家 + 1 共享（原文写 Experts Active per Token 8；「8 路由」是按 V3 惯例的推断）」；V4.1-Flash 的 CED/CSA2/FP4 改为「在 V4 的全局 + SWA 分支与异构 KV 布局上做替换/压缩」，不再说 CED 直接建立在 CSA/HCA 上。
 - **措辞**：Figure 10 的「分数随 token 线性增长」改为「边际收益递减」；「所有 benchmark 都是单次报告」改为「原文未说明是否多次运行取平均」；CMath 补「比 Flash 低 2.7、比 V3.2 低 1.7」；速查表的「前 1T 稠密」改为「Flash 前 1T、Pro 更长」。
@@ -61,7 +61,7 @@
 - **FP4 QAT 的位置整体上移**：arXiv v1 的 §3.4 是 Training Framework，FP4 QAT 放在 §5.2.1；本地版把 FP4 QAT 提升为 §3.4，Training Framework 顺延为 §3.5，§5.2 改名为 “RL and OPD Infrastructures”；FP4 细节整体上移为 §3.4，原 §5.2.1 只保留一段集成说明并改名 “FP4 Quantization Integration”。这解释了 §3.5/§5 的页码整体后移约 1–2 页。
 - **引言贡献列表的顺序**：arXiv v1 是「前三条 + 第四/第五条训练/推理 + 同段末追加一句 FP4」；本地版把 FP4 并入第四条，训练与推理顺延为第五/最后一条。
 - **OPD 引用**：arXiv v1 在 p5、§5 开头、§5.1.2 三处都保留 `Gu et al., 2024` 与 `Lu and Lab, 2025`（§5 开头写作 `(OPD; Gu et al., 2024; Lu and Lab, 2025)`）；本地版 p5 只保留 `Lu and Lab, 2025`，§5 开头与 §5.1.2 则把两个引用都删成 `(OPD)`。
-- **个别句子的扩写**：本地版把 activation function 建议扩成「同参数预算下去掉 gate projection 可以增大中间维 `d`、进一步放宽带宽要求」；pull-based 通信从「reads activations」改成「reads data」。
+- **个别句子的扩写**：本地版把 activation function 建议扩成「同参数预算下去掉 gate projection 可以增大中间维 $d$、进一步放宽带宽要求」；pull-based 通信从「reads activations」改成「reads data」。
 - **浮动体位置不同**：Figure 6（arXiv p22 → 本地 p23）、Figure 7（p31 → p32）与 Table 5（p32 → p33）换页；Table 1/6/7 与 GRM/Quick Instruction 段落仍在同一页，但 Table 1 与 §4.3.2 的相对位置不同（arXiv 先文后表，本地先表后文）。
 - **参考文献**：arXiv v1 有 MiniLLM（Gu et al., 2024；Y. Gu, L. Dong, F. Wei, M. Huang），本地版没有这一条。
 - **无法判定构建先后**：完整 v1 没有 `creationDate`；arXiv 提交日期（2026-04-26）晚于本地 PDF 创建时间（2026-04-24），但 v1 的章节结构看起来更像「FP4 还在 post-training」的旧稿。没有源码历史，不能仅凭日期判断谁更新。
@@ -76,7 +76,7 @@
 
 - **注意力是主贡献**：CSA 先把每 4 个 token 压成 1 个 KV entry，再在压缩后的 entry 上做 top-k 稀疏选择（Pro 选 1024 个、Flash 选 512 个），并保留 128 token 的滑窗分支补局部细节；HCA 把 128 个 token 压成 1 个 entry，但不做稀疏，直接稠密注意力。两类层交替堆叠，Flash 的前两层是纯 SWA，Pro 的前两层是 HCA。
 - **1M 上下文的效率数字**：相对 DeepSeek-V3.2，Pro 只需 27% 的单 token 推理 FLOPs 与 10% 的 KV cache，Flash 只需 10% 与 7%（Figure 1 的右图写作 3.7×/9.5× 与 9.8×/13.7×，与百分比是取整关系）。
-- **mHC 是「给残差连接加谱范数约束」**：把 HC 的残差映射矩阵 `B_l` 投影到 Birkhoff 多面体（双随机矩阵），用 Sinkhorn-Knopp 迭代 20 步实现，保证谱范数不超过 1；配套的融合 kernel、重算与 DualPipe 调整把墙钟开销压到 1F1B 流水阶段的 6.7%。
+- **mHC 是「给残差连接加谱范数约束」**：把 HC 的残差映射矩阵 $B_{l}$ 投影到 Birkhoff 多面体（双随机矩阵），用 Sinkhorn-Knopp 迭代 20 步实现，保证谱范数不超过 1；配套的融合 kernel、重算与 DualPipe 调整把墙钟开销压到 1F1B 流水阶段的 6.7%。
 - **Muon 在这篇里不再需要 QK-Clip**：CSA/HCA 允许直接对 query 与 compressed KV entry 做 RMSNorm，注意力 logit 不会爆；Muon 用 8 步快速收敛 + 2 步精确稳定的混合 Newton-Schulz，并对 MoE 梯度做 BF16 随机舍入以减半通信。
 - **后训练的关键替换是 GRM + OPD**：每个领域先 SFT 再 GRPO 训出专家；难验证任务不再训标量 reward model，而是让 actor 自己当 Generative Reward Model（GRM）；最后用 10 个以上教师做 full-vocabulary 的 on-policy distillation，而不是混合 RL 或权重平均。
 - **工程上最值得抄的是「确定性」与「可抢占」**：端到端 bitwise batch-invariant / deterministic kernel、token 级 WAL 的 rollout 服务、以及把压缩 KV 落盘做共享前缀复用。
@@ -103,7 +103,7 @@
 V4 保留 Transformer、DeepSeekMoE 与 MTP，改动集中在三处：
 
 - **注意力**：CSA 与 HCA 交替，替代 V3 的 MLA；每个 CSA/HCA 层另有一条 128 token 的滑窗分支。
-- **残差**：mHC 把残差流宽度扩到 `n_hc = 4` 倍，并对块间混合矩阵加双随机约束。
+- **残差**：mHC 把残差流宽度扩到 $n_{\mathrm{hc}} = 4$ 倍，并对块间混合矩阵加双随机约束。
 - **优化器**：除 embedding、prediction head、mHC 的静态 bias/门控与 RMSNorm 外，大部分模块用 Muon 替代 AdamW。
 
 MoE 侧相对 V3 还有四个小改动：affinity 的激活从 `Sigmoid` 换成 `Sqrt(Softplus)`；保留 auxiliary-loss-free 负载均衡，但加一个很小的 sequence-wise balance loss（权重 `1e-4`）；去掉路由目标节点数的约束；把最初几个 block 的 dense FFN 也换成 MoE，并对前 3 个 MoE 层使用按 token ID 的 Hash routing。
@@ -114,19 +114,19 @@ MoE 侧相对 V3 还有四个小改动：affinity 的激活从 `Sigmoid` 换成 
 | hidden size | 4096 | 7168 |
 | 前两层注意力 | 纯 SWA | HCA |
 | 后续层 | CSA/HCA 交替 | CSA/HCA 交替 |
-| query heads `n_h` | 64 | 128 |
-| head dim `c` | 512 | 512 |
-| query 压缩维 `d_c` | 1024 | 1536 |
-| 输出分组 `g` / `d_g` | 8 / 1024 | 16 / 1024 |
-| CSA 压缩率 `m` / top-k | 4 / 512 | 4 / 1024 |
+| query heads $n_{h}$ | 64 | 128 |
+| head dim $c$ | 512 | 512 |
+| query 压缩维 $d_{c}$ | 1024 | 1536 |
+| 输出分组 $g$ / $d_{g}$ | 8 / 1024 | 16 / 1024 |
+| CSA 压缩率 $m$ / top-k | 4 / 512 | 4 / 1024 |
 | HCA 压缩率 `m'` | 128 | 128 |
-| 滑窗 `n_win` | 128 | 128 |
+| 滑窗 $n_{\mathrm{win}}$ | 128 | 128 |
 | indexer heads / dim | 64 / 128 | 64 / 128 |
 | 共享专家 + 路由专家 | 1 + 256 | 1 + 384 |
 | 每 token 激活的路由专家 | 6 | 6 |
 | 专家中间维 | 2048 | 3072 |
 | MTP 深度 | 1 | 1 |
-| mHC `n_hc` / Sinkhorn 步数 | 4 / 20 | 4 / 20 |
+| mHC $n_{\mathrm{hc}}$ / Sinkhorn 步数 | 4 / 20 | 4 / 20 |
 | 总参数 / 激活参数 | 284B / 13B | 1.6T / 49B |
 | 预训练 token | 32T | 33T |
 
@@ -136,23 +136,23 @@ MoE 侧相对 V3 还有四个小改动：affinity 的激活从 `Sigmoid` 换成 
 
 ### 2. mHC：把残差映射约束到双随机矩阵
 
-标准 Hyper-Connections 把残差流从 `d` 维扩成 `n_hc × d`，用三个线性映射 `A_l`、`B_l`、`C_l` 控制输入、残差变换与输出：
+标准 Hyper-Connections 把残差流从 $d$ 维扩成 $n_{\mathrm{hc}} \times d$，用三个线性映射 $A_{l}$、$B_{l}$、$C_{l}$ 控制输入、残差变换与输出：
 
 ```math
 X_{l+1} = B_l X_l + C_l F_l(A_l X_l)
 ```
 
-白话读法：`A_l` 把扩宽后的残差压回 `d` 维喂给第 `l` 层，`F_l` 是该层（MoE 或注意力），`C_l` 把层输出写回扩宽的残差流，`B_l` 决定旧残差如何混合到下一层。
+白话读法：$A_{l}$ 把扩宽后的残差压回 $d$ 维喂给第 $l$ 层，$F_{l}$ 是该层（MoE 或注意力），$C_{l}$ 把层输出写回扩宽的残差流，$B_{l}$ 决定旧残差如何混合到下一层。
 
-HC 的问题是深层堆叠时训练会频繁出现数值不稳定（原文只说现象）。一个常见的解释是 `B_l` 的谱范数可能大于 1、信号沿层指数放大——**这一步是笔记推断，原文没有给出**。mHC 的做法是把 `B_l` 限制在 Birkhoff 多面体上：
+HC 的问题是深层堆叠时训练会频繁出现数值不稳定（原文只说现象）。一个常见的解释是 $B_{l}$ 的谱范数可能大于 1、信号沿层指数放大——**这一步是笔记推断，原文没有给出**。mHC 的做法是把 $B_{l}$ 限制在 Birkhoff 多面体上：
 
 ```math
 \mathcal{M} = \{ M \in \mathbb{R}^{n \times n} \mid M\mathbf{1}_n = \mathbf{1}_n,\ \mathbf{1}_n^\top M = \mathbf{1}_n^\top,\ M \ge 0 \}
 ```
 
-白话读法：`M` 的每一行、每一列都和为 1 且非负，因此 `M` 是双随机矩阵；它的谱范数不超过 1，残差变换是非扩张的，前向与反向都更稳。双随机矩阵对乘法封闭，所以多层堆叠仍然稳。
+白话读法：$M$ 的每一行、每一列都和为 1 且非负，因此 $M$ 是双随机矩阵；它的谱范数不超过 1，残差变换是非扩张的，前向与反向都更稳。双随机矩阵对乘法封闭，所以多层堆叠仍然稳。
 
-实现上，三个映射的参数是「动态 + 静态」两部分：先把输入 `X_l` flatten 后做 RMSNorm，再用可学习矩阵生成动态项；动态项先乘一个初始化为小值的门控 `α`，再与静态 bias `S` 相加（即 `α·(X̂W) + S`）。约束通过 Sigmoid 与 Sinkhorn-Knopp 完成：
+实现上，三个映射的参数是「动态 + 静态」两部分：先把输入 $X_{l}$ flatten 后做 RMSNorm，再用可学习矩阵生成动态项；动态项先乘一个初始化为小值的门控 $\alpha$，再与静态 bias $S$ 相加（即 $\alpha\cdot (\hat{X}W) + S$）。约束通过 Sigmoid 与 Sinkhorn-Knopp 完成：
 
 ```math
 \begin{aligned}
@@ -162,7 +162,7 @@ B_l &= M^{(t_{\max})}, \qquad t_{\max} = 20
 \end{aligned}
 ```
 
-白话读法：`A_l` 与 `C_l` 用 Sigmoid 保证非负且有界；`B_l` 先取指数保证正，再交替做列归一化 `T_c` 与行归一化 `T_r`，20 步后得到近似的双随机矩阵。原文的写法是先列后行（`T_r(T_c(·))`）。
+白话读法：$A_{l}$ 与 $C_{l}$ 用 Sigmoid 保证非负且有界；$B_{l}$ 先取指数保证正，再交替做列归一化 $T_{c}$ 与行归一化 $T_{r}$，20 步后得到近似的双随机矩阵。原文的写法是先列后行（$T_{r}(T_{c}(\cdot ))$）。
 
 工程代价：mHC 增加激活内存与流水线通信。作者用融合 kernel、选择性重算（重算层间 hidden state 与归一化后的层输入，不重算计算密集算子）以及调整 DualPipe 1F1B 来抵消，最终墙钟开销为重叠后 1F1B 阶段的 **6.7%**。
 
@@ -170,7 +170,7 @@ B_l &= M^{(t_{\max})}, \qquad t_{\max} = 20
 
 ![Figure 3：CSA 的核心结构（压缩 → Lightning Indexer → top-k → 共享 KV MQA，另加滑窗分支）](assets/fig3-csa.png)
 
-CSA 的目标是把「每个 token 一个 KV」变成「每 `m` 个 token 一个 compressed entry」，再只对少数 entry 做核心注意力。它同时保留两条 KV 序列 `C^a`、`C^b` 与对应的压缩权重 `Z^a`、`Z^b`，每个 compressed entry 由当前块的 `m` 个 `C^a` 与前一块的 `m` 个 `C^b` 共同决定：
+CSA 的目标是把「每个 token 一个 KV」变成「每 $m$ 个 token 一个 compressed entry」，再只对少数 entry 做核心注意力。它同时保留两条 KV 序列 $C^{a}$、$C^{b}$ 与对应的压缩权重 $Z^{a}$、$Z^{b}$，每个 compressed entry 由当前块的 $m$ 个 $C^{a}$ 与前一块的 $m$ 个 $C^{b}$ 共同决定：
 
 ```math
 \begin{aligned}
@@ -179,30 +179,30 @@ C_i^{\mathrm{Comp}} &= \sum_{j=mi}^{m(i+1)-1} S^a_j \odot C^a_j + \sum_{j=m(i-1)
 \end{aligned}
 ```
 
-白话读法：每个 compressed entry 实际上看了 `2m` 个原始 KV，但相邻 entry 的 `C^b` 与 `C^a` 窗口重叠，净效果仍是把序列压到 `1/m`。`B^a`、`B^b` 是可学习的位置 bias，`⊙` 是逐元素乘。
+白话读法：每个 compressed entry 实际上看了 `2m` 个原始 KV，但相邻 entry 的 $C^{b}$ 与 $C^{a}$ 窗口重叠，净效果仍是把序列压到 `1/m`。$B^{a}$、$B^{b}$ 是可学习的位置 bias，$\odot$ 是逐元素乘。
 
-压缩之后是 **Lightning Indexer**：query 先降维到 `c_t^Q`，再上投影成多个 indexer head；每个 head 与 compressed indexer key 做点积、ReLU、按可学习权重求和，得到 query 对每个 compressed block 的分数：
+压缩之后是 **Lightning Indexer**：query 先降维到 $c_{t}^{Q}$，再上投影成多个 indexer head；每个 head 与 compressed indexer key 做点积、ReLU、按可学习权重求和，得到 query 对每个 compressed block 的分数：
 
 ```math
 I_{t,s} = \sum_{h=1}^{n_I} w^I_{t,h} \cdot \operatorname{ReLU}\left(q^I_{t,h} \cdot K_s^{\mathrm{IComp}}\right)
 ```
 
-白话读法：indexer 只负责「选谁」，不算最终输出；ReLU 让分数不必归一化，top-k 只看相对大小，因此可以跑得很便宜。选出 top-k 个 compressed entry 后，CSA 用 **shared KV MQA** 做核心注意力：每个被选中的 compressed entry 同时当 key 与 value，query 则从同一个 `c_t^Q` 上投影出 `n_h` 个头。由于 `c · n_h` 很大，输出不做一次性投影，而是先分成 `g` 组投到 `d_g` 维，再拼起来投回 `d`（grouped output projection）。
+白话读法：indexer 只负责「选谁」，不算最终输出；ReLU 让分数不必归一化，top-k 只看相对大小，因此可以跑得很便宜。选出 top-k 个 compressed entry 后，CSA 用 **shared KV MQA** 做核心注意力：每个被选中的 compressed entry 同时当 key 与 value，query 则从同一个 $c_{t}^{Q}$ 上投影出 $n_{h}$ 个头。由于 $c \cdot n_{h}$ 很大，输出不做一次性投影，而是先分成 $g$ 组投到 $d_{g}$ 维，再拼起来投回 $d$（grouped output projection）。
 
 另外还有四个容易漏的细节：
 
-- **滑窗分支**：每个 query 额外保留最近 `n_win = 128` 个未压缩 KV，和选中的 compressed entry 一起做核心注意力。原因是因果性要求 query 只能看「之前的完整压缩块」，它看不到自己所在块内的其他 token。
+- **滑窗分支**：每个 query 额外保留最近 $n_{\mathrm{win}} = 128$ 个未压缩 KV，和选中的 compressed entry 一起做核心注意力。原因是因果性要求 query 只能看「之前的完整压缩块」，它看不到自己所在块内的其他 token。
 - **部分 RoPE**：只对 query、KV entry 与核心注意力输出的最后 64 维加 RoPE；因为 KV entry 同时当 key 与 value，输出会带上绝对位置，所以再对输出加位置 `-i` 的 RoPE，把绝对位置抵消成相对位置。
 - **Attention sink**：每个头有一组可学习 sink logit，加在 softmax 分母上，允许该头的注意力总和不等于 1，甚至可以接近 0。
 - **QK RMSNorm**：核心注意力之前对每个 query head 与 compressed KV entry 做 RMSNorm，防止 logit 爆炸；这也是后面 Muon 不需要 QK-Clip 的原因。
 
-一个重要口径：**top-k 选的是 compressed entry，不是原始 token，而且选择范围是全部历史**（式 16 的 index score 对 `s < Floor(t/m)` 的所有 preceding compressed block 计算）。Pro 的 `k = 1024`、`m = 4`，意味着被选中的 1024 个 entry 最多携带约 `1024 × 4 = 4096` 个原始 token 的**信息量**（本笔记复算），再加 128 token 滑窗；Flash 的 `k = 512` 对应约 2048 token 的信息容量。但 1M 上下文下 compressed entry 总数约 262,144（`1,024K / 4`），top-k 是在这全部 entry 里选，不是只在最近 4096 token 里选。4096 是等效压缩长度 `k·m`；每个 entry 由 `2m` 个原始 token 压成，若选中的 entry 不相邻，原始 token 覆盖上界为 `2mk = 8192`。这个「信息容量」比 V3.2 的 token 级 top-k 2048 更结构化，但也更依赖压缩质量。
+一个重要口径：**top-k 选的是 compressed entry，不是原始 token，而且选择范围是全部历史**（式 16 的 index score 对 $s<\operatorname{Floor}(t/m)$ 的所有 preceding compressed block 计算）。Pro 的 $k = 1024$、$m = 4$，意味着被选中的 1024 个 entry 最多携带约 $1024 \times 4 = 4096$ 个原始 token 的**信息量**（本笔记复算），再加 128 token 滑窗；Flash 的 $k = 512$ 对应约 2048 token 的信息容量。但 1M 上下文下 compressed entry 总数约 262,144（`1,024K / 4`），top-k 是在这全部 entry 里选，不是只在最近 4096 token 里选。4096 是等效压缩长度 $k\cdot m$；每个 entry 由 `2m` 个原始 token 压成，若选中的 entry 不相邻，原始 token 覆盖上界为 $2mk = 8192$。这个「信息容量」比 V3.2 的 token 级 top-k 2048 更结构化，但也更依赖压缩质量。
 
 ### 4. HCA：128:1 压缩，但不做稀疏
 
 ![Figure 4：HCA 的核心结构（128:1 压缩 + 稠密共享 KV MQA，另加滑窗分支）](assets/fig4-hca.png)
 
-HCA 的压缩方式与 CSA 类似，但只用一条 KV 序列、不做重叠压缩，压缩率 `m' = 128`（远大于 CSA 的 4），并且压缩后直接做稠密注意力，不经过 indexer 与 top-k：
+HCA 的压缩方式与 CSA 类似，但只用一条 KV 序列、不做重叠压缩，压缩率 $m' = 128$（远大于 CSA 的 4），并且压缩后直接做稠密注意力，不经过 indexer 与 top-k：
 
 ```math
 S_{m'i:m'(i+1)-1} = \operatorname{Softmax}_{row}(Z_{m'i:m'(i+1)-1}+B), \qquad
@@ -218,7 +218,7 @@ C_i^{\mathrm{Comp}} = \sum_{j=m'i}^{m'(i+1)-1} S_j \odot C_j
 效率上有四个叠加的来源：
 
 1. **压缩**：CSA 把序列压到 `1/4`，HCA 压到 `1/128`。
-2. **稀疏**：CSA 只对 top-k 个 compressed entry 做核心注意力，`k` 比 V3.2 的 token 级 top-k 小。
+2. **稀疏**：CSA 只对 top-k 个 compressed entry 做核心注意力，$k$ 比 V3.2 的 token 级 top-k 小。
 3. **低精度存储**：KV entry 的 RoPE 维用 BF16，其余维用 FP8，整体约为纯 BF16 的一半。
 4. **低精度计算**：indexer 的 QK 路径用 FP4。
 
@@ -226,9 +226,9 @@ C_i^{\mathrm{Comp}} = \sum_{j=m'i}^{m'(i+1)-1} S_j \odot C_j
 
 KV cache 的布局也随混合注意力变得异构（Figure 6）：
 
-- **state cache**：给 SWA 的最近 `n_win` 个 KV，以及 CSA/HCA 中「还没凑够一个压缩块」的尾部未压缩状态。每个请求预分配固定大小的块，动态绑定。
-- **classical KV cache**：给 CSA/HCA 的 compressed entry。每个 cache block 覆盖 `lcm(m, m')` 个原始 token，产生 `k_1 = lcm(m,m')/m` 个 CSA entry 与 `k_2 = lcm(m,m')/m'` 个 HCA entry。按 V4 的 `m = 4`、`m' = 128`，`lcm = 128`，即每块 32 个 CSA entry + 1 个 HCA entry（本笔记复算）。
-- **磁盘 KV**：compressed entry 全部落盘，命中共享前缀时直接读回，直到最后一个完整压缩块；尾部不完整块仍需重算。SWA 的 KV 不压缩、每层都有，体积约为 compressed KV 的 **8 倍**，因此给了三种策略：全量缓存（零重算、写放大严重）、周期 checkpoint（每 `p` 个 token 存一次最近 `n_win` 个 KV，尾部重算）、零缓存（只靠 compressed KV 重算最近 `n_win × L` 个 token）。
+- **state cache**：给 SWA 的最近 $n_{\mathrm{win}}$ 个 KV，以及 CSA/HCA 中「还没凑够一个压缩块」的尾部未压缩状态。每个请求预分配固定大小的块，动态绑定。
+- **classical KV cache**：给 CSA/HCA 的 compressed entry。每个 cache block 覆盖 `lcm(m, m')` 个原始 token，产生 $k_1=\operatorname{lcm}(m,m')/m$ 个 CSA entry 与 $k_2=\operatorname{lcm}(m,m')/m'$ 个 HCA entry。按 V4 的 $m = 4$、$m' = 128$，$\operatorname{lcm}=128$，即每块 32 个 CSA entry + 1 个 HCA entry（本笔记复算）。
+- **磁盘 KV**：compressed entry 全部落盘，命中共享前缀时直接读回，直到最后一个完整压缩块；尾部不完整块仍需重算。SWA 的 KV 不压缩、每层都有，体积约为 compressed KV 的 **8 倍**，因此给了三种策略：全量缓存（零重算、写放大严重）、周期 checkpoint（每 $p$ 个 token 存一次最近 $n_{\mathrm{win}}$ 个 KV，尾部重算）、零缓存（只靠 compressed KV 重算最近 $n_{\mathrm{win}} \times L$ 个 token）。
 
 ### 6. Muon：不需要 QK-Clip 的版本
 
@@ -245,7 +245,7 @@ W_t &= W_{t-1}(1-\eta\lambda) - \eta O_t
 \end{aligned}
 ```
 
-白话读法：先累积动量 `M_t`，再用 Nesterov 组合 `μM_t + G_t`；`HybridNewtonSchulz` 把矩阵近似正交化成 `UV^T`；随后乘 `sqrt(max(n,m))·γ` 把更新矩阵的 RMS 缩放到 `γ`，以便复用 AdamW 的学习率；最后做 decoupled weight decay 并更新。注意原文 Algorithm 1 第 6 行只有这个乘法、没有除以 `‖O'_t‖_RMS`：NS 输出近似正交，其 RMS 约为 `1/sqrt(max(n,m))`，乘上 `sqrt(max(n,m))` 后 RMS 约为 1，再乘 `γ` 即达到目标；本笔记按渲染页原样抄写。
+白话读法：先累积动量 $M_{t}$，再用 Nesterov 组合 $\mu M_{t} + G_{t}$；`HybridNewtonSchulz` 把矩阵近似正交化成 $UV^{T}$；随后乘 $\sqrt{\max(n,m)}\cdot\gamma$ 把更新矩阵的 RMS 缩放到 $\gamma$，以便复用 AdamW 的学习率；最后做 decoupled weight decay 并更新。注意原文 Algorithm 1 第 6 行只有这个乘法、没有除以 $\| O'_{t}\| _{\mathrm{RMS}}$：NS 输出近似正交，其 RMS 约为 $1/\sqrt{\max(n,m)}$，乘上 $\sqrt{\max(n,m)}$ 后 RMS 约为 1，再乘 $\gamma$ 即达到目标；本笔记按渲染页原样抄写。
 
 混合 Newton-Schulz 共 10 步：前 8 步用 `(3.4445, -4.7750, 2.0315)` 快速把奇异值推到 1 附近，后 2 步用 `(2, -1.5, 0.5)` 精确稳定在 1。超参：momentum `0.95`、weight decay `0.1`、RMS 目标 `0.18`；embedding、prediction head、mHC 的静态参数与门控、RMSNorm 仍用 AdamW。
 
@@ -259,7 +259,7 @@ W_t &= W_{t-1}(1-\eta\lambda) - \eta O_t
 
 这一节是全文工程密度最高的部分，按「通信 → 编译 → 数值 → 量化 → 并行 → 重算」顺序看。
 
-**7.1 EP 的细粒度通信-计算重叠。** 原文把 MoE 层拆成四个 stage（Dispatch、Combine 两个通信段 + Linear-1、Linear-2 两个计算段），Figure 5 另外画出夹在中间的 Activation；作者把专家切成 wave，wave 内通信一完成就开始算，稳态下「当前 wave 计算、下一 wave 传输、已完成专家回传」同时进行。Figure 5 的理论加速比是 **1.92×**（Comet 为 1.42×；均按 DeepSeek-V4-Flash 架构评估），实测在通用推理负载上是 **1.50–1.73×**，延迟敏感的 RL rollout / agent serving 上最高 **1.96×**。作者还给了硬件设计建议：通信能否被完全隐藏取决于计算通信比，而不是单纯看带宽；对 Pro，每个 token-expert 对约 `6hd` FLOPs、`3h` 字节通信，条件化简为 `C/B ≤ 2d = 6144 FLOPs/Byte`（按 `2d = 6144` 反推，这里的 `d` 应是专家中间维 3072，而不是 §2 的 hidden size 7168；原文没有显式说明这个同名冲突，本句为笔记判断），即每 GB/s 互联带宽可隐藏约 6.1 TFLOP/s 的计算。
+**7.1 EP 的细粒度通信-计算重叠。** 原文把 MoE 层拆成四个 stage（Dispatch、Combine 两个通信段 + Linear-1、Linear-2 两个计算段），Figure 5 另外画出夹在中间的 Activation；作者把专家切成 wave，wave 内通信一完成就开始算，稳态下「当前 wave 计算、下一 wave 传输、已完成专家回传」同时进行。Figure 5 的理论加速比是 **1.92×**（Comet 为 1.42×；均按 DeepSeek-V4-Flash 架构评估），实测在通用推理负载上是 **1.50–1.73×**，延迟敏感的 RL rollout / agent serving 上最高 **1.96×**。作者还给了硬件设计建议：通信能否被完全隐藏取决于计算通信比，而不是单纯看带宽；对 Pro，每个 token-expert 对约 `6hd` FLOPs、`3h` 字节通信，条件化简为 $C/B\le2d=6144\ \mathrm{FLOPs/Byte}$（按 $2d = 6144$ 反推，这里的 $d$ 应是专家中间维 3072，而不是 §2 的 hidden size 7168；原文没有显式说明这个同名冲突，本句为笔记判断），即每 GB/s 互联带宽可隐藏约 6.1 TFLOP/s 的计算。
 
 ![Figure 5：EP 的通信-计算重叠（Naive / Comet / Ours，三种 wave 调度）](assets/fig5-ep-overlap.png)
 
@@ -273,7 +273,7 @@ W_t &= W_{t-1}(1-\eta\lambda) - \eta O_t
 
 **7.4 FP4 QAT。** 对两个部分做 MXFP4：MoE 专家权重（显存大头）与 CSA indexer 的 QK 路径（KV 激活要缓存、加载、相乘）。QAT 发生在 post-training：FP32 master weight 先量化到 FP4，再反量化到 FP8 参与计算。作者强调 **FP4 → FP8 是无损的**：FP8 (E4M3) 比 FP4 (E2M1) 多 2 个指数位，只要每个 FP8 量化块（128×128）内 FP4 子块（1×32）的 scale 最大/最小比值不超过一定阈值，细粒度 scale 就能被 FP8 的动态范围吸收；实测当前权重满足。这样整条 QAT 管线可以复用现有 FP8 训练框架，反向直接对 FP8 权重求梯度、回传到 FP32 master，相当于 STE。推理与 RL rollout 阶段直接用真实 FP4 权重，保证采样行为与线上部署一致。index score 还从 FP32 降到 BF16，top-k selector 约 **2×** 加速，KV entry 召回率 **99.7%**。
 
-**7.5 长上下文注意力的 contextual parallelism。** 常规 CP 按序列切分，但压缩要求 `m` 个连续 KV 一起处理，且不同 rank 的压缩长度可能不同。作者用两阶段通信：第一阶段每个 rank 把最后 `m` 个未压缩 KV 发给下一个 rank，后者连同本地 `s` 个 KV 一起压成固定长度 `s/m + 1` 个 entry（含 padding）；第二阶段 all-gather 所有本地压缩结果，再用 fused select-and-pad 重排成总长 `cp_size × s/m` 的完整压缩 KV。HCA 与 CSA indexer 的可见范围可以按规则预计算，CSA 的稀疏部分则由 top-k 显式给出索引。
+**7.5 长上下文注意力的 contextual parallelism。** 常规 CP 按序列切分，但压缩要求 $m$ 个连续 KV 一起处理，且不同 rank 的压缩长度可能不同。作者用两阶段通信：第一阶段每个 rank 把最后 $m$ 个未压缩 KV 发给下一个 rank，后者连同本地 $s$ 个 KV 一起压成固定长度 `s/m + 1` 个 entry（含 padding）；第二阶段 all-gather 所有本地压缩结果，再用 fused select-and-pad 重排成总长 `cp_size × s/m` 的完整压缩 KV。HCA 与 CSA indexer 的可见范围可以按规则预计算，CSA 的稀疏部分则由 top-k 显式给出索引。
 
 **7.6 tensor 级激活重算。** 常规 checkpoint 以整个 module 为粒度，V4 做到 tensor 粒度：开发者只写 forward，并标注哪些 tensor 需要 checkpoint；框架用 TorchFX 追踪完整计算图，为每个标注 tensor 反向找出最小重算子图，插到对应梯度计算之前。重算直接释放并复用存储指针，不做 GPU 拷贝；共享存储的 tensor（如 reshape 的输入输出）会自动去重。
 
@@ -284,7 +284,7 @@ W_t &= W_{t-1}(1-\eta\lambda) - \eta O_t
 - **state cache 池化**：SWA 与「未凑够压缩块」的尾部状态被当成 sequence-specific state，预分配固定大小池、按请求动态绑定；这绕开了 PagedAttention 假设「所有层 KV 结构一致」的前提。
 - **sparse attention kernel 协同设计**：不同层的压缩率不同，不能假设每块固定 token 数；通过与 kernel 协同设计，允许每块 token 数是 `lcm(m, m')` 的任意倍数，并按 cache line 对齐做 padding。
 
-磁盘侧的选择取决于部署场景：全量 SWA 缓存适合读多写少、追求零重算；周期 checkpoint 用 `p` 调存储/计算折中；零缓存最省存储，但每个命中前缀要重算 `n_win × L` 个 token 的 SWA KV。
+磁盘侧的选择取决于部署场景：全量 SWA 缓存适合读多写少、追求零重算；周期 checkpoint 用 $p$ 调存储/计算折中；零缓存最省存储，但每个命中前缀要重算 $n_{\mathrm{win}} \times L$ 个 token 的 SWA KV。
 
 ### 9. 预训练
 
@@ -309,7 +309,7 @@ W_t &= W_{t-1}(1-\eta\lambda) - \eta O_t
 
 **稳定性**：作者观察到 spike 与 MoE 层 outlier 强相关，路由机制会放大 outlier。两个对策：
 
-- **Anticipatory Routing**：把 backbone 与 routing 的更新解耦——第 `t` 步用当前参数 `θ_t` 算特征，但路由索引用历史参数 `θ_{t-Δt}` 计算并应用。实现上在 `t-Δt` 步提前取第 `t` 步的数据、预算并缓存路由索引，避免加载两遍模型；额外墙钟开销约 **20%**。系统还会自动检测 spike，触发短回滚并临时启用该模式，稳定一段时间后恢复标准训练。
+- **Anticipatory Routing**：把 backbone 与 routing 的更新解耦——第 $t$ 步用当前参数 $\theta_{t}$ 算特征，但路由索引用历史参数 $\theta_{t-\Delta t}$ 计算并应用。实现上在 $t-\Delta t$ 步提前取第 $t$ 步的数据、预算并缓存路由索引，避免加载两遍模型；额外墙钟开销约 **20%**。系统还会自动检测 spike，触发短回滚并临时启用该模式，稳定一段时间后恢复标准训练。
 - **SwiGLU Clamping**：把 SwiGLU 的线性分量截到 `[-10, 10]`，gate 分量的上界截到 10。作者说这能消除 outlier、显著稳定训练且不损性能。
 
 两个技巧都有效，但作者明确说机理「仍是一个开放问题」。
@@ -337,18 +337,18 @@ Think Max 的 system prompt 要求「绝对最大推理努力、不许走捷径�
 
 **10.4 Quick Instruction。** 聊天场景里有一堆辅助任务（是否触发搜索、意图识别、生成搜索 query、判断来源权威性/领域、是否抓取 URL 等）。常规做法是单独训一个小模型，但它无法复用已有 KV cache，要重复 prefill。V4 直接在输入序列末尾追加专用特殊 token（`<|action|>`、`<|title|>`、`<|query|>`、`<|authority|>`、`<|domain|>`、`<|extracted_url|>`、`<|read_url|>`），复用已算好的 KV cache，避免重复 prefill，还能并行执行多个辅助任务，降低 TTFT，也省掉维护小模型的工程开销。
 
-**10.5 On-Policy Distillation。** 最后一步不是混合 RL，而是多教师 OPD：学生 `π_θ` 在自己的轨迹上学习多个教师 `π_Ei` 的输出分布，
+**10.5 On-Policy Distillation。** 最后一步不是混合 RL，而是多教师 OPD：学生 $\pi_\theta$ 在自己的轨迹上学习多个教师 $\pi_{\mathrm{Ei}}$ 的输出分布，
 
 ```math
 \mathcal{L}_{\mathrm{OPD}}(\theta) = \sum_{i=1}^{N} w_i \cdot D_{\mathrm{KL}}\left(\pi_\theta \,\|\, \pi_{E_i}\right)
 ```
 
-白话读法：对每个教师算 reverse KL（学生在前、教师在后），按教师权重 `w_i` 加权求和；轨迹由学生自己采样，所以是 on-policy。原文用 10 个以上教师覆盖不同领域，并强调 **full-vocabulary logit distillation**：把完整 logit 分布保留下来算 KL，而不是像常见做法那样只取每个 token 位置的标量估计（把 `sg[log(π_E/π_θ)]` 当 advantage 塞进策略损失）。后者省资源但梯度方差大、训练不稳；前者更稳，也更忠实。
+白话读法：对每个教师算 reverse KL（学生在前、教师在后），按教师权重 $w_{i}$ 加权求和；轨迹由学生自己采样，所以是 on-policy。原文用 10 个以上教师覆盖不同领域，并强调 **full-vocabulary logit distillation**：把完整 logit 分布保留下来算 KL，而不是像常见做法那样只取每个 token 位置的标量估计（把 $sg[\log(\pi_{E}/\pi_\theta)]$ 当 advantage 塞进策略损失）。后者省资源但梯度方差大、训练不稳；前者更稳，也更忠实。
 
 ### 11. RL 与 OPD 基础设施
 
 - **FP4 集成**：rollout 与所有 inference-only 前向（包括教师与 reference model）直接用 FP4 权重；训练步用无损 FP4→FP8 模拟量化，复用 FP8 混合精度框架。
-- **教师调度**：教师权重放在集中式分布式存储，按需加载，并用 ZeRO 式分片降低 I/O 与 DRAM 压力；不在显存里物化 `|V| > 100k` 的完整 logits，而是只缓存最后一层 hidden state，训练时再按需过 prediction head 重建 logits；按教师索引给样本排序，保证每个 mini-batch 只加载一次教师 head、显存里最多一个 head；KL 用专用 TileLang kernel 算。
+- **教师调度**：教师权重放在集中式分布式存储，按需加载，并用 ZeRO 式分片降低 I/O 与 DRAM 压力；不在显存里物化 $|V| > 100k$ 的完整 logits，而是只缓存最后一层 hidden state，训练时再按需过 prediction head 重建 logits；按教师索引给样本排序，保证每个 mini-batch 只加载一次教师 head、显存里最多一个 head；KL 用专用 TileLang kernel 算。
 - **可抢占、可容错的 rollout**：每个请求维护 token 粒度的 WAL，生成一个 token 就追加；被抢占时暂停引擎、保存未完成请求的 KV cache；恢复时用 WAL + KV cache 继续解码；硬件故障时用 WAL 里的 token 重跑 prefill 重建 KV。作者特别指出：**不能把未完成请求从头重生成**，因为短回答更容易在中断中存活，重生成会引入长度偏差；即使 batch-invariant + 确定性允许用固定 seed 重生成，也仍然浪费 decode 算力，不如 WAL。
 - **百万 token RL**：rollout 数据拆成轻量 metadata 与重型 per-token 字段；dispatch 时只加载 metadata 做全局 shuffle 与 packing 布局，per-token 字段用共享内存 loader 按 mini-batch 消费后立即释放；on-device mini-batch 数按 workload 动态决定。
 - **DSec 沙箱**：三个 Rust 组件（Apiserver、Edge、Watcher）+ 自定义 RPC，跑在 3FS 上；单集群管理数十万并发沙箱。四种执行底座（Function Call、Container、microVM、fullVM）共享一套 Python SDK；容器用 EROFS 按需加载，microVM 用 overlaybd + copy-on-write；轨迹日志支持 fast-forward、provenance 与确定性重放。
@@ -361,7 +361,7 @@ Think Max 的 system prompt 要求「绝对最大推理努力、不许走捷径�
 
 - **基座**：世界知识（AGIEval、C-Eval、CMMLU、MMLU、MMLU-Redux、MMLU-Pro、MMMLU、MultiLoKo、SimpleQA-Verified、SuperGPQA、FACTS Parametric、TriviaQA）、语言理解与推理（BBH、DROP、HellaSwag、CLUEWSC、WinoGrande）、代码与数学（BigCodeBench、HumanEval、GSM8K、MATH、MGSM、CMath）、长上下文（LongBench-V2）。
 - **后训练**：知识/推理（MMLU-Pro、GPQA、HLE、SimpleQA、Chinese-SimpleQA、LiveCodeBench-v6、内部 Codeforces、HMMT 2026 Feb、Apex、Apex Shortlist、IMOAnswerBench、PutnamBench）、长上下文（MRCR、CorpusQA）、agent（Terminal Bench 2.0、SWE-Verified、SWE Multilingual、SWE-Pro、BrowseComp、MCPAtlas、GDPval-AA、Tool-Decathlon）。
-- **推理预算**：知识与推理任务温度 1.0，Non-think / High / Max 的上下文窗口分别为 8K / 128K / 384K；数学任务用 `\boxed{}` 模板，Pro-Max 另用更严格的「证明 + 答案」模板。
+- **推理预算**：知识与推理任务温度 1.0，Non-think / High / Max 的上下文窗口分别为 8K / 128K / 384K；数学任务用 $\boxed{}$ 模板，Pro-Max 另用更严格的「证明 + 答案」模板。
 - **代码 agent**：内部框架只给 bash 与 file-edit 两个工具，最多 500 步、最大 512K 上下文。Terminal-Bench 2.0 报的是原始数据集；在 Verified 子集上 Pro 约 **72.0**（正文，不在表里）。
 - **Codeforces**：14 场 Div.1、114 题（2025-05 至 2025-11）；每题生成 32 个候选，随机抽 10 个排序提交，按人类同题同失败次数的中位分记分，再转成 contest rank 与 Elo；总体评分是 14 场期望评分的平均。
 - **形式化数学**：Lean v4.28.0-rc1，最多 500 次工具调用；另一种更贵的 pipeline 先生成自然语言解、用 self-verification 过滤（引 DeepSeekMath-V2），再交给 formal agent；两种情况都要求 Comparator 接受才算对。
@@ -529,7 +529,7 @@ Figure 8 左（Putnam-200 Pass@8，最小工具、有限采样）：V4-Flash-Max
 - **没有 GPU 型号/数量/训练时长**，也没有集群规模；只能从「数百个专家、1.6T 参数、32T token」推测成本。
 - **没有数据配比**：只说 >32T、数学/代码/多语言/长文档/agentic，没有百分比。
 - **没有训练代码**：只给了 inference 代码链接（HF，本机不可达）；MegaMoE 在 DeepGEMM 的 PR 304（已 merge，2026-04-17）。原文没有给训练框架的代码链接，是否开源未核验。
-- **没有消融**：CSA/HCA 的交替比例、`m`/`m'`、top-k、`n_win`、indexer 头数、mHC 的 `n_hc` 与 `t_max`、FP4 对质量的影响，都没有扫参。唯一接近消融的是 Table 7 的「尺寸 × 模式」，但那是不同模型，不是同模型改一个变量。
+- **没有消融**：CSA/HCA 的交替比例、$m$/`m'`、top-k、$n_{\mathrm{win}}$、indexer 头数、mHC 的 $n_{\mathrm{hc}}$ 与 $t_{\max}$、FP4 对质量的影响，都没有扫参。唯一接近消融的是 Table 7 的「尺寸 × 模式」，但那是不同模型，不是同模型改一个变量。
 - **没有方差/误差棒/随机种子**：原文未给方差/误差棒/随机种子，也未说明是否多次运行取平均；Codeforces 虽然是 32 选 10 的期望，但没有给置信区间。
 - **没有硬件效率的端到端数字**：只有 kernel 级加速比与 FLOPs/KV 估算，没有吞吐、延迟、每 token 成本。
 

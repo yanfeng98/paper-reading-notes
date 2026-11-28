@@ -15,7 +15,7 @@
 | 阅读范围 | v1 全文 17 页逐页读过（正文 §1–§5 pp.2–10、参考文献 pp.11–13、附录 A pp.14、B pp.14–15、C pp.15–16、D pp.16–17）。**已渲染并逐项核对**：Table 1（p.6）、Table 2（p.9）、Table 3（p.14）、Table 4（p.17）逐格；Figure 1（p.1）、Figure 2（p.4）、Figure 3（p.7）、Figure 4（p.8）、Figure 5（p.9）、Figure 6（p.9）、Figure 7（p.10）、Figure 8（p.16）看渲染页并与正文对照。**图中的定量读数**只用于核对正文已给的数字（见"核对凭据"）。**未做**：未运行仓库代码、未复现任何 kernel、未获取逐 workload 数据（论文未发布 47 个 workload 的逐项数字） |
 | 核对凭据 | 渲染 DPI 170/200/300（pymupdf）。Figure 1 读图定标：0.0 刻度线 y≈677 px、1.0 刻度线 y≈88 px（589 px/单位；300 dpi，裁剪框 `(104,458,509,650)`，成品 1688×801），末段平台 y≈108 px → (677−108)/589 ≈ 0.966，用来核对图注"0.96×"；图中读数仅作定性，正文数字以文本为准。配图裁剪框像素坐标：Figure 1 `(104,458,509,650)`、Figure 2 `(114,71,497,242)`（pymupdf 坐标，原点左上，单位 pt），300 dpi；两张成品与同坐标重裁**像素差 bbox 为 None**、边缘 4 px 环全白（255,255,255）。Figure 4b 终点用矢量路径复核（running-best 末点 y=310.67 pt；轴 0.0=369.95、0.5=350.95 → 1.564）；Figure 5b 用 `get_text('words')` 的 x 坐标把数值配到 16K/32K/64K/128K 各格（16K 对 0.40/0.28，32K 对 0.48/0.35）。否定性断言检索词（全文文本层）：`variance`、`confidence interval`、`standard deviation`、`Table 5`、`Appendix E` 均无命中（用于确认正文未给方差/置信区间、表格止于 Table 4）；`36 of 47` 与 `0.86` 只出现在摘要与 §1 的同一处声明（p.1、p.2），后文没有逐 workload 数字；`1.49`/`1.56`/`0.75`/`0.74`/`55%`/`0.31` 用于定位「表述张力」里那几处并存的说法 |
 | 归档说明 | arXiv 来源，按仓库策略不归档 PDF（本次阅读用的临时 PDF 已删除） |
-| 复核记录 | 2026-11-03 首轮复核（check-paper-note）：重下 v1，sha256 与阅读时一致（`a2a15b5f…`，609,291 B，17 页）；手段=全文文本检索 + 300/400 dpi 渲染 + `get_text('words')` 坐标配对（Figure 5b 逐格、Figure 4b 矢量路径、Figure 1 刻度定标）+ 配图同坐标重裁像素差 + 独立子 agent 审计（只报告）。主要修正：Figure 5b 两处读图错配（16K 被误配成 32K 的 0.48→0.35，高 K 区间 1.37–1.71 改为 1.37–1.59，最高格是 `b=32,k=1000,N=32K`；删除"1.71× 那格即默认 workload"的推断，并补 memory-bound 低 N 并不持平）；Figure 1 定标 0.0 刻度 634→677 px（0.96 结论不变）；Figure 2「K 在中间/图例在右下」→「K 在左下/图例在 Team Execution 面板标题下方」；「FA4 是唯一没超过专家基线的任务」→「唯一在两种预算下都没超过」（匹配预算下 MLA 也未超过）；43/100 的"近半数"→"四成多"；§4.1 引文 all→each；补 MLA 的 0.96×（相对只计 `run()`）与 1.21× 的口径关系、跨域聚合口径（算术 vs 几何）、MoE 主指标 3.32×、MI350X 的 10 workload 算术平均 × 5 次复测、B200 侧 KDA2 2.91/2.74、RoboDojo 分数定义与 50 episodes、MoE 37 GiB 门禁；成本表把 §4.2 与 §4.6 拆成两行；abs 页 199 KB 改为「口径未说明」。未修：仓库代码与实验的可复现性（未验证）；跨域实验单跑（原文自述，无法复核） |
+| 复核记录 | 2026-11-03 首轮复核（check-paper-note）：重下 v1，sha256 与阅读时一致（`a2a15b5f…`，609,291 B，17 页）；手段=全文文本检索 + 300/400 dpi 渲染 + `get_text('words')` 坐标配对（Figure 5b 逐格、Figure 4b 矢量路径、Figure 1 刻度定标）+ 配图同坐标重裁像素差 + 独立子 agent 审计（只报告）。主要修正：Figure 5b 两处读图错配（16K 被误配成 32K 的 0.48→0.35，高 K 区间 1.37–1.71 改为 1.37–1.59，最高格是 $b=32,k=1000,N=32K$；删除"1.71× 那格即默认 workload"的推断，并补 memory-bound 低 N 并不持平）；Figure 1 定标 0.0 刻度 634→677 px（0.96 结论不变）；Figure 2「K 在中间/图例在右下」→「K 在左下/图例在 Team Execution 面板标题下方」；「FA4 是唯一没超过专家基线的任务」→「唯一在两种预算下都没超过」（匹配预算下 MLA 也未超过）；43/100 的"近半数"→"四成多"；§4.1 引文 all→each；补 MLA 的 0.96×（相对只计 `run()`）与 1.21× 的口径关系、跨域聚合口径（算术 vs 几何）、MoE 主指标 3.32×、MI350X 的 10 workload 算术平均 × 5 次复测、B200 侧 KDA2 2.91/2.74、RoboDojo 分数定义与 50 episodes、MoE 37 GiB 门禁；成本表把 §4.2 与 §4.6 拆成两行；abs 页 199 KB 改为「口径未说明」。未修：仓库代码与实验的可复现性（未验证）；跨域实验单跑（原文自述，无法复核） |
 
 ---
 
@@ -50,7 +50,7 @@ GPU kernel 的性能空间有两层（§1）：
 
 论文的论证不是"模型不行"，而是**阶段错配**：kernel 优化会依次经过"建立正确性 → 调试硬件原语 → profiling 找瓶颈 → 重新设计架构"这些阶段，每个阶段需要的专家、工具和协作方式不同。固定团队在任何时刻都是为某个阶段设计的，一旦阶段切换就整体失配（§1）。
 
-附录 B 给了一个很具体的结构性失败案例，比正文的抽象论证更有说服力：固定四人团队在 MLA 上比单 agent 晚很多才拿到第一个正确 commit，原因是一类 SMEM layout bug——SM90 的 WGMMA 要求 `8×64` atom 分块的 shared memory，而 Implementer 写成了 row-major tile，静默破坏了 QK 输出。**定位这个 bug 所需的信息在团队里是齐的，但被切分在不同 agent 手里**：Hardware Researcher 知道 layout 要求、Implementer 手里有实际的 SMEM 声明，两者对 descriptor 的数值又一致，于是都把 bug 定位到别处；所有角色都有 Read 权限，但没有任何一个角色去读 Implementer 的源码看 layout。作者的结论是"这是结构问题而非能力问题"：角色章程把输出范围隐式限死（Hardware Researcher 自我定位成"配方专家"而不是 auditor）、spawn prompt 规定的是应答式行为、`SendMessage` 传的是散文，鼓励"LBO=16，确认？"这种抽象共识而不是字节级核对。
+附录 B 给了一个很具体的结构性失败案例，比正文的抽象论证更有说服力：固定四人团队在 MLA 上比单 agent 晚很多才拿到第一个正确 commit，原因是一类 SMEM layout bug——SM90 的 WGMMA 要求 $8\times64$ atom 分块的 shared memory，而 Implementer 写成了 row-major tile，静默破坏了 QK 输出。**定位这个 bug 所需的信息在团队里是齐的，但被切分在不同 agent 手里**：Hardware Researcher 知道 layout 要求、Implementer 手里有实际的 SMEM 声明，两者对 descriptor 的数值又一致，于是都把 bug 定位到别处；所有角色都有 Read 权限，但没有任何一个角色去读 Implementer 的源码看 layout。作者的结论是"这是结构问题而非能力问题"：角色章程把输出范围隐式限死（Hardware Researcher 自我定位成"配方专家"而不是 auditor）、spawn prompt 规定的是应答式行为、`SendMessage` 传的是散文，鼓励"LBO=16，确认？"这种抽象共识而不是字节级核对。
 
 这与 §3.3 里 V7→V8 的另一个现象互补：V4 的报告里已经写了"用 WGMMA RS、P 放寄存器"这条策略建议，但 V5–V7 全都忽略了，因为**建议躺在某个团队的报告里，没进共享的 learnings**。两类失败——"知识被切分在角色之间"和"知识在团队之间丢失"——正好对应 supervisor 后来引入的 Knowledge Integrator 与 `SYNTHESIS.md`。
 
@@ -74,13 +74,13 @@ GPU kernel 的性能空间有两层（§1）：
 s^{\star} = \arg\max_{s \in \mathcal{P}} \mathcal{F}(s) \quad \text{s.t.} \quad \mathcal{C}(s) \ \text{holds}
 ```
 
-读法：在"可执行程序"这个集合里挑一个解，让评分函数最大，同时满足正确性约束；预算按 token 计。作者接着把已有系统统一描述成一个**团队配置** `T = (R, Π, M)`：角色 `R`（谁负责什么）、协作 `Π`（怎么交互）、知识管理 `M`（经验如何积累与共享）。这篇的立足点是：**已有系统里这三项都是人预先设计并固定的，只优化 `s` 不优化 `T`**；而长时程优化里正是 `T` 与当前阶段失配导致停滞。脚注 1 特意澄清：有些进化系统会在运行中调搜索超参（如 AdaEvolve），但"固定"在这里专指 `T` 本身。
+读法：在"可执行程序"这个集合里挑一个解，让评分函数最大，同时满足正确性约束；预算按 token 计。作者接着把已有系统统一描述成一个**团队配置** $T = (R, \Pi, M)$：角色 $R$（谁负责什么）、协作 $\Pi$（怎么交互）、知识管理 $M$（经验如何积累与共享）。这篇的立足点是：**已有系统里这三项都是人预先设计并固定的，只优化 $s$ 不优化 $T$**；而长时程优化里正是 $T$ 与当前阶段失配导致停滞。脚注 1 特意澄清：有些进化系统会在运行中调搜索超参（如 AdaEvolve），但"固定"在这里专指 $T$ 本身。
 
 ### 两级循环（§3.2，Figure 2）
 
 ![](assets/figure2-framework.png)
 
-*图 2（原文 Figure 2，p.4）：框架总览。上层 Team Evolution 由 supervisor agent 执行 Monitor → Reflect → Redesign → Next team → Launch；下层 Team Execution 由当前团队 `T_v` 执行；左下是跨所有团队版本保留的文件系统 `K`，用 read / write 箭头与上下两层相连。橙色边框表示"由 supervisor 发明的角色"（图例在右侧 Team Execution 面板标题下方）。裁剪自 v1 PDF，300 dpi。*
+*图 2（原文 Figure 2，p.4）：框架总览。上层 Team Evolution 由 supervisor agent 执行 Monitor → Reflect → Redesign → Next team → Launch；下层 Team Execution 由当前团队 $T_{v}$ 执行；左下是跨所有团队版本保留的文件系统 $K$，用 read / write 箭头与上下两层相连。橙色边框表示"由 supervisor 发明的角色"（图例在右侧 Team Execution 面板标题下方）。裁剪自 v1 PDF，300 dpi。*
 
 ```mermaid
 flowchart TD
@@ -103,15 +103,15 @@ flowchart TD
 
 | 轴 | supervisor 能改什么 | 论文里的具体例子 |
 | --- | --- | --- |
-| Roles `R` | **发明**角色，而不是从预定义池里选 | `PROFILING SCIENTIST`（设计微基准隔离瓶颈）、`CHALLENGER`（压测"性能天花板"的说法）、`PRIMITIVE STUDY AGENT`（研究可用原语并跑小测试）、`KNOWLEDGE INTEGRATOR`（把散落在各团队的报告合成可执行计划） |
-| Coordination `Π` | 流水（research → implement → profile）、并行分支、或两者混合 | 一个 agent 只调试阻塞问题（禁止碰主代码库），另一个继续在主分支上优化，避免一个 agent 的失败阻塞另一个 |
-| Knowledge `M` | 规定每个 agent 该把东西写到哪里 | 早期洞见跨团队丢失后，引入跨 agent 的 synthesis 文档，并要求后续所有团队读它 |
+| Roles $R$ | **发明**角色，而不是从预定义池里选 | `PROFILING SCIENTIST`（设计微基准隔离瓶颈）、`CHALLENGER`（压测"性能天花板"的说法）、`PRIMITIVE STUDY AGENT`（研究可用原语并跑小测试）、`KNOWLEDGE INTEGRATOR`（把散落在各团队的报告合成可执行计划） |
+| Coordination $\Pi$ | 流水（research → implement → profile）、并行分支、或两者混合 | 一个 agent 只调试阻塞问题（禁止碰主代码库），另一个继续在主分支上优化，避免一个 agent 的失败阻塞另一个 |
+| Knowledge $M$ | 规定每个 agent 该把东西写到哪里 | 早期洞见跨团队丢失后，引入跨 agent 的 synthesis 文档，并要求后续所有团队读它 |
 
 附录 A 的 Table 3 把 supervisor 在全部实验里发明过的角色按五类列出（实施与优化 5 个、分析与 profiling 6 个、知识与研究 5 个、质量保证 3 个、架构与设计 3 个），并强调**没有一个预定义**。
 
-**文件系统 `K`** 是这篇最"工程"的部分：它跨所有团队版本持久保存代码库、评测工具、learnings 文档（经验观察）、每个团队的 artifacts（kernel 与逐角色记录）和 evolution history（supervisor 每版的反思与设计决定）。作者的说法是：连续性让每个新团队都能继承此前的经验、失败尝试与成功策略——这也是它与"每轮从零重组"的 AgentVerse 的关键区别。
+**文件系统 $K$** 是这篇最"工程"的部分：它跨所有团队版本持久保存代码库、评测工具、learnings 文档（经验观察）、每个团队的 artifacts（kernel 与逐角色记录）和 evolution history（supervisor 每版的反思与设计决定）。作者的说法是：连续性让每个新团队都能继承此前的经验、失败尝试与成功策略——这也是它与"每轮从零重组"的 AgentVerse 的关键区别。
 
-**执行层**：每个 agent 就是带 shell 访问的 LLM coding agent（论文实现是 Claude Code），能读写文件、跑命令、调用编译器与 profiler。agent 拿到角色任务书 + 代码库 + 评测工具 + `K` 的访问权；一个 agent 的产出（commit 的代码、profiling 报告、写的分析）按协作计划成为别人的输入。
+**执行层**：每个 agent 就是带 shell 访问的 LLM coding agent（论文实现是 Claude Code），能读写文件、跑命令、调用编译器与 profiler。agent 拿到角色任务书 + 代码库 + 评测工具 + $K$ 的访问权；一个 agent 的产出（commit 的代码、profiling 报告、写的分析）按协作计划成为别人的输入。
 
 **一个容易被忽略的初始化细节**：没有预定义的初始角色或团队配置，supervisor 自己根据任务描述从零设计所有角色、协作计划与知识管理策略（§4.1 Implementation）。
 
@@ -186,11 +186,11 @@ flowchart TD
 
 ### 已经被人优化过的代码还能不能改（§4.4，Figure 5）
 
-Flash-KMeans 是一个近期的手工优化版精确 K-Means（FlashAssign 把距离计算与在线 argmin 融合以避开 `N×K` 距离矩阵落 HBM，sort-inverse update 把高竞争 atomic scatter 换成段级局部归约，作者称相对此前 GPU 基线最高 17.9×）。这次不是从 PyTorch 参考起步，而是**从已发布的 Triton 实现起步**，任务是重写成 CUDA：
+Flash-KMeans 是一个近期的手工优化版精确 K-Means（FlashAssign 把距离计算与在线 argmin 融合以避开 $N\times K$ 距离矩阵落 HBM，sort-inverse update 把高竞争 atomic scatter 换成段级局部归约，作者称相对此前 GPU 基线最高 17.9×）。这次不是从 PyTorch 参考起步，而是**从已发布的 Triton 实现起步**，任务是重写成 CUDA：
 
 - 默认 workload 上 **1.71×** over Triton（原文给的数字；它与图 5b 网格里任何一格的配对都对不上——网格内最高约 1.59×，应是另测的默认 workload）。
-- 按图 5b 的数值逐格相除：compute-bound 的高 `K` 八格在 **1.37–1.59×**，最高是 `b=32,k=1000,N=32K`（1.49 → 0.94 ms）；`b=32,k=1000,N=64K` 是 2.55 → 1.63 ms（约 1.56×）。原文写 "up to 1.5×"，偏保守。
-- memory-bound 的另一半并不都是持平：`k=128` 的四格里，`b=8` 的前三格均约 1.43×、128K 降到 1.07×；`b=32` 是 1.38× / 1.09× / 1.10× / 1.09×。原文的 "matching Triton on memory-bound regimes" 只在 N 较大时接近成立（Figure 5b）。
+- 按图 5b 的数值逐格相除：compute-bound 的高 $K$ 八格在 **1.37–1.59×**，最高是 $b=32,k=1000,N=32K$（1.49 → 0.94 ms）；$b=32,k=1000,N=64K$ 是 2.55 → 1.63 ms（约 1.56×）。原文写 "up to 1.5×"，偏保守。
+- memory-bound 的另一半并不都是持平：$k=128$ 的四格里，$b=8$ 的前三格均约 1.43×、128K 降到 1.07×；$b=32$ 是 1.38× / 1.09× / 1.10× / 1.09×。原文的 "matching Triton on memory-bound regimes" 只在 N 较大时接近成立（Figure 5b）。
 - 这条实验的意义：说明系统不是只能"从零爬"，也能在人类已经调过的实现上继续拿分。但注意它换的是**实现语言/路径**（Triton → CUDA WGMMA），不是在同一条实现上做微优化。
 
 ### 消融：涨分到底来自"演化"还是"模型"（§4.5，Figure 6）
@@ -285,8 +285,8 @@ Flash-KMeans 是一个近期的手工优化版精确 K-Means（FlashAssign 把�
 如果要抄它的骨架，最小可用的契约是：
 
 1. **一个可判分的执行器**（这里是"编译 + 跑该任务的整个 workload 集 + 正确性测试"）。没有稳定评分，supervisor 的诊断就是猜。
-2. **一个跨版本持久的 `K`**：learnings（事实）+ evolution history（反思与决定）+ artifacts（每版代码与逐角色记录）+ 代码与评测。关键是**区分"逐实验事实"与"跨实验策略建议"**——V7→V8 的失败正是后者的缺失。
-3. **三个可改的旋钮** `(R, Π, M)`，而不是只改 prompt。
+2. **一个跨版本持久的 $K$**：learnings（事实）+ evolution history（反思与决定）+ artifacts（每版代码与逐角色记录）+ 代码与评测。关键是**区分"逐实验事实"与"跨实验策略建议"**——V7→V8 的失败正是后者的缺失。
+3. **三个可改的旋钮** $(R, \Pi, M)$，而不是只改 prompt。
 4. **触发时机**：团队跑完 + 定时 cron 两条；只有前者会漏掉"团队自己陷在局部最优里出不来"的情况。
 5. **supervisor 的输入是"症状"而不是"分数"**：论文里有效的诊断都写在行为层面（滑向容易路径、关键洞见丢失、困在调试、过度微优化），而不是"分数没涨"。
 

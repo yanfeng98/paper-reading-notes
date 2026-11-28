@@ -14,7 +14,7 @@
 | `papers/` | 非 arXiv 来源的原文归档，命名 `<5位编号>-<短标题>.pdf` | skill 归档新论文；改指 arXiv 时删除（见「PDF 策略」） |
 | `books/` | 书籍归档，独立编号（00001 起） | 人工 |
 
-阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行，跨篇方法汇总的生成与复核按 `skills/summarize-paper-methods/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。笔记与汇总中的公式统一用 ```math 围栏（不用行内 `$…$`、单行或列表内的 `$$`）；汇总的静态站点、PDF 与 Pages 发布按 summarize-paper-methods 的〈渲染与发布〉执行，构建命令为 `python3 site/build.py --out _site`。
+阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行，跨篇方法汇总的生成与复核按 `skills/summarize-paper-methods/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。独立公式用 ```math 围栏；短行内公式用 `$…$`（站点 MathJax 渲染）；不写单行或列表内的 `$$`；货币符号放行内代码或写「美元」；汇总的静态站点、PDF 与 Pages 发布按 summarize-paper-methods 的〈渲染与发布〉执行，构建命令为 `python3 site/build.py --out _site`。
 
 ## 编号
 
@@ -44,7 +44,7 @@
 - 首页卡片缩略图取笔记 `assets/` 下第一张图（`cover_rel`），用 IntersectionObserver 接近视口才赋 `src`；阅读页封面只认显式的 `assets/cover.*` / `assets/hero.*`（或 `cover-*` / `hero-*` 前缀），否则回退 `hero-kimi-1600`，避免把白底图表压成近黑封面。Kimi 专属的 hero 图、云渲染、代码带与手写字体预加载都只在 `data-skin="kimi"` 时启用，经典皮肤不下载这些资源。hero 首张照片来自 Kimi K3.1 Pro 文章页（版权归原作者，页脚与 `site/README.md` 标注来源，使用时需确认授权），第二张 `hero-kimi-yunhai-*` 由站点作者提供。
 - 首页资料库在浏览器端分页，每页 12 张笔记卡（第 1 页另含主题汇总 featured 卡，不占这 12 张）：先排序、再按类型/搜索过滤、最后切页；主题汇总 featured 卡只出现在第 1 页；页码写入 `?page=`，搜索、筛选、排序与清除筛选都回到第 1 页；只有一页或结果为空时隐藏分页条，无 JS 时显示全部卡片。翻页后滚动到结果区并重建 Kimi 的滚动显隐观察器；分页隐藏的卡片带 `data-page-hidden`，打印时展开，但当前筛选/搜索仍然生效。
 - 阅读页章节云：Kimi 皮肤下 `site/assets/reader-clouds.js`（按需加载）为每个 `.prose > h2` 生成一朵原版 `BlogV2Motion` WebGL2 体积云——标题中心进入 90% 视口时 0.8s 左右交替飘入，越过 65% 视口后再滚 4% 视口，2.4s 飘出淡出；云层在 `.prose` 内全幅 `z-index:-1` 并向上延伸 360px（标题区盖在云层上，避免第一朵云被正文顶部裁切），浅色白云、深色蓝灰，≤700px 云宽 420px，reduced-motion 与打印关闭；经典皮肤不加载，切换皮肤时销毁 renderer。
-- `python3 site/build.py --out _site` 会自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；每个 `note.md` 必须有 README 对应行，构建会做双向校验、图片/链接校验和公式/Mermaid 计数校验。`docs/` 支持多篇汇总，都会作为首页 featured 卡片。
+- `python3 site/build.py --out _site` 会自动发现 `notes/papers/*/note.md`、`notes/blogs/*/note.md`、`docs/*.md`；每个 `note.md` 必须有 README 对应行，构建会做双向校验、图片/链接校验和显示/行内公式与 Mermaid 计数校验。`docs/` 支持多篇汇总，都会作为首页 featured 卡片。
 - 首页贡献热力图由构建时的 `git log` 生成，按 UTC+8 归日、统计当前分支提交数，默认展示最近 12 个月并可切换到有提交的自然年（当前年份截至今天，标签「YYYY 年（至今）」）。它是构建快照，每次推送 `main` 和每日定时构建时刷新；Actions 的 checkout 必须 `fetch-depth: 0`，浅克隆或没有 `.git` 时构建会隐藏面板并在 stderr 警告。
 - 阅读页按源文件深度生成：`/notes/papers/<slug>/`、`/notes/blogs/<slug>/`、`/docs/<slug>/`；首页 `_site/index.html` 是资料库。
 - 阅读页对 Mermaid 延迟加载（首图距视口 >2.5 屏时先用「图表加载中…」占位，接近视口才拉 vendor）：核对图数前调用 `window.__ensureMermaid()`（或滚动到首图，观察器只盯第一张）；`_site/assets/vendor/*`（源 `site/vendor/`）的 `?v=` 按 vendor 文件的相对路径 + 内容哈希，与站点资源的 `assetVersion` 分开。汇总同名 PDF 复制到 `_site/docs/<slug>/<slug>.pdf`，并为每篇汇总保留根级 `<slug>.pdf` 兼容别名。

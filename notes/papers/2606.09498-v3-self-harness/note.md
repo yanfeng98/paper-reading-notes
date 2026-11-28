@@ -29,7 +29,7 @@
 
 - **2026-11-09 第一轮（check-paper-note）**：基准 arXiv:2606.09498v3；从 arXiv 官方重取 PDF（31 页，9,572,735 B，sha256 `eb38452b…`，与笔记一致），同版本 HTML 300,521 B。
 - **核对方式（A–H）**：A 元数据（8 作者、双 † 通讯、唯一单位、v1/v2/v3、CC BY 4.0、cs.CL、README 00198 条目）；B Table 1 的 54 个数值、9 组 Overall、`+%`、整数通过数；C 失败签名、聚类、Δ 与 Algorithm 1；D §/Figure/Table/页码；E 否定性与全称断言；F Figures 1/2/4/5 逐图（裁剪框与像素差）及 6/7/8–10 图注；G K/T、成本、诊断模型、merge 复评、held-out 角色；H 数字/术语/分母一致性。
-- **修正**：① 把 "no promoted harness degrades" 限定为单个候选，合并后的最终 harness 不保证；② `h_T` 的评估情形按“单候选已评估 / 合并结果未复评”改写；③ 诊断 LLM 改为“仓库实现、论文未说明”；④ RRSI 关系改为 proposer/analyst/critic 与 policy 同为 Opus 4.8；⑤ Figure 4 的 gray/red 改为术语不统一而非硬冲突；⑥ 40.6/132 加 Overall，并补 split 级 +44.4 pp / 相对 +140%；⑦ Figure 3 两种分支标注为推断；⑧ transfer 引文 p2→p3；⑨ 语义相似度引文 p5–6→p7；⑩ `cost` 命中改为 3 次定性 + 作者名 Costa；⑪ Table 1 表注只说明 bold，`+%` 为本笔记复算；⑫ 50 tool messages/calls 术语统一；⑬ “没有 baseline”改为“没有外部 baseline”；⑭ README“00198 行”改为“编号 00198 的条目”；⑮ Appendix B 范围 p21–22→p20–23；⑯ Figure 4 最终 harness 菱形标记补注。
+- **修正**：① 把 "no promoted harness degrades" 限定为单个候选，合并后的最终 harness 不保证；② $h_{T}$ 的评估情形按“单候选已评估 / 合并结果未复评”改写；③ 诊断 LLM 改为“仓库实现、论文未说明”；④ RRSI 关系改为 proposer/analyst/critic 与 policy 同为 Opus 4.8；⑤ Figure 4 的 gray/red 改为术语不统一而非硬冲突；⑥ 40.6/132 加 Overall，并补 split 级 +44.4 pp / 相对 +140%；⑦ Figure 3 两种分支标注为推断；⑧ transfer 引文 p2→p3；⑨ 语义相似度引文 p5–6→p7；⑩ `cost` 命中改为 3 次定性 + 作者名 Costa；⑪ Table 1 表注只说明 bold，`+%` 为本笔记复算；⑫ 50 tool messages/calls 术语统一；⑬ “没有 baseline”改为“没有外部 baseline”；⑭ README“00198 行”改为“编号 00198 的条目”；⑮ Appendix B 范围 p21–22→p20–23；⑯ Figure 4 最终 harness 菱形标记补注。
 - **独立审计**：子 agent 报告 16 项，均已处理；其 GitHub 在线项标“未复核”，由主 agent 于 2026-11-09 另核（★141、无 license、单 commit `2720dbb3`、只发布 `qwen_tb2_final`、acceptance/loop/proposer/diagnosis 默认值均与笔记一致）。
 - **确认无误 / 未修未核**：Table 1 的 54 个数值、Overall 加权、Figure 4 的四组标注、案例数字（49-test、1+46、4+68、12 条记录、7/4/3、50 messages）均与 PDF 渲染页/正文一致。未运行代码、未复现实验、未比对 v1/v2；Figure 11–22 只按图注/正文核对，未逐图像素检查；README/GitHub 状态随时间可能变化。
 
@@ -53,13 +53,13 @@
 
 ### Harness 是模型之外的第二个变量
 
-论文把 harness 定义为"把固定语言模型部署成 agent 的非参数脚手架"：instructions、tools、memory/state-management、verification rules、permission policies、adapters、runtime mechanisms（§2，p3–4；§3.1，p4）。给定任务 `x`，模型 `M` 在 harness `h` 下执行，得到轨迹 `τ` 与输出 `y`，再由 evaluator `E` 给出 pass/fail：
+论文把 harness 定义为"把固定语言模型部署成 agent 的非参数脚手架"：instructions、tools、memory/state-management、verification rules、permission policies、adapters、runtime mechanisms（§2，p3–4；§3.1，p4）。给定任务 `x`，模型 $M$ 在 harness $h$ 下执行，得到轨迹 $\tau$ 与输出 $y$，再由 evaluator $E$ 给出 pass/fail：
 
 ```math
 (M, h, x) \;\longrightarrow\; (\tau, y), \qquad z = \mathcal{E}(x, \tau, y)
 ```
 
-白话：同一个模型换一套 harness，轨迹和结果就会变；这篇要改的是 `h`，不是 `M` 的权重。
+白话：同一个模型换一套 harness，轨迹和结果就会变；这篇要改的是 $h$，不是 $M$ 的权重。
 
 论文的出发点不是"模型不够强"，而是"很多失败其实是 harness 层的失败"：agent 没检查产物就报告成功、重复无效动作、在长上下文里丢失事实来源、缺少恢复动作（§2，p4）。这些行为来自 instructions、observations、tools、runtime control 的交互，所以只改 prompt 文本不够。
 
@@ -85,29 +85,29 @@ Figure 1（p2）把三条路线画在一起：
 
 论文的符号很克制：
 
-- `M`：固定的语言模型；`E`：固定的 evaluator；`h`：harness。
-- 一条 harness 谱系 `h_0, h_1, ..., h_T`；每一次转移是对执行协议的有界编辑，不是权重更新（§3.1，p4）。
-- 轨迹记录 messages、tool calls、verifier outcomes；`z_i` 是任务 `x_i` 的 pass/fail。
+- $M$：固定的语言模型；$E$：固定的 evaluator；$h$：harness。
+- 一条 harness 谱系 $h_{0}, h_{1}, ..., h_{T}$；每一次转移是对执行协议的有界编辑，不是权重更新（§3.1，p4）。
+- 轨迹记录 messages、tool calls、verifier outcomes；$z_{i}$ 是任务 $x_{i}$ 的 pass/fail。
 
 这里的关键设计是**把"改什么"限制在声明式 surface 上**：不是让模型重写整个 agent 框架，而是只改 harness 定义文件里预先声明的配置点（instructions、tools、verification guidance 等）。这既降低了搜索空间，也让每次编辑可审计、可回滚。
 
 ### 3.2 Weakness Mining：把失败聚成可操作的证据
 
-第一阶段的输入是当前 harness `h_t` 在 held-in split `D_in` 上的执行记录 `R_t`。对每条失败记录 `r_i`，评估系统不是简单按"timeout / assertion / missing artifact"聚类，而是先做一次归因，得到 failure signature：
+第一阶段的输入是当前 harness $h_t$ 在 held-in split $D_{\mathrm{in}}$ 上的执行记录 $R_{t}$。对每条失败记录 $r_i$，评估系统不是简单按"timeout / assertion / missing artifact"聚类，而是先做一次归因，得到 failure signature：
 
 ```math
 \phi(r_i) = (c_i, q_i, m_i)
 ```
 
-白话：`c_i` 是 verifier 最终拒绝的终端原因；`q_i` 是相关 agent 行为在轨迹中的因果地位；`m_i` 是这条轨迹暴露出的可复用 agent 机制。三者完全一致才归为同一簇：
+白话：$c_{i}$ 是 verifier 最终拒绝的终端原因；$q_{i}$ 是相关 agent 行为在轨迹中的因果地位；$m_{i}$ 是这条轨迹暴露出的可复用 agent 机制。三者完全一致才归为同一簇：
 
 ```math
 C_\phi = \{\, r_i \in F_t \mid \phi(r_i) = \phi \,\}
 ```
 
-论文强调这不是"语义相似度聚类"，而是"是否可能接受同一个 harness 级干预"的聚类（§3.2，p7）。每个簇会整理出 cluster size、代表任务、共享症状、verifier 证据与推断机制，再按 support 与 estimated actionability 排序，形成 evidence bundle `B_t`。`B_t` **不规定**具体怎么改 harness——它只把"verifier 层失败"与"agent 层机制"分开，避免 proposer 直接去补一个粗粒度症状。
+论文强调这不是"语义相似度聚类"，而是"是否可能接受同一个 harness 级干预"的聚类（§3.2，p7）。每个簇会整理出 cluster size、代表任务、共享症状、verifier 证据与推断机制，再按 support 与 estimated actionability 排序，形成 evidence bundle $B_{t}$。$B_{t}$ **不规定**具体怎么改 harness——它只把"verifier 层失败"与"agent 层机制"分开，避免 proposer 直接去补一个粗粒度症状。
 
-这一步是整个方法最"工程"的部分：它把失败诊断变成了一个结构化的中间表示。代价是它依赖 verifier 能给出可归因的失败信息；如果 evaluator 只有 pass/fail，`(c_i, q_i, m_i)` 的质量就取决于诊断模型。
+这一步是整个方法最"工程"的部分：它把失败诊断变成了一个结构化的中间表示。代价是它依赖 verifier 能给出可归因的失败信息；如果 evaluator 只有 pass/fail，$(c_{i}, q_{i}, m_{i})$ 的质量就取决于诊断模型。
 
 ![Figure 2：Self-Harness 的一轮优化循环](assets/figure2-loop.png)
 
@@ -115,20 +115,20 @@ C_\phi = \{\, r_i \in F_t \mid \phi(r_i) = \phi \,\}
 
 ### 3.3 Harness Proposal：同一模型、受限编辑
 
-proposer 不是外部优化器，而是**同一个固定模型 `M`**，在当前 harness `h_t` 下以 proposer 角色被调用。它看到的上下文是有限的（§3.3，p7）：
+proposer 不是外部优化器，而是**同一个固定模型 $M$**，在当前 harness $h_t$ 下以 proposer 角色被调用。它看到的上下文是有限的（§3.3，p7）：
 
 - 当前 harness 的可编辑 surface；
 - verifier 归因后的 failure patterns；
 - 应该保留的 passing behaviors；
 - 之前尝试过的编辑摘要。
 
-每次生成 `K` 个彼此不同的 proposal bundle：
+每次生成 $K$ 个彼此不同的 proposal bundle：
 
 ```math
 \mathcal{P}_t = \{(\Delta_j, a_j)\}_{j=1}^{K}, \qquad h_t^{(j)} = \Delta_j(h_t)
 ```
 
-白话：`Δ_j` 是把当前 harness 映射到候选 harness 的编辑；`a_j` 是审计记录，写清目标 failure pattern、改动的 surface、预期的行为变化、回归风险。
+白话：$\Delta_{j}$ 是把当前 harness 映射到候选 harness 的编辑；$a_{j}$ 是审计记录，写清目标 failure pattern、改动的 surface、预期的行为变化、回归风险。
 
 约束有两条：
 
@@ -139,7 +139,7 @@ proposer 还会先做 addressability 判断：不是所有失败簇都值得改 
 
 ### 3.4 Proposal Validation：回归门
 
-每个候选 `h_t^(j)` 都要在当前 harness `h_t` 的同一 evaluator 下，分别在 held-in `D_in` 与 held-out `D_ho` 上评估。设 `P_in(h)`、`P_ho(h)` 为通过任务数（或通过率），定义：
+每个候选 $h_{t}^{(j)}$ 都要在当前 harness $h_t$ 的同一 evaluator 下，分别在 held-in $D_{\mathrm{in}}$ 与 held-out $D_{\mathrm{ho}}$ 上评估。设 $P_{\mathrm{in}}(h)$、$P_{\mathrm{ho}}(h)$ 为通过任务数（或通过率），定义：
 
 ```math
 \Delta_{\mathrm{in}}^{(j)} = P_{\mathrm{in}}(h_t^{(j)}) - P_{\mathrm{in}}(h_t), \qquad
@@ -176,8 +176,8 @@ return h_T
 
 两个实现层面的注意点：
 
-1. **Algorithm 1 没有画"合并后再评估"**。它把同轮所有 accepted 编辑合并成 `h_{t+1}`，下一轮开头才评估。如果最后一轮只有一个 accepted 候选，`h_T` 就是 step 8 已评估过的候选；如果是多个 accepted 合并得到的 `h_T`，这个合并结果没有在算法内复评。若 Table 1 报告的是后者，就需要额外一次评估（论文没有在算法里画出；仓库代码会复评）。仓库代码比算法多走一步：`workflow/scripts/run_self_harness_loop.py` 在合并多个 accepted 候选后会重新跑候选评估与 acceptance gate，失败则把状态标成 `accepted_merge_rejected`（见「核对凭据」）。
-2. **接受是相对本轮起点，而不是相对同轮其他候选**。图 4(d) 里 67.2 低于同轮的 76.4 却仍是绿色 accepted，因为每个候选都只与 `h_t`（44.4）比较；同轮多个 accepted 编辑最后合并，合并后的 85.0 才是下一版。这个细节从 Algorithm 1 的 `P_in(h_t)`/`P_ho(h_t)` 基准可以直接读出，但正文没有特别强调，容易误读成"逐候选贪心"。
+1. **Algorithm 1 没有画"合并后再评估"**。它把同轮所有 accepted 编辑合并成 $h_{t+1}$，下一轮开头才评估。如果最后一轮只有一个 accepted 候选，$h_{T}$ 就是 step 8 已评估过的候选；如果是多个 accepted 合并得到的 $h_{T}$，这个合并结果没有在算法内复评。若 Table 1 报告的是后者，就需要额外一次评估（论文没有在算法里画出；仓库代码会复评）。仓库代码比算法多走一步：`workflow/scripts/run_self_harness_loop.py` 在合并多个 accepted 候选后会重新跑候选评估与 acceptance gate，失败则把状态标成 `accepted_merge_rejected`（见「核对凭据」）。
+2. **接受是相对本轮起点，而不是相对同轮其他候选**。图 4(d) 里 67.2 低于同轮的 76.4 却仍是绿色 accepted，因为每个候选都只与 $h_{t}$（44.4）比较；同轮多个 accepted 编辑最后合并，合并后的 85.0 才是下一版。这个细节从 Algorithm 1 的 $P_{\mathrm{in}}(h_{t})$/$P_{\mathrm{ho}}(h_{t})$ 基准可以直接读出，但正文没有特别强调，容易误读成"逐候选贪心"。
 
 ### 贡献与证据边界
 
@@ -232,7 +232,7 @@ build_fixed_harness_agent()    # 用 create_deep_agent 组装
 
 **数字口径**（本笔记复算）：
 
-- Overall 是按 split 大小加权的通过率；SWE 67/33 与 TB2 43/21 下它与简单平均不同，AppWorld 90/90 下两者相同。SWE 67/33、AppWorld 90/90 可以直接复算；TB2 的 43/21 由仓库 `eval/README.md` 给出，与 Table 1 的 Overall 完全对得上。例：MiniMax TB2 `(43.0×43 + 40.5×21)/64 = 42.18 → 42.2`。
+- Overall 是按 split 大小加权的通过率；SWE 67/33 与 TB2 43/21 下它与简单平均不同，AppWorld 90/90 下两者相同。SWE 67/33、AppWorld 90/90 可以直接复算；TB2 的 43/21 由仓库 `eval/README.md` 给出，与 Table 1 的 Overall 完全对得上。例：MiniMax TB2 $(43.0\times43+40.5\times21)/64=42.18\to42.2$。
 - 每个百分比都能落到整数通过数（2 次尝试 × split 任务数）。例如 TB2 held-out 21 任务 × 2 = 42 次尝试：MiniMax 40.5% = 17/42、61.9% = 26/42；SWE held-out 33 × 2 = 66 次：GLM 48.5% = 32/66、50.0% = 33/66；AppWorld held-out 90 × 2 = 180 次：Qwen 20.0% = 36/180、44.4% = 80/180。
 - 这带来一个读表时容易忽略的粒度问题：TB2 held-out 的 1 次尝试 = 2.38 pp，SWE held-out 的 1 次 = 1.52 pp，AppWorld held-out 的 1 次 = 0.56 pp。**GLM-5 在 SWE held-out 的 +3%（48.5→50.0）实际只多通过了 1 次尝试（32→33 / 66）**；这不是说提升不存在，而是说没有置信区间时，几个 attempt 的波动就足以产生这种量级的差。
 
@@ -341,7 +341,7 @@ Figure 5（p13）是 MiniMax 在 TB2 上的三段代码 diff，能直接看到�
 C_\phi = \{\, r_i \in F_t \mid \phi(r_i) = \phi \,\}
 ```
 
-直觉：把"verifier 为什么拒绝"（`c`）、"agent 的哪个行为导致了它"（`q`）、"这暴露了哪个可复用机制"（`m`）拆开，只有三者完全一致才归为一簇。这样两个都表现为 "timeout" 的失败，可能因为机制不同而落到不同簇，避免用同一个 patch 去治两种病。
+直觉：把"verifier 为什么拒绝"（$c$）、"agent 的哪个行为导致了它"（$q$）、"这暴露了哪个可复用机制"（$m$）拆开，只有三者完全一致才归为一簇。这样两个都表现为 "timeout" 的失败，可能因为机制不同而落到不同簇，避免用同一个 patch 去治两种病。
 
 ### 准入规则
 
@@ -372,7 +372,7 @@ C_\phi = \{\, r_i \in F_t \mid \phi(r_i) = \phi \,\}
 (K + 1) 个 harness × 2 次重复 × (|D_in| + |D_ho|) 个任务
 ```
 
-其中 `K` 是 proposal width，`+1` 是当前 harness。SWE 的 100 个 case、3,600 s case timeout 意味着单轮就可能非常贵；论文没有给 K、T、总轮数、token/费用，也没有给每轮的 wall-clock。仓库的示例 eval 配置 `timeout_s = 43200`（12 小时）只是示例，不等于论文实际设置；按示例配置推断，这套循环更接近小时级/天级而不是分钟级。
+其中 $K$ 是 proposal width，`+1` 是当前 harness。SWE 的 100 个 case、3,600 s case timeout 意味着单轮就可能非常贵；论文没有给 K、T、总轮数、token/费用，也没有给每轮的 wall-clock。仓库的示例 eval 配置 $timeout_{s} = 43200$（12 小时）只是示例，不等于论文实际设置；按示例配置推断，这套循环更接近小时级/天级而不是分钟级。
 
 ### 仓库的复现状态
 
@@ -414,7 +414,7 @@ C_\phi = \{\, r_i \in F_t \mid \phi(r_i) = \phi \,\}
 
 其中两个最值得追问：
 
-1. **"self" 的边界**。模型确实是同一个（proposer 与被评估 agent 共享 `M`），但诊断在仓库实现里由显式 LLM client 完成（论文正文未说明诊断模型）、准入由外部算法/evaluator 决定、编辑只能落在人类预先声明的 surface 上。它是"模型提出、verifier 选择"的 harness 工程，不是"模型自主改写自己"。论文的措辞基本承认这一点（"bounded edit"、"declared surfaces"），但标题容易让人期待更多。
+1. **"self" 的边界**。模型确实是同一个（proposer 与被评估 agent 共享 $M$），但诊断在仓库实现里由显式 LLM client 完成（论文正文未说明诊断模型）、准入由外部算法/evaluator 决定、编辑只能落在人类预先声明的 surface 上。它是"模型提出、verifier 选择"的 harness 工程，不是"模型自主改写自己"。论文的措辞基本承认这一点（"bounded edit"、"declared surfaces"），但标题容易让人期待更多。
 2. **held-out 的角色**。§4.1 明确说 held-out "never shown to the proposer and is used only by the automatic promotion gate"（p9）。这句话是诚实的，但它意味着最终报告的 held-out 数字是"被 gate 选择过"的，不是独立测试集。读摘要里的 "held-out improvements" 时，要按 validation 而不是 test 来理解。
 
 ---
@@ -423,10 +423,10 @@ C_\phi = \{\, r_i \in F_t \mid \phi(r_i) = \phi \,\}
 
 1. **Figure 4 图注与 §4.3 正文对 marker 的术语不统一，容易误读**。图注（p12）："Green markers denote accepted harness candidates, gray crosses denote rejected candidates, and red crosses mark explored branch endpoints." 正文（p12）："Red nodes and grey slots denote rejected branches and failing trials, respectively." 两处可以勉强对齐（红=被拒分支的端点，灰=失败的候选尝试），但 crosses/nodes/slots 与 rejected candidates/rejected branches/failing trials 的措辞不同；图例仍以图注为准（绿色 accepted、灰色 rejected、红色 branch endpoint）。
 2. **Figure 3 的 TB2 prompt 与"benchmark-specific harness"的措辞不完全对齐**。§4 说 "a minimal benchmark-specific harness"（p9），§4.1 说 "a short benchmark-facing system prompt"（p9），Figure 3 图注说 "consisting only of the Terminal-Bench-2.0 default system prompt"（p10）。如果三个 benchmark 用的是同一段 TB2 prompt，SWE/AppWorld 的初始 harness 会偏弱；如果各自有 benchmark-specific prompt，Figure 3 只是 TB2 示例。论文没有把这一点写死，读者无法从正文判断（以上两种分支均为本笔记推断）。
-3. **"no promoted harness degrades either split" 对单个候选是准入规则的直接结果，但对合并后的最终 harness 不是**。§3.4（p8）只要求每个候选相对本轮起点 `h_t` 两侧不降；同轮多个 accepted 编辑合并后可能相互影响。Algorithm 1（p6）没有画合并后的复评；仓库代码会重新评测并再跑 gate。因此 Table 1 的最终双侧不降：若最终 harness 是单个 accepted 候选，规则直接保证；若是合并结果，则要么来自合并后复评（仓库实现），要么是经验观察，不能笼统说成规则构造出来的。
+3. **"no promoted harness degrades either split" 对单个候选是准入规则的直接结果，但对合并后的最终 harness 不是**。§3.4（p8）只要求每个候选相对本轮起点 $h_{t}$ 两侧不降；同轮多个 accepted 编辑合并后可能相互影响。Algorithm 1（p6）没有画合并后的复评；仓库代码会重新评测并再跑 gate。因此 Table 1 的最终双侧不降：若最终 harness 是单个 accepted 候选，规则直接保证；若是合并结果，则要么来自合并后复评（仓库实现），要么是经验观察，不能笼统说成规则构造出来的。
 4. **"transfer to tasks whose traces are hidden from the proposer" 容易被读成独立泛化**。论文的原话（§1，p3）是 held-out 的 trace 不给 proposer 看；但 held-out 的结果参与 gate。它证明了"proposer 没看过这些 trace"，没有证明"这些编辑在没有 held-out 选择的情况下也会提升"。
-5. **Algorithm 1 的返回值：单候选已评估，合并结果未复评**。算法返回 `h_T`；如果最后一轮只有一个 accepted 候选，`h_T` 在 step 8 已评估；如果是多个 accepted 合并得到的 `h_T`，算法内没有复评。Table 1 若报告合并后的最终 harness，需要额外一次评估；仓库代码对合并候选做了复评，论文算法没有画出这一步。
-6. **"不依赖更强外部 agent"与诊断模型未说明**。摘要/§1 的卖点是不用 stronger external agent；但失败归因（`c_i, q_i, m_i`）在仓库实现里需要 LLM 诊断，论文没有说这个 LLM 是不是同一个 `M`。如果诊断用了更强的模型，主张需要加限定。
+5. **Algorithm 1 的返回值：单候选已评估，合并结果未复评**。算法返回 $h_{T}$；如果最后一轮只有一个 accepted 候选，$h_{T}$ 在 step 8 已评估；如果是多个 accepted 合并得到的 $h_{T}$，算法内没有复评。Table 1 若报告合并后的最终 harness，需要额外一次评估；仓库代码对合并候选做了复评，论文算法没有画出这一步。
+6. **"不依赖更强外部 agent"与诊断模型未说明**。摘要/§1 的卖点是不用 stronger external agent；但失败归因（$c_{i}, q_{i}, m_{i}$）在仓库实现里需要 LLM 诊断，论文没有说这个 LLM 是不是同一个 $M$。如果诊断用了更强的模型，主张需要加限定。
 
 ---
 
@@ -435,7 +435,7 @@ C_\phi = \{\, r_i \in F_t \mid \phi(r_i) = \phi \,\}
 - **00189 HarnessDev**（arXiv:2609.01437）：测量"LLM 能否创建并演化自己的 harness"，其 Creation/Evolution 协议可以直接当 Self-Harness 的评测环境；HarnessDev 笔记记录本文被其引用为 [56]。两者互补：HarnessDev 是"测量能力"，Self-Harness 是"给出一个受约束的改进循环"。
 - **00199 HarnessX**（arXiv:2606.14249）：可组合、可适应、可演化的 harness foundry；HarnessX 的 AEGIS 用外部 meta-agent 提议、Critic + 确定性门筛选，本文坚持用同一个模型做 proposer。HarnessX 笔记的"同名辨析"已把 00198 Self-Harness 与 00193 Hyperagents、00202 Evo-Harness 区分开。
 - **00205 Prime Agent**（arXiv:2608.23552）：改的是 harness 的**持久状态**（prompt notes / memories / skills / subagent specs），本文改的是**声明式配置 surface**；两者都不动权重，但一个偏"记忆"，一个偏"代码/配置"。
-- **00212 RRSI**（arXiv:2609.24972）：递归 harness 自改进 + 正则化/准入；RRSI 的 proposer、analyst、critic 与 policy 同为 Claude Opus 4.8（独立角色），选择由算法门；本文的 proposer 与被评估 agent 共用同一个固定 `M`，准入门是双侧非降级。两者都强调"同一模型族"，差别在 RRSI 有正则/成本项，本文没有。
+- **00212 RRSI**（arXiv:2609.24972）：递归 harness 自改进 + 正则化/准入；RRSI 的 proposer、analyst、critic 与 policy 同为 Claude Opus 4.8（独立角色），选择由算法门；本文的 proposer 与被评估 agent 共用同一个固定 $M$，准入门是双侧非降级。两者都强调"同一模型族"，差别在 RRSI 有正则/成本项，本文没有。
 - **00218 HarnessPro**（arXiv:2610.26770）：把执行成本接进 Pareto 选择；本文只看 pass rate，没有成本维度，二者可以拼成"性能 + 成本"的双目标。
 - **00220 Harness²**（arXiv:2610.14224）：递归 agent harnessing、开放世界；本文是固定 benchmark 下的有界编辑，范围更窄。
 - **00213 HarnessPAI**（arXiv:2609.29166）：把 harness 思路搬到 Physical AI；本文是文本/终端 agent，二者共享"harness 是可执行、可审计的中间层"这一视角。

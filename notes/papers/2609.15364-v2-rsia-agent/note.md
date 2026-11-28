@@ -74,7 +74,7 @@ a_t \sim \pi_\theta(\cdot \mid q, h_t, M), \qquad
 (s_t, o_t) \sim \mathcal{E}(\cdot \mid s_{t-1}, a_t)
 ```
 
-读法：动作只依赖任务 q、当前历史 `h_t` 和持久记忆 `M`；环境根据上一状态与动作返回新状态 `s_t` 和新观测 `o_t`。`h_t` 在换任务时重置，`M` 跨任务保留。
+读法：动作只依赖任务 q、当前历史 $h_{t}$ 和持久记忆 $M$；环境根据上一状态与动作返回新状态 $s_{t}$ 和新观测 $o_{t}$。$h_{t}$ 在换任务时重置，$M$ 跨任务保留。
 
 实现上采用 **code-as-policy**：每个动作是一段可执行的 Python 或 Bash 程序，程序可以驱动 GUI 应用、读写文件、调用命令行。这样动作空间对异构软件是统一的，也让"记忆里的过程"可以直接以代码/命令的形式被复用。
 
@@ -183,7 +183,7 @@ memory 是 **actor 自己写的文件集合**，没有 schema、文件数或长�
 
 - **OSWorld 2.0（0808 offline）**：82 题离线子集（完整清单 108 题），覆盖文档编辑、媒体制作、专业工程/科学软件。T082 因 setup 失败没有有效官方分，聚合时按 0 计。
 - **Agents' Last Exam（ALE）Near-term**：67 题，覆盖计算、金融、工程、科学分析与视觉媒体。
-- **指标**：Partial 是每题归一化分数 `s_i ∈ [0,1]` 的均值；Binary 是 `s_i = 1` 的比例。两者都乘 100，每题等权，baseline 与 RSI 用同一分母。
+- **指标**：Partial 是每题归一化分数 $s_{i} \in [0,1]$ 的均值；Binary 是 $s_{i} = 1$ 的比例。两者都乘 100，每题等权，baseline 与 RSI 用同一分母。
 - **配置**：actor 默认 GLM-5.3；verifier 与 curriculum 都是 Kimi-K3，但在**独立上下文**里；目标评估的官方 evaluator 在需要模型判分时用 GPT-5.4，user simulator 用 GPT-4o。
 - **对比口径与配置例外**：对比分数来自 OSWorld / ALE 榜单，例外是 GPT-6 Astra 的 OSWorld 分由 OpenAI 报告；ALE 上每个模型取覆盖 67 题的最高 Partial 配置；已发布系统保留各自的 harness 与执行预算；原文的基线来源访问日期为 2026-09-11（§C.4）。目标 harness 还允许一次 stall 触发的角色互换：Kimi-K3 当 actor、GLM-5.3 当 verifier（若执行预算允许，§C.2）。
 

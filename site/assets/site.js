@@ -1073,6 +1073,7 @@
     catch (error) { fail('文档元数据损坏：' + error.message); return; }
 
     var expectedMath = Number(data.expectedMath || 0);
+    var expectedInlineMath = Number(data.expectedInlineMath || 0);
     var expectedMermaid = Number(data.expectedMermaid || 0);
     var routes = data.routes || {};
     var pdfFiles = data.pdfFiles || {};
@@ -1122,6 +1123,136 @@
           }
           setTimeout(poll, 50);
         })();
+      });
+    }
+
+    /* Inline math must be protected before marked: TeX uses `_`, `*`, `\`
+       and braces that marked would otherwise parse as emphasis or escapes.
+       The placeholder uses private-use characters, which marked preserves in
+       text nodes (including table cells and link labels). */
+    var INLINE_MATH_MARKER = /[_^\\{}]|[=<>≤≥≈≠≃→←↔↦⊕⊙∘∈∉⊂⊆∪∩]|[πθαβγδεζηικλμνξρστυφχψωΔΩΨΦΛΣΠΓΘΞ]/;
+
+    function inlineMathAllowed(content) {
+      if (!content || !content.trim()) return false;
+      if (/^[0-9]/.test(content) && !INLINE_MATH_MARKER.test(content)) {
+        // Currency such as $4,432 or $100K, not a formula.
+        return false;
+      }
+      return true;
+    }
+
+    function protectMathLine(line, records) {
+      var output = '';
+      var index = 0;
+      while (index < line.length) {
+        var char = line.charAt(index);
+        if (char === '`') {
+          var runLength = 1;
+          while (line.charAt(index + runLength) === '`') runLength += 1;
+          var run = line.substr(index, runLength);
+          var close = line.indexOf(run, index + runLength);
+          if (close < 0) {
+            output += line.slice(index);
+            break;
+          }
+          output += line.slice(index, close + runLength);
+          index = close + runLength;
+          continue;
+        }
+        if (
+          char === '$' &&
+          (index === 0 || line.charAt(index - 1) !== '\\') &&
+          line.charAt(index + 1) !== '$' &&
+          !/\s/.test(line.charAt(index + 1) || '')
+        ) {
+          var end = index + 1;
+          while (end < line.length) {
+            if (
+              line.charAt(end) === '$' &&
+              line.charAt(end - 1) !== '\\' &&
+              line.charAt(end + 1) !== '$' &&
+              !/\s/.test(line.charAt(end - 1) || '')
+            ) {
+              break;
+            }
+            end += 1;
+          }
+          if (end < line.length) {
+            var content = line.slice(index + 1, end);
+            if (inlineMathAllowed(content)) {
+              output += '\uE000' + records.length + '\uE001';
+              records.push({ raw: line.slice(index, end + 1) });
+              index = end + 1;
+              continue;
+            }
+          }
+        }
+        output += char;
+        index += 1;
+      }
+      return output;
+    }
+
+    function protectMath(markdown) {
+      var records = [];
+      var lines = markdown.split('\n');
+      var inFence = false;
+      var fenceChar = '';
+      var fenceLength = 0;
+      for (var index = 0; index < lines.length; index += 1) {
+        var line = lines[index];
+        if (inFence) {
+          var closing = /^\s*(`{3,}|~{3,})\s*$/.exec(line);
+          if (
+            closing &&
+            closing[1].charAt(0) === fenceChar &&
+            closing[1].length >= fenceLength
+          ) {
+            inFence = false;
+          }
+          continue;
+        }
+        var opening = /^\s*(`{3,}|~{3,})(.*)$/.exec(line);
+        if (opening) {
+          inFence = true;
+          fenceChar = opening[1].charAt(0);
+          fenceLength = opening[1].length;
+          continue;
+        }
+        lines[index] = protectMathLine(line, records);
+      }
+      return { markdown: lines.join('\n'), records: records };
+    }
+
+    function restoreMath(root, records) {
+      if (!records.length || !root) return;
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+      var nodes = [];
+      var current;
+      while ((current = walker.nextNode())) {
+        if (current.nodeValue.indexOf('\uE000') !== -1) nodes.push(current);
+      }
+      nodes.forEach(function (textNode) {
+        var text = textNode.nodeValue;
+        var pattern = /\uE000(\d+)\uE001/g;
+        var match;
+        var last = 0;
+        var fragment = document.createDocumentFragment();
+        var changed = false;
+        while ((match = pattern.exec(text))) {
+          changed = true;
+          if (match.index > last) {
+            fragment.appendChild(document.createTextNode(text.slice(last, match.index)));
+          }
+          var record = records[Number(match[1])];
+          fragment.appendChild(document.createTextNode(record ? record.raw : match[0]));
+          last = pattern.lastIndex;
+        }
+        if (!changed) return;
+        if (last < text.length) {
+          fragment.appendChild(document.createTextNode(text.slice(last)));
+        }
+        textNode.parentNode.replaceChild(fragment, textNode);
       });
     }
 
@@ -1239,10 +1370,21 @@
     }
 
     function labelTableCells() {
+      function plainLabel(value) {
+        return String(value || '')
+          .replace(/\$([^$]*)\$/g, '$1')
+          .replace(/\\mathrm\{([^}]*)\}/g, '$1')
+          .replace(/\\operatorname\{([^}]*)\}/g, '$1')
+          .replace(/\\text\{([^}]*)\}/g, '$1')
+          .replace(/\\[a-zA-Z]+/g, '')
+          .replace(/[{}]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
       content.querySelectorAll('table').forEach(function (table) {
         var heads = [];
         table.querySelectorAll('thead th').forEach(function (head) {
-          heads.push(head.textContent.trim());
+          heads.push(plainLabel(head.textContent));
         });
         if (!heads.length) return;
         if (heads[0] === '项' || heads[0] === '项目') table.classList.add('table-key');
@@ -1902,20 +2044,37 @@
     };
 
     async function renderMath() {
-      if (!expectedMath) return;
+      if (!expectedMath && !expectedInlineMath) return;
       await loadScript(data.root + 'assets/vendor/mathjax/tex-svg.js?v=' + (data.vendorVersion || data.assetVersion));
       await waitForMathJax();
       if (!window.MathJax || !window.MathJax.typesetPromise) {
         throw new Error('MathJax 未就绪');
       }
-      await window.MathJax.typesetPromise([content]);
+      var targets = [content];
+      ['toc-list', 'toc-dialog-list'].forEach(function (id) {
+        var node = document.getElementById(id);
+        if (node && node.textContent.indexOf('$') !== -1) targets.push(node);
+      });
+      await window.MathJax.typesetPromise(targets);
     }
 
     function validateRendered() {
-      var mathRendered = content.querySelectorAll('.math-display mjx-container').length;
+      var displayMath = content.querySelectorAll('.math-display mjx-container').length;
+      // `enhanceSourceInfo` clones the source-info table into a card; both
+      // copies are typeset. Count only the original table so the expected
+      // source occurrence count still matches.
+      var inlineMath = Array.prototype.filter.call(
+        content.querySelectorAll('mjx-container'),
+        function (node) { return !node.closest('.source-card'); }
+      ).length - displayMath;
+      var mathErrors = content.querySelectorAll('mjx-container[data-mjx-error]').length;
       var mathLeft = content.querySelectorAll('pre > code.language-math').length;
-      if (expectedMath !== mathRendered || mathLeft) {
-        throw new Error('公式渲染数量不符：期望 ' + expectedMath + '，实际 ' + mathRendered + '，残留 ' + mathLeft);
+      if (expectedMath !== displayMath || expectedInlineMath !== inlineMath || mathLeft || mathErrors) {
+        throw new Error(
+          '公式渲染数量不符：显示公式期望 ' + expectedMath + '，实际 ' + displayMath +
+          '；行内公式期望 ' + expectedInlineMath + '，实际 ' + inlineMath +
+          '，残留 ' + mathLeft + '，错误 ' + mathErrors
+        );
       }
       if (mermaidDeferred) return;
       var mermaidRendered = content.querySelectorAll('.mermaid svg').length;
@@ -1932,7 +2091,9 @@
       var markdown = await response.text();
       if (!window.marked) throw new Error('marked 未加载');
 
-      content.innerHTML = window.marked.parse(markdown, { gfm: true, breaks: false });
+      var protectedMath = protectMath(markdown);
+      content.innerHTML = window.marked.parse(protectedMath.markdown, { gfm: true, breaks: false });
+      restoreMath(content, protectedMath.records);
       var firstHeading = content.querySelector('h1');
       if (firstHeading) firstHeading.remove();
 

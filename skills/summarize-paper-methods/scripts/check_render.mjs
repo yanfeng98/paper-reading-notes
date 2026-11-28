@@ -164,13 +164,19 @@ try {
       }
       return count;
     };
+    const displayMath = content.querySelectorAll('.math-display mjx-container').length;
+    const allMath = Array.from(content.querySelectorAll('mjx-container'))
+      .filter((node) => !node.closest('.source-card')).length;
     return {
       title: document.title,
       pageKind: document.body.dataset.page || 'unknown',
       renderError: window.__renderError || (document.querySelector('.render-error')?.textContent || ''),
       done: window.__renderDone === true,
-      math: content.querySelectorAll('.math-display mjx-container').length,
+      math: displayMath,
       mathExpected: Number(document.body.dataset.expectedMath || 0),
+      mathInline: allMath - displayMath,
+      mathInlineExpected: Number(document.body.dataset.expectedInlineMath || 0),
+      mathErrors: content.querySelectorAll('mjx-container[data-mjx-error]').length,
       mermaid: content.querySelectorAll('.mermaid svg').length,
       mermaidExpected: Number(document.body.dataset.expectedMermaid || 0),
       images: imgs.length,
@@ -196,6 +202,8 @@ try {
   if (report.renderError) problems.push('渲染错误：' + report.renderError);
   if (pageErrors.length) problems.push('页面 JS 错误：' + pageErrors.join(' | '));
   if (report.math !== report.mathExpected) problems.push(`公式 ${report.math}/${report.mathExpected}`);
+  if (report.mathInline !== report.mathInlineExpected) problems.push(`行内公式 ${report.mathInline}/${report.mathInlineExpected}`);
+  if (report.mathErrors) problems.push(`公式排版错误：${report.mathErrors}`);
   if (report.mermaid !== report.mermaidExpected) problems.push(`Mermaid ${report.mermaid}/${report.mermaidExpected}`);
   if (report.brokenImages) problems.push(`配图加载失败：${report.brokenImages}/${report.images}`);
   if (report.leftovers) problems.push(`未转换的围栏：${report.leftovers}`);

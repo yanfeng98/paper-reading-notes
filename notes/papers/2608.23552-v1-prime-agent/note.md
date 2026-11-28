@@ -35,7 +35,7 @@
 | 长上下文设置 | 明写「We offload the main context **in each harness** to a file in memory to start」，并说明 GLM-5.2 一侧两臂同用一个 open-weights 模型、Pi-mono 带 sub-agents | 只写 Prime Agent 把初始上下文放进可读文件；**对照 harness 是否同样处理未写**；`Pi-mono` 的来源与配置全篇未交代 |
 | nanoGPT / 离环实验 | **没有**（全篇无 Kimi K3、DeepSeek V4 Pro、speedrun、out-of-loop 等字样） | v1 新增 §3.3 与图 6，以及引言的 85.5 小时 / 19 条验证记录 |
 | Factorio | 口径是 production score（「in the 100K+ range … in a matter of hours」，四名角色，`/refine` 同时造出正当 skill 与作弊 skill） | 换成 7 天 Sonnet 5 run 的科技进度口径（24/196、71%、23.4M token、633 个子 agent） |
-| 公式与实现细节 | 含 Continual Harness 的形式化 `H=(ρ,G,K,M)`、JSONL 会话历史、`/tree`、`compact.run()`、CLI 的 `--autonomous` / `--autonomous-gate` 等参数 | 全部未进 v1（v1 无任何公式） |
+| 公式与实现细节 | 含 Continual Harness 的形式化 $H=(\rho,G,K,M)$、JSONL 会话历史、`/tree`、`compact.run()`、CLI 的 `--autonomous` / `--autonomous-gate` 等参数 | 全部未进 v1（v1 无任何公式） |
 | 致谢与出处 | 写明「Prime Agent is built on top of **pi**」并致谢 pi 作者 | 改为感谢跑实验的人（Florian Brand、SinatraS、Patience Cave），未提 pi |
 
 对「原文自身的表述张力」的版本适用性：**第 1 条（95.5 vs 95）与第 5 条（85.5 小时 / 19 条）只适用于 v1**；第 3 条（Kimi-Code）只适用于 v1（博客全篇未出现 Kimi-Code）；第 2 条两版同向（博客也有「higher maximum score … at a lower overall token usage」的宣称，只是位置在 ARC 一节末而非摘要）；第 4 条两版都成立——**两版下 Prime 更高的格数都是 20/27**（唯一差异格里 Prime 仍更高）。
@@ -213,7 +213,7 @@ nanoGPT speedrun 测的是「agent 能把 124M GPT 达到固定验证损失所�
 
 **几个可迁移到自建系统的设计点**（本笔记归纳，非原文结论）：
 
-1. **状态分层 + 每层一个「写机制」**是这套设计最好抄的部分：把「模型能看到什么」（L1）与「系统保留了什么」（L2/L3）用一条明确的边界分开，再给每层指定唯一的改写路径（压缩 / agentic GC / refinement）。它同时回答了两个工程问题：压缩后原文去哪（进 L3 可检索）和重启后什么必须重建（会话身份 + 会话树 + 内核快照）。
+1. **状态分层 + 每层一个「写机制」** 是这套设计最好抄的部分：把「模型能看到什么」（L1）与「系统保留了什么」（L2/L3）用一条明确的边界分开，再给每层指定唯一的改写路径（压缩 / agentic GC / refinement）。它同时回答了两个工程问题：压缩后原文去哪（进 L3 可检索）和重启后什么必须重建（会话身份 + 会话树 + 内核快照）。
 2. **成本核算跨 root 与后代聚合**——多数 harness 只统计主会话，委托出去的算力就成了盲区，这一条直接决定评测成本数字是否可信。
 3. **refinement 不重写基础 prompt、且带版本与回滚**：把「自改进」限制在补充层，是让持久化不失控的最简手段（对照 Factorio 的 RCON 案例——持久化的东西若可以污染基础策略，回滚就没意义了）。
 4. **子 agent 是并发会话而不是无状态补全**：句柄在压缩/重启后仍可追问这一条，决定了「长任务里的追问」是否可行。
@@ -250,7 +250,7 @@ nanoGPT speedrun 测的是「agent 能把 124M GPT 达到固定验证损失所�
 
 ## 与本仓库其他条目的关系（本笔记补充，非原文内容）
 
-- **00192 RSI 导读**：本笔记补上了导读笔记登记的空缺（其复核记录写明「仅核到摘要层面：SEAL、Prime Agent 的实验细节」，并已登记**「摘要另有 ARC-AGI-3 RHAE Best@1 30% → 95.5%，导读未引」——即导读本身没有转引这个数字**）。本笔记本次核到全文，并补上 §3.1 的两条关键限定（30.2% 是外部参照、团队自跑低于已公布分数）；导读把 Prime Agent 归入「上下文进化」的理由（不改参数）成立，更精确的定位见上一节第 3 条。
+- **00192 RSI 导读**：本笔记补上了导读笔记登记的空缺（其复核记录写明「仅核到摘要层面：SEAL、Prime Agent 的实验细节」，并已登记 **「摘要另有 ARC-AGI-3 RHAE Best@1 30% → 95.5%，导读未引」——即导读本身没有转引这个数字** ）。本笔记本次核到全文，并补上 §3.1 的两条关键限定（30.2% 是外部参照、团队自跑低于已公布分数）；导读把 Prime Agent 归入「上下文进化」的理由（不改参数）成立，更精确的定位见上一节第 3 条。
 - **00189 HarnessDev**：那篇给的是「harness 演化」的**评测协议**，并测出「演化涨分 ≠ 留出受益」；本篇提供的是演化**运行时**（refinement + 版本/回滚）与端到端场地。HarnessDev 笔记里提到的 Continual Harness（Karten et al. 2605.09998）正是本篇的 [19]，作者重叠（Seth Karten），两条线在人上相连。
 - **00212 RRSI**：RRSI 把「演化涨分是否可迁移」当优化问题用正则约束；本篇的 refinement 没有这类约束，只靠「补充层 + 版本 + 回滚」控制风险——两者可以看作对同一个问题的两种答案（优化侧约束 vs 运行时约束），而本篇 Factorio 的规约利用案例正好演示了**缺少约束时持久化会保存什么**。
 - **00198 Self-Harness / 00199 HarnessX**：同族（harness 自演化），均未读，不在本笔记核对范围。

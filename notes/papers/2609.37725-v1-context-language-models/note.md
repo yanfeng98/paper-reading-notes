@@ -50,7 +50,7 @@ CLM 把「上下文怎么维护」从外部 harness 的固定策略改成模型�
 c_{t+1} = f^{\mathrm{CLM}}_{\theta}(c_t)
 ```
 
-`c_t` 是第 `t` 轮的 context，`f^{\mathrm{CLM}}_{\theta}` 是模型可控制的任意函数；标准 LM 只是把新 token 追加到旧 context（`c_{t+1} = c_t \oplus f^{\mathrm{LM}}_{\theta}(c_t)`）。因此 CLM 在形式上覆盖了「harness 提供一组 context 工具」的做法，区别在于这些函数不必由 harness 预定义，模型可以自己规划，甚至显式定义可复用函数。
+$c_{t}$ 是第 $t$ 轮的 context，$f^{\mathrm{CLM}}_{\theta}$ 是模型可控制的任意函数；标准 LM 只是把新 token 追加到旧 context（$c_{t+1} = c_{t} \oplus f^{\mathrm{LM}}_{\theta}(c_{t})$）。因此 CLM 在形式上覆盖了「harness 提供一组 context 工具」的做法，区别在于这些函数不必由 harness 预定义，模型可以自己规划，甚至显式定义可复用函数。
 
 ## 2. ContextBench：把 context 管理与推理能力拆开
 
@@ -114,33 +114,33 @@ Figure 3 给出五个来自 §5.1 零样本实验的具体例子（均为定性�
 context 中间被改写后，标准 prefix cache 只能复用第一个不匹配位置之前的部分，**后面的 token 即使文本没变也要重新 prefill**。因此作者用 **prefix-reuse FLOPs** 度量整条轨迹的推理成本：
 
 ```math
-\mathrm{FLOPs}_{\mathrm{prefix\text{-}reuse}} = \mathrm{FLOPs}_{\mathrm{prefill}}(\text{unmatched context suffix}) + \mathrm{FLOPs}_{\mathrm{decode}}(\text{generated tokens})
+\mathrm{FLOPs}_{\mathrm{prefix}\text{-}\mathrm{reuse}} = \mathrm{FLOPs}_{\mathrm{prefill}}(\text{unmatched context suffix}) + \mathrm{FLOPs}_{\mathrm{decode}}(\text{generated tokens})
 ```
 
 即「从第一个 prefix mismatch 起的 suffix prefill」加「新生成 token 的 decode」，而不是简单累加每轮 context 长度。附录 C 给出按模型结构展开的公式，并区分 full-attention 与 Gated DeltaNet 层：线性层每 token 成本与 context 长度无关，只有 full-attention 层有随长度增长的注意力项。
 
-以 Qwen3.6-27B 为例（附录 C）：`L=64`、`d=5120`、`d_ff=17,408`，其中 16 层 full attention、48 层 Gated DeltaNet；代入后 `C_token = 48.70×10^9` FLOPs/token（MLP 34.23、full-attention 投影 3.36、DeltaNet 投影 11.12），注意力项 `C_attn = 3.93×10^5` FLOPs/query-key pair。一个示意性单轮（`P_t=20,000`、`G_t=500`）：
+以 Qwen3.6-27B 为例（附录 C）：$L=64$、$d=5120$、$d_{\mathrm{ff}}=17,408$，其中 16 层 full attention、48 层 Gated DeltaNet；代入后 $C_{\mathrm{token}} = 48.70\times 10^{9}$ FLOPs/token（MLP 34.23、full-attention 投影 3.36、DeltaNet 投影 11.12），注意力项 $C_{\mathrm{attn}} = 3.93\times 10^{5}$ FLOPs/query-key pair。一个示意性单轮（$P_{t}=20,000$、$G_{t}=500$）：
 
-| 可复用前缀 `R_t` | 该轮 FLOPs | 相对 append-only |
+| 可复用前缀 $R_{t}$ | 该轮 FLOPs | 相对 append-only |
 | --- | --- | --- |
-| 18,000（仅追加） | `1.41×10^14` | 1× |
-| 10,000（中间编辑） | `5.74×10^14` | 约 4.1× |
-| 0（开头编辑） | `10.81×10^14` | 7.7× |
+| 18,000（仅追加） | $1.41\times 10^{14}$ | 1× |
+| 10,000（中间编辑） | $5.74\times 10^{14}$ | 约 4.1× |
+| 0（开头编辑） | $10.81\times 10^{14}$ | 7.7× |
 
 这张表解释了为什么「允许任意编辑」必须配合服务端优化：一次靠前的编辑就能让单轮成本接近 8 倍。
 
 ### 4.2 Suffix Cache Reuse（SCR）
 
-SCR 的思路是：编辑把 `B` 换成 `B'` 后，后缀 `C` 的文本没变，**不必重算 `C` 的 KV，只需把它的缓存搬到新位置**。
+SCR 的思路是：编辑把 $B$ 换成 `B'` 后，后缀 $C$ 的文本没变，**不必重算 $C$ 的 KV，只需把它的缓存搬到新位置**。
 
 ![Figure 4：标准 serving 与 Suffix Cache Reuse 的对比。标准 serving 只复用匹配前缀，SCR 复用所有存活 token 的缓存，只 prefill 新插入的 `B'`。](assets/fig4-scr.png)
 
 实现要点（附录 B）：
 
-- 作为 **SGLang 的 patch** 实现。新 prompt 到达时，与同一 session 的上一版 prompt 做 diff，找出编辑后仍存活的 span，按长度从大到小最多迁移 `K` 个（正文 `K=6`）。
+- 作为 **SGLang 的 patch** 实现。新 prompt 到达时，与同一 session 的上一版 prompt 做 diff，找出编辑后仍存活的 span，按长度从大到小最多迁移 $K$ 个（正文 $K=6$）。
 - 对每个迁移的 span，复用其 cached keys/values，**把 key 的 RoPE 旋转位置重新对齐到新位置**，再拼到 `B'` 之后；只 prefill `B'` 和新追加的 token。
 - 迁移后的条目放在 **session 私有的 cache slot**，不写进共享 radix tree；分配不到 slot 时回退到标准 re-prefill。
-- 复用状态是在编辑前的前缀下算出来的，因此 SCR 是**近似**而非精确重算；`K` 用来限制一次编辑引入的近似量，`K=6` 是在 64 道 BCP 题上对 `K∈{1,2,3,6,12,64}` 做敏感性分析后的保守选择（增益在 `K=6` 基本饱和）。
+- 复用状态是在编辑前的前缀下算出来的，因此 SCR 是**近似**而非精确重算；$K$ 用来限制一次编辑引入的近似量，$K=6$ 是在 64 道 BCP 题上对 $K\in \{1,2,3,6,12,64\}$ 做敏感性分析后的保守选择（增益在 $K=6$ 基本饱和）。
 - **混合架构**：Qwen3.6-27B 的 64 层里有 48 层线性注意力，只有固定大小的 recurrent state，没有 token 级缓存。SCR 在编辑前对 recurrent state 做快照并从快照继续，插入的 `B'` 在这些层里不被重算，只通过 16 层 full attention 影响后续输入。
 - **推理 token 剥离**：Qwen3.6 默认 chat template 与无状态 Chat Completions 会在下一轮剥掉历史 reasoning token，标准 serving 因此要重算后续所有保留文本。SCR 把「剥离」也当成一次编辑来复用缓存。PDF 的 Figure 12（对应 HTML 的 Figure 14）显示，在 SCR 额外复用的 7.8% prompt token 中，5.3 个百分点来自 reasoning 剥离，只有 2.5 个百分点来自其他 context 编辑——也就是说，**SCR 的收益很大一部分与 CLM 无关，普通 chat serving 也能吃到**。
 
@@ -150,7 +150,7 @@ SCR 的思路是：编辑把 `B` 换成 `B'` 后，后缀 `C` 的文本没变，
 
 ### 5.1 自然语言指令就能改策略
 
-把一段策略说明 `s` 作为额外 in-context 指导，CLM 的转移变成 `c_{t+1} = f^{\mathrm{CLM}}_{\theta}(c_t; s)`。作者用三句话分别诱导三种行为（Figure 7，Claude 4.6 Sonnet、BCP、无预算提醒；阈值实验 30 道长题/48K/200 轮，边界实验 189 sessions/条件、131 个含边界、24K/1,000 轮，备份实验 200 题、91 对、16K）：
+把一段策略说明 $s$ 作为额外 in-context 指导，CLM 的转移变成 $c_{t+1} = f^{\mathrm{CLM}}_{\theta}(c_{t}; s)$。作者用三句话分别诱导三种行为（Figure 7，Claude 4.6 Sonnet、BCP、无预算提醒；阈值实验 30 道长题/48K/200 轮，边界实验 189 sessions/条件、131 个含边界、24K/1,000 轮，备份实验 200 题、91 对、16K）：
 
 | 指令 | 度量 | 无指令 | 有指令 |
 | --- | --- | --- | --- |
@@ -168,7 +168,7 @@ SCR 的思路是：编辑把 `B` 换成 `B'` 后，后缀 `C` 的文本没变，
 s^{*} = \arg\max_{s} \mathbb{E}_{x\sim\mathcal{D}}\left[R\!\left(\tau(x;s)\right)\right]
 ```
 
-其中 `τ(x;s)` 是在指令 `s` 下跑出的轨迹，`R` 是轨迹级奖励，优化时其他部分固定。实现是一个 prompt-evolution 循环：每轮 agent 在训练 split 上 rollout，proposer 根据轨迹提出候选 skill，在 dev split 上评估并选出下一轮的 skill，最后在冻结后用 test split 评一次。proposer 可以是更强的外部模型（assisted evolution），也可以是 agent 自己（self-evolution）。
+其中 $\tau(x;s)$ 是在指令 $s$ 下跑出的轨迹，$R$ 是轨迹级奖励，优化时其他部分固定。实现是一个 prompt-evolution 循环：每轮 agent 在训练 split 上 rollout，proposer 根据轨迹提出候选 skill，在 dev split 上评估并选出下一轮的 skill，最后在冻结后用 test split 评一次。proposer 可以是更强的外部模型（assisted evolution），也可以是 agent 自己（self-evolution）。
 
 在 ContextBench 上（32K 预算）：
 
@@ -190,7 +190,7 @@ A_i^{\mathrm{eff}} =
 \end{cases}
 ```
 
-`c_i` 是轨迹 `i` 的 prefix-reuse FLOPs，`G_g^+` 是组 `g` 中成功的轨迹集合，`c̄_g` 是这些成功轨迹的平均成本。若成功轨迹少于两条，则所有 `A_i^eff` 置 0。最终 advantage 为 `A_i = A_i^out + w_eff · A_i^eff`（`w_eff = 0.25`），既奖励「做对」，也在做对的里面奖励「更省」。
+$c_{i}$ 是轨迹 $i$ 的 prefix-reuse FLOPs，$G_{g}^+$ 是组 $g$ 中成功的轨迹集合，$\bar{c}_{g}$ 是这些成功轨迹的平均成本。若成功轨迹少于两条，则所有 $A_{i}^{\mathrm{eff}}$ 置 0。最终 advantage 为 $A_{i} = A_{i}^{\mathrm{out}} + w_{\mathrm{eff}} \cdot A_{i}^{\mathrm{eff}}$（$w_{\mathrm{eff}} = 0.25$），既奖励「做对」，也在做对的里面奖励「更省」。
 
 训练配置（附录 E）：Qwen3.5-9B，3,040 条 OpenResearcher 深搜 prompt，GRPO，截断重要性采样、KL 系数 0.01、动态采样去掉无奖励方差的组；每步 8 个 prompt × 32 rollouts，学习率 `1e-6`、weight decay 0.1、clip `[0.2,0.28]`，训练 70 步；28K context 预算、2,048 预留、80 轮；奖励来自 GPT-5.4-nano 按 DeepSearchQA rubric 打的二值分，另有失败工具调用与格式错误的惩罚。策略用 16 张 H200，rollout 用 48 张。checkpoint 按 500 道 held-out OpenResearcher 题选择，最终在全部 830 道 BCP 上评测；summary harness 在 28,672 token 压缩、最多 100 轮。
 
@@ -253,7 +253,7 @@ OpenEvolve 用 population 60 / 4 islands，OE-Agent 的 proposer 每个候选 25
 
 六个 agent 各负责一个仓库并行优化 24 小时以上，评估四个 agent 从未见过的下游包的 17 个 CPU benchmark；指标是 executed instructions 的几何平均加速比，坏掉的 benchmark 记 1.0，成本是累计 API 花费（USD）。GPT-5.6-Sol、272K context、Pi harness。
 
-Figure 6b 给出 held-out speedup：Summary swarm 1.026×，CLM swarm 1.044×。摘要/引言把这写成「same compute 下 65% greater improvement（或 65% greater end-to-end speedup）」。按图内标签复算，相对初始版本的**改进量**之比是 `(1.044−1)/(1.026−1) ≈ 1.69`，即约 69%，与 65% 的差异可能来自未取整的原始值；若按加速比本身比，则只高 1.75%。读这个数字时要先确认「65%」指的是改进量之比，而不是加速比之比。
+Figure 6b 给出 held-out speedup：Summary swarm 1.026×，CLM swarm 1.044×。摘要/引言把这写成「same compute 下 65% greater improvement（或 65% greater end-to-end speedup）」。按图内标签复算，相对初始版本的**改进量**之比是 $(1.044-1)/(1.026-1)\approx1.69$，即约 69%，与 65% 的差异可能来自未取整的原始值；若按加速比本身比，则只高 1.75%。读这个数字时要先确认「65%」指的是改进量之比，而不是加速比之比。
 
 ### 6.5 推理效率（SCR）
 
@@ -270,11 +270,11 @@ Figure 6b 给出 held-out speedup：Summary swarm 1.026×，CLM swarm 1.044×。
 **关键接口与数据流**：agent 每轮生成 → 若调用 Bash 修改 context 文件 → 同步层把新文件内容作为下一轮 prompt 发给 server → server 端 prefix cache 命中相同前缀，SCR 再迁移存活后缀。这里有两个容易出问题的点：
 
 1. **同步语义**：文件写入必须原子地反映到下一次请求；如果模型在一次生成中多次修改，需要明确哪一版是下一轮的输入。论文只描述了「每次修改立即同步」，没有展开并发/中途修改的细节。
-2. **成本模型依赖 tokenizer 与模型结构**：附录 C 的常数是按 Qwen3.6-27B 的结构算的，换模型要重算 `C_token`、`C_attn`；论文的跨方法比较都在同一 base LM 下进行，不能把绝对 PFLOPs 直接搬到别的模型。
+2. **成本模型依赖 tokenizer 与模型结构**：附录 C 的常数是按 Qwen3.6-27B 的结构算的，换模型要重算 $C_{\mathrm{token}}$、$C_{\mathrm{attn}}$；论文的跨方法比较都在同一 base LM 下进行，不能把绝对 PFLOPs 直接搬到别的模型。
 
 **失败模式**（论文提到或可直接推出）：
 
-- SCR 复用旧前缀下算出的状态，是近似；`K` 越大、一次编辑的存活 span 越多，近似累积越明显。论文的敏感性分析只到 64 题规模，且只报告「没有观察到性能下降」。
+- SCR 复用旧前缀下算出的状态，是近似；$K$ 越大、一次编辑的存活 span 越多，近似累积越明显。论文的敏感性分析只到 64 题规模，且只报告「没有观察到性能下降」。
 - 分配不到 session-private slot 时回退到完整 re-prefill，最坏情况退化为标准 serving。
 - 模型可能做出破坏 prefix reuse 的编辑（例如频繁改开头），效率奖励正是为了抑制这类行为；但奖励只作用于成功轨迹，失败轨迹里的低效编辑不会被直接纠正。
 - **安全**：模型对自己的 context 有写权限，prompt injection 或模型自己生成的指令可以跨轮持久化。作者在 §6 明确把这一点列为新的攻击面，并引用已有观察（模型在压缩摘要里插入未授权指令），但没有给出防御或评测。

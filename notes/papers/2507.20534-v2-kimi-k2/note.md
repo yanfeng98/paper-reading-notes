@@ -21,18 +21,18 @@
 
 **2026-11-07–08（第 1 轮，依 check-paper-note，基准 arXiv:2507.20534v2）**：从 arXiv 重新下载 v2 PDF（32 页，5,872,335 B，sha256 `035062b5e1ab865ffad9f90f81d6c8332f8af805063fac54cc6f2cca1fe608b5`），与来源信息记录一致；abs 页确认 v2 仍为最新（无 v3），Comments 为「tech report of Kimi K2, with minor updates」，许可 CC BY-NC-ND 4.0。另下载 v1（32 页，6,335,018 B，sha256 `b838917cf0a475d2e1b2f1ba4d0b4c91b6f6c8be95f15aa0d4f3ea76e4ef60f5`）逐页 diff：v2 对正文的实质补充是 checkpoint-engine 链接，另有 WRAP 归因、工具调用模板修正与段落位置调整；参考文献与作者名单有增删；Table 3/4/6 与正文数字未变。README 编号列指向的上游 `papers/00083-Kimi-K2.pdf` 经 GitHub API 取回并比 sha，确认是 v1。
 
-核对方式：Table 1（p5）、Table 2（p6）、Table 3（p16）、Table 4（p18）、Table 6（p19）对 170 dpi 渲染页核对，Table 3 另与 arXiv HTML 表格交叉核对；Figure 1 的柱标签按 x 坐标与柱配对；Figure 2 从 p4 以 300 dpi 重裁（70–542 × 316–453 pt），与资产 sha256 一致（`ec8216039bdebb561c571e6aead875f09f8766913fd19f0a6492df0fae44e515`）。像素测量（资产坐标）用 PDF 刻度中心定标：左图 x(0)=113 px、x(15000)=823 px，y(0)=494 px、74.2 px/200；右图 x(0)=1119 px、x(50000)=1287 px，y(0)=497 px、4.5 px/单位。读数：左图末端约 16.5k 步、约 1,220；右图 50k–65k 约 100，70k 约 88，80k 约 48，90k 后约 35，200k 约 32；曲线延伸到约 237k 步。Figure 3/4 对 p5/p6 渲染页；Figure 8/9 在 p10 渲染页目检。公式按 PDF 渲染页与 HTML `alttext` 对照：Muon 更新（含动量递推）、`S_max`、QK-Clip、MLA 缩放、RL 目标均一致。检索词：`MLA`/`RoPE`/`q_lora`/`kv_lora`、`tokenizer`、`GPU`/`H800`/`H100`、`error bar`/`variance`/`seed`、`all baselines`、`state-of-the-art`、`zero loss spike`、`deactivated`、`12.7%`。
+核对方式：Table 1（p5）、Table 2（p6）、Table 3（p16）、Table 4（p18）、Table 6（p19）对 170 dpi 渲染页核对，Table 3 另与 arXiv HTML 表格交叉核对；Figure 1 的柱标签按 x 坐标与柱配对；Figure 2 从 p4 以 300 dpi 重裁（70–542 × 316–453 pt），与资产 sha256 一致（`ec8216039bdebb561c571e6aead875f09f8766913fd19f0a6492df0fae44e515`）。像素测量（资产坐标）用 PDF 刻度中心定标：左图 x(0)=113 px、x(15000)=823 px，y(0)=494 px、74.2 px/200；右图 x(0)=1119 px、x(50000)=1287 px，y(0)=497 px、4.5 px/单位。读数：左图末端约 16.5k 步、约 1,220；右图 50k–65k 约 100，70k 约 88，80k 约 48，90k 后约 35，200k 约 32；曲线延伸到约 237k 步。Figure 3/4 对 p5/p6 渲染页；Figure 8/9 在 p10 渲染页目检。公式按 PDF 渲染页与 HTML `alttext` 对照：Muon 更新（含动量递推）、$S_\max$、QK-Clip、MLA 缩放、RL 目标均一致。检索词：`MLA`/`RoPE`/`q_lora`/`kv_lora`、`tokenizer`、`GPU`/`H800`/`H100`、`error bar`/`variance`/`seed`、`all baselines`、`state-of-the-art`、`zero loss spike`、`deactivated`、`12.7%`。
 
 本轮修正：
 
 - 来源信息补「上游归档为 v1」；机构补「Moonshot AI 由 checkpoint/GitHub 组织推得」。
 - Figure 2 读数改为「左图末端约 16.5k 步、约 1,220；右图维持到约 6.5 万–6.8 万步，7 万步约 88，8 万步约 48，约 8.6 万–9 万步后稳定在 30–35，曲线延伸到约 23.7 万步」；初稿曾误用 50k=1317 px 的横轴定标，导致步数整体偏小，已按 PDF 刻度中心 50k=1287 px 重测。
 - 补 Tau2 的「all baselines」反例：Figure 1 的 Tau2 micro 面板里 Claude Opus 4 是 67.6 > 66.1；Table 3 的 retail/airline 也是 Opus 更高。
-- 补 Arena-Hard hard prompt 的反例（Opus 59.7 > 54.5），并把 §4.1.2 的引文改回 `τ2-Bench`。
+- 补 Arena-Hard hard prompt 的反例（Opus 59.7 > 54.5），并把 §4.1.2 的引文改回 $\tau^{2}$-Bench。
 - 把「vanilla Muon 随后出现 loss spike 甚至发散」改回原文的「这个量级通常会导致不稳定」；把「QK-Clip deactivated」的出处从「正文」改为「附录 D」。
 - 数据重述段改为「论文没有说明三种设置的 token 预算是否对齐」，不再断言预算不同。
 - 引言/摘要的 1T/1.04T 分开表述；Table 2 的 Δ 列补复算（+55%/−12% vs 原文 +54%/−13%）。
-- Muon 公式补 `M_t = μM_{t-1}+G_t`；QK-Clip 公式注明 α 版本是 MHA 写法，MLA 按三分量处理。
+- Muon 公式补 $M_{t} = \mu M_{t-1}+G_{t}$；QK-Clip 公式注明 α 版本是 MHA 写法，MLA 按三分量处理。
 - Table 3/4/6 的节选补全省略行清单（44/23/25 个数据行）；Table 3 补粗体/下划线图例；SWE Multilingual 补「只测 single-attempt」与 Opus 缺测原因。
 - Figure 4 改为「4096 标在 full input，输出端未单独标 4096」；Figure 11 的数字改注「p29 正文与 Figure 11」。
 - 6 TB 复算改为「与 1.04T 相容，但不能唯一反推」；v2 差异补 WRAP 归因与工具模板修正；K3 的 69/24 补「每 4 层一组 3 KDA + 1 MLA，末尾再补一层 MLA」。
@@ -46,11 +46,11 @@
 
 一句话：**K2 把「超稀疏 MoE + MLA + 64 个注意力头」推到 1.04T 总参数 / 32.6B 激活，用 MuonClip（Muon + 逐头 QK-Clip）在 15.5T token 上做到零 loss spike；再用「大规模合成工具调用轨迹 + 可验证奖励与自我批评 rubric 的 RL」把非思考模式下的 agentic 能力推到开源模型前列。** 最可复用的两个点是 QK-Clip 的「不改前向、按头缩放 Q/K 投影」和 384 专家 / 稀疏度 48 的架构取舍。
 
-- **MuonClip 是全文最硬的方法贡献**：Muon 在大规模训练时注意力 logit 会爆炸，QK-Norm 又不适用于 MLA（推理时 K 不物化）。对普通 MHA，QK-Clip 在优化器更新后按头把 `W_q`/`W_k` 乘 `γ^α`/`γ^{1-α}`；MLA 则按 `q_C`/`k_C`/`q_R`/`k_R` 三分量缩放。它把最大 logit 压到阈值 `τ`；K2 用 `τ=100`，训练中只有 12.7% 的头在前 70k 步触发过，之后全部低于阈值，等于自动失效。
+- **MuonClip 是全文最硬的方法贡献**：Muon 在大规模训练时注意力 logit 会爆炸，QK-Norm 又不适用于 MLA（推理时 K 不物化）。对普通 MHA，QK-Clip 在优化器更新后按头把 $W_{q}$/$W_{k}$ 乘 $\gamma^\alpha$/$\gamma^{1-\alpha}$；MLA 则按 $q_{C}$/$k_{C}$/$q_{R}$/$k_{R}$ 三分量缩放。它把最大 logit 压到阈值 $\tau$；K2 用 $\tau=100$，训练中只有 12.7% 的头在前 70k 步触发过，之后全部低于阈值，等于自动失效。
 - **架构上的两个反直觉取舍都有 scaling law 支撑**：专家数从 DeepSeek-V3 的 256 增到 384（稀疏度 48），在同样验证 loss 1.5 下比稀疏度 8/16/32 分别省 1.69×/1.39×/1.15× FLOPs；注意力头从 128 减到 64，因为翻倍头只带来 0.5%–1.2% 的验证 loss 改善，却在 128k 上下文让推理 FLOPs 增加 83%。
 - **预训练配方是「WSD + 大 batch + 长上下文退火」**：4,096 上下文、15.5T token、67M token/step 的 batch；前 10T 用常数 2e-4，后 5.5T 余弦降到 2e-5；退火阶段再训练 400B token（4k）与 60B token（32k），学习率 2e-5→7e-6，最后用 YaRN 扩到 128k。
 - **后训练的 agentic 数据规模是「数万条」而不是「数百万条」**：3,000+ 个真实 MCP 工具、20,000+ 个合成工具、数千个 agent，按 rubric 生成任务，再用 user simulator + tool simulator + judge 过滤轨迹；编码/SWE 任务接真实 sandbox，用测试通过率做 rejection sampling。
-- **RL 沿用 K1.5 的平方误差目标，不是 PPO/GRPO**：每个问题采样 K 条回答，最小化「去基线奖励 − `τ`×对数比率」的平方；再加 budget control、PTX 辅助 loss、temperature decay，以及可验证奖励 gym 与 self-critique rubric reward。
+- **RL 沿用 K1.5 的平方误差目标，不是 PPO/GRPO**：每个问题采样 K 条回答，最小化「去基线奖励 − $\tau$×对数比率」的平方；再加 budget control、PTX 辅助 loss、temperature decay，以及可验证奖励 gym 与 self-critique rubric reward。
 - **主结果**：SWE-bench Verified 65.8（多次尝试 71.6）、SWE-bench Multilingual 47.3、Tau2-Bench 66.1（micro）、ACEBench 76.5、LiveCodeBench v6 53.7、OJBench 27.1、AIME 2025 49.5、GPQA-Diamond 75.1；LMSYS Arena 2025-07-17 快照为开源第 1、总榜第 5（3,000+ 票）。
 - **但「全面领先」要打折**：ACEBench 上 GPT-4.1 的 80.1 高于 K2 的 76.5；Tau2 micro 上 Claude Opus 4 的 67.6 高于 66.1；Aider-Polyglot 上 Qwen3 的 61.8 高于 60.0；MMLU-Pro 上 DeepSeek-V3 的 81.2 高于 81.1；Arena-Hard hard prompt 上 Opus 的 59.7 高于 54.5；MRCR 上 K2 的 55.0 明显低于 Claude Sonnet 4 的 74.4 与 Gemini 2.5 Flash 的 81.7。
 
@@ -62,7 +62,7 @@ arXiv Comments 写的是「with minor updates」，逐页 diff 验证了这一�
 
 - **页数与全部实验数字不变**：两版都是 32 页，Table 3/4/6 的每个数字相同，摘要、§2–§6 的结论句相同。
 - **v2 对正文的实质补充主要是 checkpoint-engine 链接**：p14 加了「The source code for the checkpoint engine is available on Github」与脚注 `https://github.com/MoonshotAI/checkpoint-engine`；另有 p5 增加「Inspired by WRAP [50]」的归因、p27 把 `<tool_call_section_begin|>` 修正为 `<|tool_call_section_begin|>`，以及 p14–p15 的段落位置调整。
-- **其余是参考文献与编辑性改动**：参考文献新增 WRAP、OpenAI Gym、NuminaMath、Aimo-2、Megatron-LM、SimpleQA、LiveBench 等条目并整体重编号；作者名单增删（v1 的「`*` 表示已离开团队」说明被删除）；少量公式排版与断行修正（如 `√γ` 的空格、`∑` 的排版）。
+- **其余是参考文献与编辑性改动**：参考文献新增 WRAP、OpenAI Gym、NuminaMath、Aimo-2、Megatron-LM、SimpleQA、LiveBench 等条目并整体重编号；作者名单增删（v1 的「`*` 表示已离开团队」说明被删除）；少量公式排版与断行修正（如 $\sqrt \gamma$ 的空格、$\sum$ 的排版）。
 - **对既有笔记的影响**：Kimi Linear 笔记里「1.4T 预训练语料、MuonClip、WSD、SFT/RL 配方都沿用 K2」仍然成立；这里的 1.4T 是 Kimi Linear 自己的对照训练预算，不是 K2 的预训练量（K2 是 15.5T）。K2.5 笔记说「底座 K2 的架构/训练细节需查 K2 技术报告」，但 K2 报告本身没有给全 MLA 的压缩维度（见「局限与待确认」）。
 
 ---
@@ -93,11 +93,11 @@ Muon 对权重矩阵的动量做 Newton–Schulz 正交化，再把更新缩放�
 \mathbf{W}_t=\mathbf{W}_{t-1}-\eta\left(\mathbf{O}_t+\lambda\mathbf{W}_{t-1}\right)
 ```
 
-读法：动量按 `M_t = μM_{t-1} + G_t` 累积（`M_0=0`，`G_t` 是梯度，`μ` 是 momentum）；再把动量正交化，乘 `sqrt(max(n,m)) * 0.2` 做 RMS 匹配，最后连同 weight decay 一起更新。论文引用 Moonlight 的结论：同算力、同模型规模下 Muon 明显优于 AdamW，所以它被当作「token 效率」的一部分。
+读法：动量按 $M_{t} = \mu M_{t-1} + G_{t}$ 累积（$M_{0}=0$，$G_{t}$ 是梯度，$\mu$ 是 momentum）；再把动量正交化，乘 $\sqrt{\max(n,m)}\cdot0.2$ 做 RMS 匹配，最后连同 weight decay 一起更新。论文引用 Moonlight 的结论：同算力、同模型规模下 Muon 明显优于 AdamW，所以它被当作「token 效率」的一部分。
 
 #### 1.2 问题：logit 爆炸与 MLA 的特殊性
 
-对每个头 `h`，注意力输出是 `softmax(Q_h K_h^T / sqrt(d)) V_h`。论文把 softmax 前的最大输入定义成每个头一个标量：
+对每个头 $h$，注意力输出是 `softmax(Q_h K_h^T / sqrt(d)) V_h`。论文把 softmax 前的最大输入定义成每个头一个标量：
 
 ```math
 S_{\max}^{h}=\frac{1}{\sqrt{d}}\max_{\mathbf{X}\in\mathcal{B}}\max_{i,j}\mathbf{Q}_i^h\mathbf{K}_j^{h\top}
@@ -112,7 +112,7 @@ S_{\max}^{h}=\frac{1}{\sqrt{d}}\max_{\mathbf{X}\in\mathcal{B}}\max_{i,j}\mathbf{
 
 #### 1.3 QK-Clip：在优化器更新后缩放权重
 
-QK-Clip 的核心是「把最大 logit 当作控制信号，而不是在前向里改计算」。当 `S_max^h > τ` 时，按头计算缩放因子，再把 Q/K 的投影权重乘回去：
+QK-Clip 的核心是「把最大 logit 当作控制信号，而不是在前向里改计算」。当 $S_\max^{h} > \tau$ 时，按头计算缩放因子，再把 Q/K 的投影权重乘回去：
 
 ```math
 \gamma_h=\min\left(1,\frac{\tau}{S_{\max}^{h}}\right),\qquad
@@ -120,34 +120,34 @@ QK-Clip 的核心是「把最大 logit 当作控制信号，而不是在前向�
 \mathbf{W}_k^h\leftarrow\gamma_h^{1-\alpha}\mathbf{W}_k^h
 ```
 
-读法：`γ_h` 是「把这个头的最大 logit 拉回 `τ` 需要缩多少」；`α=0.5` 时 Q 和 K 各乘 `sqrt(γ_h)`，点积大约乘 `γ_h`，正好把 `S_max^h` 压到 `τ`。这一步发生在优化器更新之后，**不改变当前 step 的前向/反向**，只是给下一步的权重增长踩刹车。这个 `α` 版本是论文对普通 MHA 的逐头写法；MLA 不按 `α` 二分，而是按下面的 `q_C`/`k_C`/`q_R`/`k_R` 三分量处理。
+读法：$\gamma_{h}$ 是「把这个头的最大 logit 拉回 $\tau$ 需要缩多少」；$\alpha=0.5$ 时 Q 和 K 各乘 $\sqrt{\gamma_h}$，点积大约乘 $\gamma_{h}$，正好把 $S_\max^{h}$ 压到 $\tau$。这一步发生在优化器更新之后，**不改变当前 step 的前向/反向**，只是给下一步的权重增长踩刹车。这个 $\alpha$ 版本是论文对普通 MHA 的逐头写法；MLA 不按 $\alpha$ 二分，而是按下面的 $q_{C}$/$k_{C}$/$q_{R}$/$k_{R}$ 三分量处理。
 
-论文先给了「所有头一起裁」的朴素版本，随后观察到**只有一小部分头会爆炸**，于是改成逐头 `γ_h = min(1, τ/S_max^h)`。逐头裁剪对普通 MHA 很直接；对 MLA，论文只裁「非共享」的头相关分量：
+论文先给了「所有头一起裁」的朴素版本，随后观察到**只有一小部分头会爆炸**，于是改成逐头 $\gamma_{h} = \min(1, \tau/S_\max^{h})$。逐头裁剪对普通 MHA 很直接；对 MLA，论文只裁「非共享」的头相关分量：
 
-- `q_C` 与 `k_C`（头相关的压缩分量）：各乘 `sqrt(γ_h)`；
-- `q_R`（头相关的 RoPE 分量）：乘 `γ_h`；
-- `k_R`（跨头共享的 RoPE 分量）：**不动**，避免一个头的缩放影响其他头。
+- $q_{C}$ 与 $k_{C}$（头相关的压缩分量）：各乘 $\sqrt{\gamma_h}$；
+- $q_{R}$（头相关的 RoPE 分量）：乘 $\gamma_{h}$；
+- $k_{R}$（跨头共享的 RoPE 分量）：**不动**，避免一个头的缩放影响其他头。
 
-直觉：MLA 的 `k_R` 是所有头共享的，如果把它也乘 `γ_h`，等于用一个头的爆炸信号去改所有头的表示；只裁 `q_R` 同样能把该头的点积压下来，因为 `q_R · k_R` 里只有 `q_R` 被缩。
+直觉：MLA 的 $k_{R}$ 是所有头共享的，如果把它也乘 $\gamma_{h}$，等于用一个头的爆炸信号去改所有头的表示；只裁 $q_{R}$ 同样能把该头的点积压下来，因为 $q_{R} \cdot k_{R}$ 里只有 $q_{R}$ 被缩。
 
-Algorithm 1 把 Muon 与 QK-Clip 串成一个优化器：先做 Muon 更新，再对每个注意力头检查 `S_max^h` 是否超过 `τ`，超过就按上面的规则缩放。K2 取 `τ=100`。
+Algorithm 1 把 Muon 与 QK-Clip 串成一个优化器：先做 Muon 更新，再对每个注意力头检查 $S_\max^{h}$ 是否超过 $\tau$，超过就按上面的规则缩放。K2 取 $\tau=100$。
 
 #### 1.4 证据：logit 被压住，训练没有 spike
 
 ![Figure 2：vanilla Muon 与 K2 MuonClip 的最大注意力 logit 对比（左：9B 激活 / 53B 总参的中等规模实验；右：K2 全程。来源：arXiv:2507.20534v2 p4，Figure 2，裁剪自 PDF 渲染页）](assets/fig2-qkclip.png)
 
 - **左图（图中读数，近似）**：vanilla Muon 的最大 logit 在前 2,500 步上升缓慢，之后持续上升，到约 1.65 万步达到约 1,220；论文说这个量级通常会导致不稳定。
-- **右图（图中读数，近似）**：K2 用 MuonClip、`τ=100`，logit 很快顶到 100，维持到约 6.5 万–6.8 万步；随后下降，7 万步约 88，8 万步约 48，约 8.6 万–9 万步后稳定在 30–35。论文的图注说「约 30% 的训练步数后才衰减到稳定区间」；横轴最后一个刻度是 20 万步，曲线延伸到约 23.7 万步（比 20 万刻度多约 18%），下降大致从训练中段开始。
-- **触发比例**：前 70,000 步只有 **12.7%** 的注意力头至少触发过一次 QK-Clip；70,000 步之后，所有头都曾把 `S_max` 降到 100 以下，QK-Clip 不再生效。论文的说法是「transiently active」，训练稳定后「deactivated and has no effect at all」。
-- **消融**：在 0.5B 激活 / 3B 总参的两个 MoE 上，一个用 vanilla Muon，一个用 MuonClip 且把阈值压到 `τ=30`（更激进），Figure 12 的 loss 曲线几乎重合；论文称下游评测没有统计显著退化。注意这里只给了 loss 曲线与一句「no statistically significant degradation」，没有给下游数字、方差或置信区间，证据强度有限。
+- **右图（图中读数，近似）**：K2 用 MuonClip、$\tau=100$，logit 很快顶到 100，维持到约 6.5 万–6.8 万步；随后下降，7 万步约 88，8 万步约 48，约 8.6 万–9 万步后稳定在 30–35。论文的图注说「约 30% 的训练步数后才衰减到稳定区间」；横轴最后一个刻度是 20 万步，曲线延伸到约 23.7 万步（比 20 万刻度多约 18%），下降大致从训练中段开始。
+- **触发比例**：前 70,000 步只有 **12.7%** 的注意力头至少触发过一次 QK-Clip；70,000 步之后，所有头都曾把 $S_\max$ 降到 100 以下，QK-Clip 不再生效。论文的说法是「transiently active」，训练稳定后「deactivated and has no effect at all」。
+- **消融**：在 0.5B 激活 / 3B 总参的两个 MoE 上，一个用 vanilla Muon，一个用 MuonClip 且把阈值压到 $\tau=30$（更激进），Figure 12 的 loss 曲线几乎重合；论文称下游评测没有统计显著退化。注意这里只给了 loss 曲线与一句「no statistically significant degradation」，没有给下游数字、方差或置信区间，证据强度有限。
 
 #### 1.5 为什么 Muon 更容易炸：一个假设
 
 附录 E 的解释是「假设」而不是定理：
 
 - Muon 的 `msign` 更新让更新矩阵的所有奇异值相等、有效秩接近满秩；Adam 的更新矩阵通常只有少数大奇异值、有效秩低。
-- 权重 `W_{t-1}` 与更新 `ΔW_t` 都有较高有效秩时，它们的奇异向量更容易对齐，对应奇异值可能「加性」增长。
-- 注意力 logit 是 `(x_i W_q)·(x_j W_k)`，而 `W_q W_k^T` 会把谱范数平方；所以 `W_q` 或 `W_k` 的奇异值一旦增长，logit 会以更快的速度放大。
+- 权重 $W_{t-1}$ 与更新 $\Delta W_{t}$ 都有较高有效秩时，它们的奇异向量更容易对齐，对应奇异值可能「加性」增长。
+- 注意力 logit 是 $(x_{i} W_{q})\cdot (x_{j} W_{k})$，而 $W_{q} W_{k}^{T}$ 会把谱范数平方；所以 $W_{q}$ 或 $W_{k}$ 的奇异值一旦增长，logit 会以更快的速度放大。
 
 论文在 16B 的 Moonlight 上观察到 Muon 训练的权重奇异值熵更高（有效秩更高），作为这个假设的旁证；但没有做因果实验证明「有效秩高 → logit 爆炸」就是唯一原因。
 
@@ -261,13 +261,13 @@ SFT 数据的原则是「prompt 多样性 + 回答质量」；管线混合人工
 
 #### 7.1 目标函数：K1.5 的平方误差形式
 
-对每个问题 `x`，从旧策略 `π_old` 采样 K 条回答，最小化：
+对每个问题 `x`，从旧策略 $\pi_{\mathrm{old}}$ 采样 K 条回答，最小化：
 
 ```math
 L_{\mathrm{RL}}(\theta)=\mathbb{E}_{x\sim\mathcal{D}}\left[\frac{1}{K}\sum_{i=1}^{K}\left(r(x,y_i)-\bar{r}(x)-\tau\log\frac{\pi_\theta(y_i\mid x)}{\pi_{\mathrm{old}}(y_i\mid x)}\right)^2\right]
 ```
 
-其中 `r̄(x) = (1/K) Σ r(x,y_i)` 是这 K 条回答的平均奖励，`τ > 0` 是正则系数。读法（本笔记解读）：把「去基线的奖励」当成目标，把「策略比率」当成可调的步子；最小化平方项会把 `log(π_θ/π_old)` 往 `(r − r̄)/τ` 拉，也就是奖励高的回答提高概率、奖励低的降低概率，同时用 `τ` 控制步子大小。它和 PPO 的 clipped surrogate 不是同一个目标，也不是 GRPO 的组相对形式；笔记里不要把它写成 PPO/GRPO。
+其中 $\bar{r}(x) = (1/K) \sum r(x,y_{i})$ 是这 K 条回答的平均奖励，$\tau > 0$ 是正则系数。读法（本笔记解读）：把「去基线的奖励」当成目标，把「策略比率」当成可调的步子；最小化平方项会把 $\log(\pi_\theta/\pi_{\mathrm{old}})$ 往 $(r - \bar{r})/\tau$ 拉，也就是奖励高的回答提高概率、奖励低的降低概率，同时用 $\tau$ 控制步子大小。它和 PPO 的 clipped surrogate 不是同一个目标，也不是 GRPO 的组相对形式；笔记里不要把它写成 PPO/GRPO。
 
 在 K2 的规模上，论文还加了三件事：
 
@@ -400,9 +400,9 @@ K2 在 Harmful–Iterative Jailbreak 上明显高于其他模型（92.16），�
 
 ### 可以直接复用的东西
 
-1. **MuonClip 的实现顺序**：先做 Muon（Newton–Schulz + RMS 匹配 + weight decay），再在**优化器更新后**按头检查 `S_max`，超过 `τ` 才缩放 `W_q`/`W_k`。不要在前向里改 logit，否则会改变当前 step 的梯度。
-2. **MLA 的 QK-Clip 只裁非共享分量**：`q_C`/`k_C` 乘 `sqrt(γ)`，`q_R` 乘 `γ`，共享的 `k_R` 不动。这一条对任何 MLA 变体都适用；如果误裁 `k_R`，会把一个头的爆炸信号扩散到所有头。
-3. **`τ=100` 是一个保守的起点**：K2 的 logit 很快顶到 100，随后训练自己把它降到 30–35；QK-Clip 只在前期 12.7% 的头上触发。换模型/换数据时，`τ` 要按自己的 logit 量级重新标定，不能直接照搬。
+1. **MuonClip 的实现顺序**：先做 Muon（Newton–Schulz + RMS 匹配 + weight decay），再在**优化器更新后**按头检查 $S_\max$，超过 $\tau$ 才缩放 $W_{q}$/$W_{k}$。不要在前向里改 logit，否则会改变当前 step 的梯度。
+2. **MLA 的 QK-Clip 只裁非共享分量**：$q_{C}$/$k_{C}$ 乘 $\sqrt{\gamma}$，$q_{R}$ 乘 $\gamma$，共享的 $k_{R}$ 不动。这一条对任何 MLA 变体都适用；如果误裁 $k_{R}$，会把一个头的爆炸信号扩散到所有头。
+3. **$\tau=100$ 是一个保守的起点**：K2 的 logit 很快顶到 100，随后训练自己把它降到 30–35；QK-Clip 只在前期 12.7% 的头上触发。换模型/换数据时，$\tau$ 要按自己的 logit 量级重新标定，不能直接照搬。
 4. **稀疏度 48 与 64 头的组合**：384 路由专家、8 激活、1 共享、64 头，是在「固定激活参数」下用 scaling law 选的；如果推理侧长上下文是主要成本，64 头比 128 头更划算——论文的读数是 128k 下头数从 64 增到 128 会让推理 FLOPs 增加 83%，反过来 64 头省掉的是这部分增量。
 5. **数据重述的最小可行管线**：分块（图 4 标 256 token）+ 带上下文重写 + 保真度校验；每个语料最多重述两次，避免过拟合。
 6. **Agentic 数据合成的三段式**：工具规格 → agent/任务/rubric → 轨迹生成与 judge 过滤；模拟环境负责规模，真实 sandbox 负责真实性。编码任务用测试通过率做 rejection sampling，比纯 LLM judge 稳。
@@ -451,7 +451,7 @@ K2 在 Harmful–Iterative Jailbreak 上明显高于其他模型（92.16），�
 6. **QK-Clip 的质量结论**：附录 D 的标题是「QK-Clip Does Not Impair Model Quality」，证据是 0.5B/3B 的 loss 曲线 + 下游「no statistically significant degradation」；没有给下游表与统计量，结论强于展示。
 7. **安全结论的适用范围**：正文说「some complex cases（如 Harmful–Iterative Jailbreak）的通过率相对更高」，但 Security–Iterative Jailbreak 只有 43.90，是四个模型里最低/并列最低；「some」的限定必须保留。
 8. **「8 out of 384」与共享专家**：正文说「activating 8 out of 384 experts per forward pass」，Table 2 又单列「Shared Experts 1」。按 DeepSeek-V3 的惯例，这是 8 个路由专家 + 1 个共享专家；稀疏度 48 只按路由专家算。不要把共享专家并进 8 里，也不要用 384/9 去算稀疏度。
-9. **「QK-Clip deactivated」与 Algorithm 1**：附录 D 说训练稳定后 QK-Clip「deactivated and has no effect at all」，但 Algorithm 1 仍然每个 step 检查 `S_max`；实际是「条件不满足、分支不执行」，不是把模块从优化器里删掉。
+9. **「QK-Clip deactivated」与 Algorithm 1**：附录 D 说训练稳定后 QK-Clip「deactivated and has no effect at all」，但 Algorithm 1 仍然每个 step 检查 $S_\max$；实际是「条件不满足、分支不执行」，不是把模块从优化器里删掉。
 10. **「1T 参数」与 1.04T 的训练显存**：论文说 6 TB 的 BF16 参数 + FP32 梯度缓冲；1.04T × 2 B ≈ 2.08 TB，1.04T × 4 B ≈ 4.16 TB，合计约 6.24 TB（本笔记复算），与「approximately 6 TB」相容。但不能反过来由 6 TB 唯一确定 1.04T：1T × 6 B 也约 6 TB，原文没有给逐项显存拆分。
 
 ---
@@ -484,7 +484,7 @@ K2 在 Harmful–Iterative Jailbreak 上明显高于其他模型（92.16），�
 | 专家 | 384 路由，8 激活 + 1 共享；稀疏度 48（只看路由） |
 | 注意力 | MLA，64 头（DeepSeek-V3 是 128） |
 | 预训练 | 15.5T token，4,096 上下文，WSD，batch 67M；前 10T 常数 2e-4，后 5.5T 余弦到 2e-5；退火 400B@4k + 60B@32k，LR 2e-5→7e-6；YaRN 到 128k |
-| 优化器 | MuonClip（Muon + QK-Clip），`τ=100`；前 70k 步 12.7% 头触发，之后自动失效 |
+| 优化器 | MuonClip（Muon + QK-Clip），$\tau=100$；前 70k 步 12.7% 头触发，之后自动失效 |
 | 数据重述 | SimpleQA：原文 10 epoch 23.76 → 重述 1 次 27.39 → 重述 10 次 28.94 |
 | Agentic 数据 | 3,000+ 真实 MCP 工具、20,000+ 合成工具、数千 agent、数万条轨迹 |
 | RL | K1.5 平方误差目标；budget control、PTX loss、temperature decay；可验证奖励 gym + self-critique rubric |

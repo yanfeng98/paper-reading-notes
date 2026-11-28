@@ -13,7 +13,7 @@
 | 仓库编号 | 00232（本次收录，ByteDance 组；编号单元格指向 arXiv 官方页） |
 | 页数与结构 | 31 页（文件页与印刷页码一致）：正文 §1–§5 + Limitations + Ethics 在 p1–p9；References p10–p14；附录 A（Harness 实现）p14–p16；B（标签认证与官方 verifier 审计）p16–p20；C（补充结果）p20–p21；D（案例）p21–p27；E（提示词与契约）p27–p31 |
 | 阅读范围 | v1 全文 31 页。**已读**：正文 §1–§5、Limitations、Ethics、附录 A–E 全部；Table 1–13、Figure 1、Algorithm 1 均对照。**已渲染页核对**：Table 2（p6）、Table 3/4（p7）、Table 5（p8）、Table 9（p20）在 130 dpi 整页渲染上逐格核对，并用 PDF 文本层的 span 坐标与字体（`SFBX0800` 为粗体）交叉检查加粗；κ 公式（p6）在渲染页逐符号核对；Table 1（p3）、Table 6（p16）、Table 7（p18）、Table 8（p19）、Table 10（p21）、Table 11（p23）、Table 12（p25）、Table 13（p26）在 130 dpi 渲染页查看并对照文本层（Table 7 的分母、Table 8 的任务数做了加总校验，见「核对凭据」）。**未做像素测量**：Figure 1 只在 150 dpi 渲染页查看，读数直接取自图内数值标签，未做像素定标。 |
-| 配图 | `assets/figure1-overview.png`：Figure 1（p2）300 dpi 渲染裁剪，裁剪框 `pymupdf.Rect(69.5, 76.5, 542.0, 267.5)`（pt），成品 1970×797 px；边缘回看确认无黑边/截断，图内三块面板标题、图例、坐标轴与 `κ*` 轴标签均在框内。许可见上，引用请注明出处 |
+| 配图 | `assets/figure1-overview.png`：Figure 1（p2）300 dpi 渲染裁剪，裁剪框 `pymupdf.Rect(69.5, 76.5, 542.0, 267.5)`（pt），成品 1970×797 px；边缘回看确认无黑边/截断，图内三块面板标题、图例、坐标轴与 $\kappa^{*}$ 轴标签均在框内。许可见上，引用请注明出处 |
 | 归档说明 | arXiv 来源，按仓库策略不归档 PDF；本次阅读用的是 arXiv v1 官方 PDF（876,989 B，sha256 `0d4725a6ae556b0aaea13002e72fe6c1ae26766284aff55b19776171f81c388c`，31 页，用后已清理临时文件）。论文没有给出 Veritas 自己的代码仓库或项目页链接（正文与参考文献中的 GitHub 链接都属于其他工具），本笔记不据此推断"未公开" |
 
 **核对凭据（可复现）**
@@ -88,28 +88,28 @@ Veritas 要解决的不是"怎么让 agent 更会做题"，而是"怎么让 agen
 
 论文用四个符号（§3.1）：
 
-- `T`：任务陈述，按基准发布的样子。
-- `E0`：任务环境的初始状态（文件、数据库等）。
-- `τ`：候选的 trajectory，即 agent 在尝试中产生的消息与工具调用序列。
-- `Ef`：把 `τ` 在 `E0` 上执行后的最终状态。
+- $T$：任务陈述，按基准发布的样子。
+- $E_{0}$：任务环境的初始状态（文件、数据库等）。
+- $\tau$：候选的 trajectory，即 agent 在尝试中产生的消息与工具调用序列。
+- $E_{f}$：把 $\tau$ 在 $E_{0}$ 上执行后的最终状态。
 
-**verifier 生成 harness 只收到 `T` 与 `E0`**，不收到参考答案、官方测试或标签，也看不到任何候选（写 verifier 时 `τ` 与 `Ef` 还不存在）。注意这个限制只作用于"答案侧"，不作用于"任务侧"：`T` 是基准原样发布的任务陈述；在 τ²-bench 上它包含任务作者对"这个任务考什么"的说明，所以每个 harness 都知道测试意图。
+**verifier 生成 harness 只收到 $T$ 与 $E_{0}$**，不收到参考答案、官方测试或标签，也看不到任何候选（写 verifier 时 $\tau$ 与 $E_{f}$ 还不存在）。注意这个限制只作用于"答案侧"，不作用于"任务侧"：$T$ 是基准原样发布的任务陈述；在 τ²-bench 上它包含任务作者对"这个任务考什么"的说明，所以每个 harness 都知道测试意图。
 
-判分时 verifier 收到的输入由**基准**固定，而不是由 harness 决定；基准契约（benchmark contract）会告诉 harness：verifier 将拿到 `τ`、`E0`、`Ef` 中的哪些、以什么形式。这条契约是必需的——一个读取它拿不到的输入的 verifier 根本跑不起来。
+判分时 verifier 收到的输入由**基准**固定，而不是由 harness 决定；基准契约（benchmark contract）会告诉 harness：verifier 将拿到 $\tau$、$E_{0}$、$E_{f}$ 中的哪些、以什么形式。这条契约是必需的——一个读取它拿不到的输入的 verifier 根本跑不起来。
 
 Table 1 把六个基准的输入列清楚（本笔记按原文转写）：
 
 | Benchmark | 写 V 时 harness 可见 | V 判分时可见 | 具体证据 |
 | --- | --- | --- | --- |
-| τ²-bench | `T`, `E0` | `τ`, `E0`, `Ef` | messages、DB before、DB after |
-| SWE-bench Verified | `T`, `E0` | `Ef` | patched repository；V 在其中跑自己的测试 |
-| Terminal-Bench 4.0 | `T`, `E0` | `Ef` | final-state filesystem |
-| TB-Science 0.1 | `T`, `E0` | `Ef` | final-state filesystem |
-| LLMBar、JudgeBench | `T`, `τA`, `τB` | `T`, `τA`, `τB` | 两个 response |
+| τ²-bench | $T$, $E_{0}$ | $\tau$, $E_{0}$, $E_{f}$ | messages、DB before、DB after |
+| SWE-bench Verified | $T$, $E_{0}$ | $E_{f}$ | patched repository；V 在其中跑自己的测试 |
+| Terminal-Bench 4.0 | $T$, $E_{0}$ | $E_{f}$ | final-state filesystem |
+| TB-Science 0.1 | $T$, $E_{0}$ | $E_{f}$ | final-state filesystem |
+| LLMBar、JudgeBench | $T$, $\tau_{A}$, $\tau_{B}$ | $T$, $\tau_{A}$, $\tau_{B}$ | 两个 response |
 
-Table 1 的注还说明：没有记录 `τ` 的地方，V 只能判 trajectory 留下的东西；两个 pairwise 基准没有环境（`E0 = Ef = ∅`），候选是一个 response，harness 能看到两个 response（candidate-visible），V 返回偏好而不是 PASS/FAIL。
+Table 1 的注还说明：没有记录 $\tau$ 的地方，V 只能判 trajectory 留下的东西；两个 pairwise 基准没有环境（$E_{0} = E_{f} = \varnothing$），候选是一个 response，harness 能看到两个 response（candidate-visible），V 返回偏好而不是 PASS/FAIL。
 
-这张表解释了一个容易忽略的设计后果：**R 只在证据包含 `τ` 时激活**。SWE、Terminal-Bench、TB-Science 的判分证据只有 `Ef`，所以规则库在这三个基准上根本不启用（Table 4 的 SWE `−R` 与 Full 同值就是这个原因）；两个 pairwise 基准的证据是两个 response 而不是 `τ`，按同一规则 R 也不激活。R 的明确收益集中在 τ²-bench 这类有对话轨迹的基准。
+这张表解释了一个容易忽略的设计后果：**R 只在证据包含 $\tau$ 时激活**。SWE、Terminal-Bench、TB-Science 的判分证据只有 $E_{f}$，所以规则库在这三个基准上根本不启用（Table 4 的 SWE `−R` 与 Full 同值就是这个原因）；两个 pairwise 基准的证据是两个 response 而不是 $\tau$，按同一规则 R 也不激活。R 的明确收益集中在 τ²-bench 这类有对话轨迹的基准。
 
 ### 2.2 四阶段流水线
 
@@ -174,7 +174,7 @@ R 是一个挂在容器固定路径 `/rubric_lib` 的目录树，六个领域、
 三个设计点：
 
 - **只让 agent 查它用得上的规则**。19,603 条规则如果全部内联进提示词，会被不加区分地应用；按文件系统检索则只有被查到的规则进入 verifier。
-- **R 是 process assertion 的先验，只在证据包含 `τ` 时激活**。因为规则讲的是"agent 做了什么/说了什么"，只有 trajectory 能见证。启用时，agent 被要求在任何 process/communication 断言之前先浏览规则库，只实例化与当前任务相关的规则，并在断言上标注 rule id；库里没有、但任务材料明确写了的要求照常检查——**规则库是补充先验，不是标准的上界**。
+- **R 是 process assertion 的先验，只在证据包含 $\tau$ 时激活**。因为规则讲的是"agent 做了什么/说了什么"，只有 trajectory 能见证。启用时，agent 被要求在任何 process/communication 断言之前先浏览规则库，只实例化与当前任务相关的规则，并在断言上标注 rule id；库里没有、但任务材料明确写了的要求照常检查——**规则库是补充先验，不是标准的上界**。
 - **规则库不替代任务文本**。它补的是"任务没说、领域政策要求"的那部分。
 
 论文的 D.3 案例展示了 R 的价值，也暴露了它的边界：plain Claude Code 从初始数据库里"所有 basic-economy 预订的行李数都是 0"推出"basic economy 免费行李为 0"，因此拒绝了正确的"1 件免费行李"；Claude Code+ERH 在 `/rubric_lib` 里找到 AIR-0021（另一条 airline 任务的 assertion：silver 会员的 economy 航班每人 2 件免费行李，原文还提到可带 4 件行李箱），再结合"basic economy 比 economy 少一件"的推测与"客户说'用尽免费额度'预设了正额度"的语用线索，才定出 1 件。注意 AIR-0021 讲的是 economy，不是 basic economy；最终答案靠的是类比与语用推断，而不是一条直接命中的规则。论文自己把推理过程写了出来，这一点比"规则库一查就有答案"的叙事更可信，也说明 R 是**先验**而不是 oracle。
@@ -222,7 +222,7 @@ H 的作用不是"让 verifier 更聪明"，而是**在没有候选、没有标�
 \kappa = \frac{p_o - p_e}{1 - p_e}, \qquad p_e = p_V p_L + (1 - p_V)(1 - p_L)
 ```
 
-其中 `p_o` 是 verdict 与标签一致的比例，`p_V` 与 `p_L` 分别是 verdict 与标签中 PASS 的比例。κ = 1 是完全一致，0 是 chance 水平（例如对每个候选都返回多数标签），负值低于 chance。
+其中 $p_{o}$ 是 verdict 与标签一致的比例，$p_{V}$ 与 $p_{L}$ 分别是 verdict 与标签中 PASS 的比例。κ = 1 是完全一致，0 是 chance 水平（例如对每个候选都返回多数标签），负值低于 chance。
 
 四个执行类基准的主指标是 **κ\***：在一个基准的所有 certified candidate 上算 κ，但**每个缺失的 verdict（包括 verifier 跑不起来）都用"与标签相反的 verdict"代替**。这是一个刻意不对称的惩罚：它把"没交付"当成"判错"，因此交付率低的 harness 会被重罚。论文在解释结果时另给缺失数和 judged-subset κ（只在拿到 verdict 的候选上算）。
 

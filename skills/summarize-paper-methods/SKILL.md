@@ -7,7 +7,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 默认产物是一份 `docs/<slug>.md`，把同一主题的多篇**已读论文**按同一套问题重写，并在篇间做横向对比与术语消歧。**权威是原文**——按文档声明的版本重新获取的原文，不是记忆，也不是各篇笔记（笔记是索引与二次材料；两者冲突时回原文，并在文档里标明版本）。
 
-本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）、`<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数）与 `<该目录>/scripts/check_render.mjs`（用 Playwright 真实时间加载**阅读页**，核对公式/Mermaid/配图数、TOC、表格与残留标记；首页等非阅读页只做加载与 JS 错误检查），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`；两个脚本共用 `scripts/load-playwright.mjs` 自动定位 Playwright。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
+本 skill 所在目录为 `<仓库根>/skills/summarize-paper-methods/`，检查脚本为 `<该目录>/scripts/doc_lint.py`（机械项）、`<该目录>/scripts/github_render_check.py`（GitHub 原生渲染计数）与 `<该目录>/scripts/check_render.mjs`（用 Playwright 真实时间加载**阅读页**，核对显示/行内公式、公式错误、Mermaid/配图数、TOC、表格与残留标记；首页等非阅读页只做加载与 JS 错误检查），PDF 脚本为 `<该目录>/scripts/render_pdf.mjs`；两个脚本共用 `scripts/load-playwright.mjs` 自动定位 Playwright。经 `~/.claude/skills/` 的符号链接加载时，先解析真实路径再定位仓库根目录，不依赖调用时的工作目录。仓库内的现有示例是 `docs/rsi-methods.md`（篇数以文档为准）：只看结构与做法，不照搬其中的 RSI 术语。
 
 ## 这份 skill 管什么、不管什么
 
@@ -29,7 +29,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 1. **篇目与纳入标准**：至少 2 篇；用户只给主题时，从根 `README.md` 与 `notes/` 提候选（编号 / 标题 / 是否已有笔记 / 建议版本），列给用户确认后再开工。
 2. **版本基准**：**README 当行已锁定具体版本（如 v2/v3 或归档 PDF）时以该版本为准**；用户指定版本时用指定版；两者都未锁定版本时取生成日最新版并写明。非 arXiv 来源用归档 PDF 的版本。同一工作有多个渠道（项目页/arXiv/OpenReview/期刊）时，不混用不同版本的实验数字。
 3. **产物路径**：`docs/<slug>.md`（slug 用简短英文短横线）。不新建其他目录，不改 `notes/` 里的单篇笔记（除非用户同时要求）。
-4. **公式与渲染约定**（用户已明确要求；如需例外须用户明确说明）：正文段落/列表/表格**不写行内公式**；独立公式块**一律用 `math` 代码围栏（三反引号 + math）**（GitHub 原生支持，列表内也可用）；新文档**不要写 `$$…$$`**（单行 `$$` 与列表项内的 `$$` 在 GitHub 上不可靠，只有旧文档兼容时才保留）。全篇不超过 3 处、每块紧跟一句白话读法；伪代码用围栏代码块；迭代闭环用 Mermaid。货币符号请放进行内代码或改写为「美元」——不要用 `\$`：marked 会先还原成 `$`，站点的 MathJax 再把同一段文字里的两个 `$` 当行内公式（实测 `$4,432 与 $2,377` 被吃成数学），检查脚本也照样报 `\$`；裸 `$` 同样会被视为行内公式。
+4. **公式与渲染约定**（用户已明确要求；如需例外须用户明确说明）：正文段落/列表/表格中的短公式用 `$…$`（站点 MathJax 渲染；GitHub 源码可能显示原文）；独立公式块**一律用 `math` 代码围栏（三反引号 + math）**（GitHub 原生支持，列表内也可用）；新文档**不要写 `$$…$$`**（单行 `$$` 与列表项内的 `$$` 在 GitHub 上不可靠，只有旧文档兼容时才保留）。全篇不超过 3 处、每块紧跟一句白话读法；伪代码用围栏代码块；迭代闭环用 Mermaid。货币符号请放进行内代码或改写为「美元」——不要用 `\$`：marked 会先还原成 `$`；站点解析器要求 `$` 成对并紧贴非空白字符，数字开头且无数学记号的内容按货币处理（实测 `$4,432 与 $2,377` 不会被误排成公式），检查脚本会报未配对或疑似货币的 `$`。
 5. **README**：默认不动。用户明确要求挂链接时，只在**编号说明 blockquote 之后、`## 论文` 之前**新增或更新**一行**主题汇总链接（同步编号集合与篇数），不重排、不改表格、不动其他行。
 6. **提交**：不自动提交；用户明确要求时再提交。
 
@@ -95,7 +95,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 - **口径的层级与范围**：区分速率（每秒/秒级）与累计量、单次规模与总量；某个基准的硬件/设置不能外推到整套评测；机制描述保留频次/作用域限定（per layer / per step / per rank），漏限定词会把开销写小近两个数量级（K3 的 93 层；实际发生过：秒级创建数万沙箱/累计 5100 万被写成「几十万次」；原文只说明两个基准用 H20 被写成「评测在 H20 上」；QB 直方图 per layer per step 被写成每 step 一次）。**同一段效率结论可能横跨不同投入口径**：FLOPs、API spend（USD）与 active hours 不能互换；引用 same compute / same spend 前先看每个基准的成本定义（实测同一篇论文：BCP/EdgeBench 用 prefix-reuse FLOPs，Software World 用累计 API 花费，摘要却统一写 same compute）。
 - **原文自身的张力**（正文 vs 附录、摘要 vs 表、图例 vs 图注、面板标题 vs 图注）如实记录，不替作者裁决；**写张力前先做总数分解**（看似多出的 4+3 可能正好是已声明的 7 个排除项，DeepSWE 106=113−7），无法由总数/子集/分母解释才记为张力。
 - 区分**作者结论 / 原文数值 / 复算 / 图内读数 / 本文推断 / 补充背景**；总体判断一律标「本文归纳」。**引用原文节号写「原文 §x.y」**：文档自身也有 §x.y 时，裸写会混淆（实际发生过：mHC 笔记的 §3.1 是 Kernel 融合，论文 §3.1 是 Numerical Instability）。
-- 正文零行内公式；少量独立公式块必须配白话读法；伪代码是示意就注明，不冒充作者实现。
+- 短行内公式用 `$…$`；少量独立公式块必须配白话读法；伪代码是示意就注明，不冒充作者实现。
 
 ## 术语审计
 
@@ -160,7 +160,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 
 **G. 读者理解**：只读文档能回答每篇的四问 + 验收/监督/关键数字/版本；Mermaid 与文字流程一致；伪代码与文字一致；公式块后跟白话读法，且**全篇公式块不超过 3 处**（人工核对，脚本只计数）；没有「见下节」指不到的地方。
 
-**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（源块数与 GitHub 渲染数一致、无 `language-*` 残留）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接存在性、公式/Mermaid 围栏计数已记录供渲染检查对照；**图片语法 `![...]` 不在它的校验范围内**）。**再用无头 Chromium 实载改动页，确认无 `render-error`**；**Mermaid 图数**按「渲染与发布」一节的 CDP + `__ensureMermaid()` 方式核对，应等于 `data-expected-mermaid`；**Markdown 配图**看 `check_render.mjs` 的 `images`/`brokenImages`（`images` 与「围栏外 `![...]` 数 + 正文有 `src` 的原始 `<img>` 数」对照；`brokenImages` 必须为 0）。`github_render_check` 只验围栏，不验语法；延迟加载下 `--dump-dom` 数不到 Mermaid 图；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；表格单元格内用 `**…**` 强调中文时，确认加粗内侧边界没紧贴标点/`&nbsp;`（`**连续：**用户` 会输出字面 `**`，改为 `**连续**：用户`）、渲染后无字面 `**`（`check_render.mjs` 的 `literalStars` 会报）；新增列/宽表后目检 PDF，列数多到过窄时缩短单元格或拆表，保持列序与篇目不丢；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
+**H. 机械检查与交付**：`doc_lint.py` 零错误；有公式/Mermaid 时 `github_render_check.py` 通过（显示公式块数与图块数和 GitHub 渲染数一致、无 `language-*` 残留；行内公式差异只提示）；`python3 site/build.py --out _site` 成功（README 双向映射、图片/链接存在性、公式/Mermaid 围栏计数已记录供渲染检查对照；**图片语法 `![...]` 不在它的校验范围内**）。**再用无头 Chromium 实载改动页，确认无 `render-error`**；**显示/行内公式与 Mermaid 图数**按「渲染与发布」一节的 CDP + `__ensureMermaid()` 方式核对，应分别等于 `data-expected-math`/`data-expected-inline-math`/`data-expected-mermaid`，且 `mathErrors` 为 0；**Markdown 配图**看 `check_render.mjs` 的 `images`/`brokenImages`（`images` 与「围栏外 `![...]` 数 + 正文有 `src` 的原始 `<img>` 数」对照；`brokenImages` 必须为 0）。`github_render_check` 只验围栏，不验语法；延迟加载下 `--dump-dom` 数不到 Mermaid 图；若生成 PDF，`render_pdf.mjs` 校验通过且目检高图完整；脚本只做机械项，Mermaid 语义、锚点与链接语义仍需人工或渲染核对；表格单元格内用 `**…**` 强调中文时，确认加粗内侧边界没紧贴标点/`&nbsp;`（`**连续：**用户` 会输出字面 `**`，改为 `**连续**：用户`）、渲染后无字面 `**`（`check_render.mjs` 的 `literalStars` 会报）；新增列/宽表后目检 PDF，列数多到过窄时缩短单元格或拆表，保持列序与篇目不丢；README 边界未越；核对说明与实际做过的核对相符；临时文件已清理；未提交。
 
 ## 修复规则
 
@@ -182,7 +182,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 7. **跨表列序不一致**：概念对照/坐标系与正文章节顺序不同，读者对列错位；新增一篇时列序必须同步。
 8. **README 越界**：顺手改了表格、分组或其他行；默认只允许用户明确要求的一行链接。
 9. **二手材料当原文**：只读笔记不读原文就写机制；笔记的推断被当成论文结论。
-10. **公式渲染**：行内 `$…$`、单行 `$$…$$` 或列表项内的 `$$` 在 GitHub 上不可靠；新文档统一用 `math` 围栏（三反引号 + math，列表内也有效），并用 `github_render_check.py` 验证。
+10. **公式渲染**：短行内公式用 `$…$`（站点 MathJax 渲染，GitHub 源码可能显示原文）；独立公式统一用 `math` 围栏（三反引号 + math，列表内也有效），并用 `github_render_check.py` 验证。
 11. **PDF 高图 / Pages**：Mermaid 图超过一页高时会被跨页裁断；阅读页打印样式已限高 250mm，仍要目检高图完整。Pages 未启用时 workflow 应跳过部署而不是每次 push 红叉；分支部署已退役，完整站点必须用 Actions。
 12. **同版本 PDF 被重发布**：同一 arXiv vN 的 PDF 可能被替换/重编译；hash 与笔记记录不同先逐页比文本与图，别把旧副本的图缺陷当成当前版问题。
 13. **CJK 表格加粗**：失败条件是加粗内侧边界紧贴标点或 `&nbsp;`（如 `**连续：**用户` 会输出字面 `**`），不是闭合后接汉字；`**加粗**中文` 正常。把标点移到加粗外侧（`**连续**：用户`），渲染后确认没有字面 `**`。
@@ -236,22 +236,22 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
 - 旧 `docs/index.html`、`docs/assets/reader.css`、`docs/.nojekyll` 已删除；旧 `?doc=rsi-methods.md` 由首页 JS 重定向到 `/docs/rsi-methods/`，根级 `_site/rsi-methods.pdf` 保留旧 PDF 链接兼容别名。
 - `_site/assets/vendor/*`（源 `site/vendor/`）的 URL 带 `?v=<vendorVersion>`（按 vendor 文件的相对路径 + 内容哈希），与 `site.css`/`site.js` 的 `assetVersion` 分开：改站点样式不会再让 2.7 MB 的 Mermaid 缓存失效。
 - 打印 CSS 把 Mermaid 限高 250mm；高图等比缩放避免跨页裁断，宽幅 LR 图在 A4 上会偏小，必要时改成 TD/拆图。
-- **构建成功 ≠ 页面能渲染**：`build.py` 只统计并注入围栏计数（不比对，也不检查语法）；Mermaid 语法错误会让阅读页整页显示「正文渲染失败」。每次构建后实际打开至少一个改动页：
+- **构建成功 ≠ 页面能渲染**：`build.py` 只统计并注入显示/行内公式与 Mermaid 围栏计数（不比对，也不检查语法）；Mermaid 语法错误会让阅读页整页显示「正文渲染失败」。每次构建后实际打开至少一个改动页：
   ```bash
   CHROME=$(ls -d ~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome | sort -V | tail -1)
   "$CHROME" --headless=new --no-sandbox --disable-gpu --virtual-time-budget=20000 \
     --dump-dom "http://127.0.0.1:8000/<route>/" > /tmp/dom.html
   ! grep -q 'class="[^"]*render-error' /tmp/dom.html   # 无匹配才算通过
   ```
-  再核对 TOC 条目数非零（含表格的文档再核对表格数）；**Mermaid 图数**用 `check_render.mjs` 核对：`node <skill 目录>/scripts/check_render.mjs --page docs/<slug>/index.html`（真实时间加载、等 `__renderDone`、调 `__ensureMermaid()` 后数 `.mermaid svg`，应等于 `data-expected-mermaid`；`--dump-dom` 对 Mermaid 图数不够，但仍可查 `render-error`、TOC 与表格）；**Markdown 配图**看 `images`/`brokenImages`：`images` 与「围栏外 `![...]` 数 + 正文有 `src` 的原始 `<img>` 数」对照，`brokenImages` 必须为 0。`render_pdf.mjs` 内部也会检查 `.render-error`、**Mermaid 图数**与打印溢出（不检查 Markdown 配图），失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），所以 **Mermaid 图数**按上面的 `check_render.mjs` 方式核对；生成 PDF 时 `render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 可能让 `Date.now()` 不前进，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，正常浏览器下通常不会出现（Mermaid 逐张渲染，真实时间精度足够）（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
+  再核对 TOC 条目数非零（含表格的文档再核对表格数）；**公式与 Mermaid 图数**用 `check_render.mjs` 核对：`node <skill 目录>/scripts/check_render.mjs --page docs/<slug>/index.html`（真实时间加载、等 `__renderDone`、调 `__ensureMermaid()` 后数 `.mermaid svg`；同时看 `mathInline`/`mathInlineExpected`、`mathErrors`，应分别等于 `data-expected-inline-math` 且错误为 0；`--dump-dom` 对 Mermaid 图数不够，但仍可查 `render-error`、TOC 与表格）；**Markdown 配图**看 `images`/`brokenImages`：`images` 与「围栏外 `![...]` 数 + 正文有 `src` 的原始 `<img>` 数」对照，`brokenImages` 必须为 0。`render_pdf.mjs` 内部也会检查 `.render-error`、显示/行内公式计数与公式错误、**Mermaid 图数**与打印溢出（不检查 Markdown 配图），失败时不写出 PDF。**Mermaid 较多的汇总页要单独跑**（不要与后台下载/其他渲染并行），外层留 ≥180 秒；预算从 20000 起，未完成再上调（空闲时 7 张图约 2–3 秒）。没有 Playwright 缓存时用 `PLAYWRIGHT_MODULE` 或系统 Chromium，仍要做这一步。**阅读页对 Mermaid 延迟加载**：首图距视口超过 2.5 屏时 `__renderDone` 为真但图还没渲染（占位「图表加载中…」），所以 **Mermaid 图数**按上面的 `check_render.mjs` 方式核对；生成 PDF 时 `render_pdf.mjs` 已在打印前代为调用。`--virtual-time-budget` 可能让 `Date.now()` 不前进，Mermaid 用它生成图表 id，多图页可能拿到相同 id、后续图渲染成空——这是虚拟时钟的假象，正常浏览器下通常不会出现（Mermaid 逐张渲染，真实时间精度足够）（实测同一页用 CDP 真实时间复查两图都正常），不要据此改图。
 
 ### GitHub 原生渲染检查（笔记和汇总都适用）
 
-- 公式/Mermaid 一律用围栏（`math` / `mermaid`）；不用行内 `$…$`、单行 `$$…$$` 或列表项内的 `$$`。
+- 公式/Mermaid 一律用围栏（`math` / `mermaid`）；短行内公式用 `$…$`（站点 MathJax 渲染）；不写单行 `$$…$$` 或列表项内的 `$$`。
 - 机械检查：
   - `python3 -I <skill 目录>/scripts/doc_lint.py <file.md>`
   - `python3 -I <skill 目录>/scripts/github_render_check.py <file.md>`
-- `github_render_check.py` 会 POST 到 GitHub Markdown API，要求源公式/图块数与 `<math-renderer>`/`highlight-source-mermaid` 数一致，且没有 `language-math`/`language-mermaid` 残留；需要联网，未认证限 60 次/小时，可设 `GITHUB_TOKEN`。它只验证 GitHub 是否识别围栏，**不验证 Mermaid 图语法**——图语法由站点/PDF 渲染或 mermaid 解析器另行检查。
+- `github_render_check.py` 会 POST 到 GitHub Markdown API：显示公式块数与图块数必须和 GitHub 渲染的 `js-display-math`/`highlight-source-mermaid` 一致，且没有 `language-math`/`language-mermaid` 残留；行内公式在斜体/图注等强调块里 GitHub 可能不解析，差异只提示、不影响退出码；需要联网，未认证限 60 次/小时，可设 `GITHUB_TOKEN`。它只验证 GitHub 是否识别围栏，**不验证 Mermaid 图语法**——图语法由站点/PDF 渲染或 mermaid 解析器另行检查。
 - 旧文档若仍有 `$$` 块，先按用户要求改写为 `math` 围栏；批量改写旧笔记需要用户明确要求。
 
 ### PDF
@@ -263,7 +263,7 @@ description: 生成或复核跨论文的「主题方法汇总」文档（落在�
     --site _site --page docs/rsi-methods/index.html --out docs/rsi-methods.pdf
   python3 site/build.py --out _site   # 把新 PDF 复制进 _site
   ```
-- 脚本服务 `_site`，强制浅色 + print media，等待 `window.__renderDone`，再调用 `window.__ensureMermaid()` 强制渲染延迟加载的图；检查 `.render-error`、公式/Mermaid 计数、`leftover`、打印溢出，失败**非零退出且不写 PDF**。多篇汇总时把 `docs/rsi-methods/...` 和 `docs/rsi-methods.pdf` 换成目标 slug 即可。
+- 脚本服务 `_site`，强制浅色 + print media，等待 `window.__renderDone`，再调用 `window.__ensureMermaid()` 强制渲染延迟加载的图；检查 `.render-error`、显示/行内公式计数与公式错误、Mermaid 计数、`leftover`、打印溢出，失败**非零退出且不写 PDF**。多篇汇总时把 `docs/rsi-methods/...` 和 `docs/rsi-methods.pdf` 换成目标 slug 即可。
 - **文字定稿后生成最终 PDF**；中间轮次若要目检高图/宽表可临时生成，不作为每次改动的必做项。用 pymupdf/`gs` 抽查页数、公式页和含图页，重点看高图完整、宽图可读。构建发现 PDF 比 Markdown/样式旧会警告，不失败；提交前必须重新生成到不再警告。
 - PDF 文件名必须与汇总 Markdown 同名；阅读页 PDF 按钮和根级别名都依赖这个约定。CI 不安装 Playwright，不生成 PDF。
 

@@ -4,7 +4,7 @@
 
 | 项 | 内容 |
 | --- | --- |
-| 标题 | Harness²: Recursive Agent Harnessing for an Open World（arXiv 元信息写作 `Harness^2`，正文首页排为 Harness²） |
+| 标题 | Harness²: Recursive Agent Harnessing for an Open World（arXiv 元信息写作 $Harness^{2}$，正文首页排为 Harness²） |
 | 作者 | Ruiyao Xu¹\*, Yanfei Chen², Zhongying CuiZhu², Bhavana Dalvi Mishra², Yifei Ming², Han Yu², Rujun Han², Chen-Yu Lee², Tomas Pfister²（¹ Northwestern University；² Google Cloud AI Research）。页底注：`*This work was done while Ruiyao interned at Google Cloud AI Research`；通讯作者 ruiyaoxu2028@u.northwestern.edu、{yanfeichen, cuizz, chenyulee}@google.com（均见 p1 页底） |
 | 机构 | 论文署名首位为 **Northwestern University**（9 位作者中 8 位属 Google Cloud AI Research）；清单按团队归属记 `Google Cloud AI Research`，见文末「机构判断」 |
 | 来源 | [arXiv:2610.14224v1](https://arxiv.org/abs/2610.14224v1)（cs.AI；交叉列表 cs.CL、cs.LG）。v1 提交于 2026-10-09 18:34 UTC，截至 2026-10-30 abs 页 submission history 只有 `[v1]`，为当前最新版 |
@@ -22,7 +22,7 @@
 
 - **已获取全文**：`https://arxiv.org/pdf/2610.14224v1` 下载两次（一次断点续传、一次整段重下），**两次字节一致**：8,101,889 B、37 页、sha256 `440be1f694f3b0fdfb8e612e9b2288ff0d8ab38641cfd1064fd77052ba360282`。注：abs 页显示的 "6,866 KB" 与实得 8,101,889 B 不符；两次独立下载同 sha，故以此 sha/页数为准，临时文件已清理。
 - **已渲染并逐格核对**：Table 1（p8）、Table 2（p9）、Table 3（p10）、Table 4（p19）、Table 5（p22）、Table 6（p23）、Table 7（p25）——250–300 dpi 渲染页逐格比对正文数字。笔记不复现原文的加粗/斜体强调，故不涉及字体级比对。
-- **公式**：式 (1)（p4）、(2)(3)（p6）、(4)（p7）在 300–350 dpi 局部渲染页逐符号核对（含 `H'`、`H*`、`E`、`R_t`、上下标与 ⋆ 记号）。
+- **公式**：式 (1)（p4）、(2)(3)（p6）、(4)（p7）在 300–350 dpi 局部渲染页逐符号核对（含 `H'`、`H*`、$E$、$R_{t}$、上下标与 ⋆ 记号）。
 - **看图核对**：Figure 5（p9，500 dpi 局部）、Figure 6（p10）、7（p11）、8（p11）、10（p23）、11、12（p24）、13（p25）、14（p26）在 250–300 dpi 渲染页过目，并与正文数值逐条对照。
 - **像素/矢量测量（两处）**：Figure 10 左 panel 的堆叠条按矢量矩形量取（p23，`get_drawings()` 的填充矩形，横轴 x=107.5→305.61 pt 对应 0–100%，见图内刻度）：LAB 复用 4.3%＋改写 17.9%＝22.2%；WB-office 6.7%＋15.6%＝22.2%；JobBench 10.5%＋36.1%＝46.5%——与 §E.2 正文「22% … 22% … 47%」一致；"复用（≥50% 行）"比例为 1.8%–10.5%，与正文「Only 2–10%」在四舍五入范围内一致。另 Figure 5 的 Best-of-k 灰柱同样按矢量矩形量取（定标：左 panel 刻度 72/75/78/81 ↔ y=606.55/591.05/575.55/560.05 pt，5.167 pt/分；右 panel 74/77/80/83 ↔ 607.95/593.15/578.35/563.55 pt，4.933 pt/分），读数与口径见「预算与计算量」一节。
 - **配图**：两张均取自 p3/p5 渲染页，裁剪框 `(45,70,560,258)` 与 `(22,68,565,239)`（pt，页面坐标系），300 dpi；成品 2147×784 与 2264×713 px（宽×高）。**元素清单逐项点名**——Figure 2：四个分组标题（Context construction / Middleware / Tool interface / Orchestration）、C1–C8 及其文件名与激活标签（every call ×4、on invoke、via bash、task tool）、Frozen model 𝓜、call/result 箭头、trajectory + deliverable；Figure 3：Task-Level Recursion、Harnessing-Level Recursion、Agent Executor（含 Initial Harness、Traj/Output）、Harness Editor（含 Invariant/Domain 两个候选）、Candidate Probes、Harness Composer、Combine & Finalize、Final Harness、Experience Reflector/Reflect、Improvement Harness/Update、Move to the next task、Task t。两道检查都做了：边缘 6 px 环非白像素 0；两次独立打开重渲染同区域**像素差最大值 0**。
@@ -64,14 +64,14 @@
 
 ### 设定与定义
 
-冻结模型 `M`，harness `H = (c_1, …, c_K)` 是 K 个可编辑组件，二者组合成 agent `A(·; M, H)`，不改权重（§2.1，p3）。执行 harness 沿用 AHE 的文件级分解并**增加一个组件**，共 K=8（见下）。任务是开放的流 `q_1, …, q_N`，**没有 ground-truth 标注或验证反馈**；每个任务都从公共的初始 harness `H_0` 出发，允许在预算内重跑当前任务（§2.1，p4）；"不回放已完成的任务"这一条写在 §5 与 Appendix A.1（p18）。
+冻结模型 $M$，harness $H = (c_{1}, \dots , c_{K})$ 是 K 个可编辑组件，二者组合成 agent $A(\cdot ; M, H)$，不改权重（§2.1，p3）。执行 harness 沿用 AHE 的文件级分解并**增加一个组件**，共 K=8（见下）。任务是开放的流 $q_{1}, \dots , q_{N}$，**没有 ground-truth 标注或验证反馈**；每个任务都从公共的初始 harness $H_{0}$ 出发，允许在预算内重跑当前任务（§2.1，p4）；"不回放已完成的任务"这一条写在 §5 与 Appendix A.1（p18）。
 
 论文给的核心定义（p4 的定义框）是两级耦合：
 
 - **任务级递归（task-level recursion）**：用生成的 harness 与执行证据改进**当前执行 harness**；
 - **harness 级递归（harnessing-level recursion）**：用被采纳的 harness 与改进过程经验更新**改进 harness**，让它指导后续的改进。
 
-改进 harness `R_t` 在任务级递归期间**保持不动**，任务结束后才通过"harness 改进库"更新（§2.1 末）。
+改进 harness $R_{t}$ 在任务级递归期间**保持不动**，任务结束后才通过"harness 改进库"更新（§2.1 末）。
 
 ![Figure 2：Harness² 的八个可编辑组件](assets/figure2-components.png)
 
@@ -85,29 +85,29 @@
 
 一个对比式改进步（contrastive improvement step）由三步组成（§2.2.1，p4–5）：
 
-1. **Propose**。先跑一次参考执行 `e_0 ~ A(q_t; M, H)`——它只说明"当前 harness 怎么行为"，**不说明交付物对不对**。然后基于任务、当前 harness、参考执行、历史与库里的条目提**两个**候选：
+1. **Propose**。先跑一次参考执行 $e_{0} ~ A(q_{t}; M, H)$——它只说明"当前 harness 怎么行为"，**不说明交付物对不对**。然后基于任务、当前 harness、参考执行、历史与库里的条目提**两个**候选：
    - *invariant* 候选：针对跨领域复现的 agent 能力缺陷（规划、工具使用、上下文管理、委派）；
    - *domain-specific* 候选：针对当前领域的知识、流程与约束。
    候选是**直接改文件的、可执行的 harness**，不是文字建议。
 2. **Probe**。两个候选在同一任务、同一模型与环境配置下各跑一次，与参考执行做**行为对比**：改动是缓解了目标缺陷、没变化，还是引入了回退。作者明确说，这些对比**不是**在验证任务正确性，执行随机性与模型共同偏差都会削弱证据强度。
-3. **Compose**。合成器读参考执行、候选及其 diff、全部任务内证据，**选择性**地合并站得住的改动、修正冲突、采纳某一个候选，或保留原 harness。每个决定都要绑到具体观察，而不是假定的分数增益。合成后执行得到 `e'`，决策与证据记进步记录 `ξ`。
+3. **Compose**。合成器读参考执行、候选及其 diff、全部任务内证据，**选择性**地合并站得住的改动、修正冲突、采纳某一个候选，或保留原 harness。每个决定都要绑到具体观察，而不是假定的分数增益。合成后执行得到 `e'`，决策与证据记进步记录 $\xi$。
 
 ### 并行与顺序递归
 
 两种形式（§2.2.2，p5–6，Figure 4）：
 
 - **并行递归**：先收 k 次参考执行，独立提 k 个 INV + k 个 DOM 候选并各探测一次；k 个**独立的合成会话**拿到同一个候选池，各自合成一个后继 harness 并执行。作者强调这是"一次种群更新"，**k 控制宽度而不是深度**。
-- **顺序递归**：`H^(0) = H_0`，链式做 k 个对比步，每步以上一步的 harness 与累计历史为条件，后面可以保留、修改或纠正前面的改动。
+- **顺序递归**：$H^{(0)} = H_{0}$，链式做 k 个对比步，每步以上一步的 harness 与累计历史为条件，后面可以保留、修改或纠正前面的改动。
 
-**终选**（Final Selection）：k>1 时由一个 agentic selector 对**匿名化**的交付物做比较，只能从已有输出里挑一个，不能改写、也看不到输出来自哪个 harness；被采纳的记作 `H*_t`，星号表示"被采纳"而非"被验证最优"。k=1 时两种递归都退化为基本对比步并跳过终选。
+**终选**（Final Selection）：k>1 时由一个 agentic selector 对**匿名化**的交付物做比较，只能从已有输出里挑一个，不能改写、也看不到输出来自哪个 harness；被采纳的记作 $H^{*}_{t}$，星号表示"被采纳"而非"被验证最优"。k=1 时两种递归都退化为基本对比步并跳过终选。
 
 ### harness 级递归：所谓"改进 harness"其实是一个库
 
 任务结束后（§2.3，p6–7）：
 
-1. **Reflect**：回看完整改进记录 `D_t`（参考执行、候选与探测、合成决策、被选结果），提炼"哪个改动解决了什么缺陷、在什么条件下、后果如何"的经验。**只有在执行对比支持时才保留经验**——仅仅"这个输出被选中"不足以说明改动可迁移。
-2. **Update**：把被采纳的 harness `H*_t` 与经验写进 harness 改进库，`R_{t+1} = Update(R_t, H*_t, D_t)`。每个条目 = **一份可执行的 harness + 一份 `EXPERIENCE.md`**（适用情境、经验、支撑证据），并有索引供后续会话按需查看。
-3. **Reuse**：下一个任务仍从 `H_0` 出发，但由更新后的 `R_{t+1}` 引导；旧组件通过 Propose **有选择地复用或改写**，不会被自动继承。
+1. **Reflect**：回看完整改进记录 $D_{t}$（参考执行、候选与探测、合成决策、被选结果），提炼"哪个改动解决了什么缺陷、在什么条件下、后果如何"的经验。**只有在执行对比支持时才保留经验**——仅仅"这个输出被选中"不足以说明改动可迁移。
+2. **Update**：把被采纳的 harness $H^{*}_{t}$ 与经验写进 harness 改进库，$R_{t+1} = \operatorname{Update}(R_{t}, H^{*}_{t}, D_{t})$。每个条目 = **一份可执行的 harness + 一份 `EXPERIENCE.md`**（适用情境、经验、支撑证据），并有索引供后续会话按需查看。
+3. **Reuse**：下一个任务仍从 $H_{0}$ 出发，但由更新后的 $R_{t+1}$ 引导；旧组件通过 Propose **有选择地复用或改写**，不会被自动继承。
 
 关键设计约束（p7 原文）："Model weights, stage instructions, and the decision rule remain fixed, while the library evolves."——**变的只有库**。
 
@@ -136,13 +136,13 @@ Table 5 的定义里有一句很值得记住的区分：**subagents 是唯一会
 (\mathcal{H}', e', \xi) = \Phi(q_t, \mathcal{H}, \mathcal{E}; \mathcal{R}_t)
 ```
 
-一步对比式改进：输入任务、当前执行 harness、任务内历史与改进 harness，输出后继 harness、它的执行记录、以及这一步的证据记录 `ξ`。模型与环境被省略，因为二者都不变。
+一步对比式改进：输入任务、当前执行 harness、任务内历史与改进 harness，输出后继 harness、它的执行记录、以及这一步的证据记录 $\xi$。模型与环境被省略，因为二者都不变。
 
 ```math
 \mathcal{H}'_j = \mathrm{Compose}_j(q_t, \mathcal{H}, \mathcal{B}, \mathcal{P}; \mathcal{R}_t), \quad j = 1, \dots, k
 ```
 
-并行递归：第 j 个合成会话在同一个参考执行集 `B` 与候选池 `P` 上独立合成；k 个会话互不可见。
+并行递归：第 j 个合成会话在同一个参考执行集 $B$ 与候选池 $P$ 上独立合成；k 个会话互不可见。
 
 ```math
 (\mathcal{H}^{(r)}, e^{(r)}, \xi^{(r)}) = \Phi\!\left(q_t, \mathcal{H}^{(r-1)}, \mathcal{E}^{(r-1)}; \mathcal{R}_t\right), \quad r = 1, \dots, k
@@ -156,7 +156,7 @@ Table 5 的定义里有一句很值得记住的区分：**subagents 是唯一会
 
 任务之间的更新：把"被采纳的 harness"和"这一轮的完整改进记录"写回改进 harness；`⋆` 只表示被采纳，不表示被验证最优。
 
-**读法**：这套形式化的重点是"每一次改动都附带证据记录 `ξ`/`D_t`"，把 RSI 的递推从"改结果"变成"改结果 + 留下过程记录"。它没有定义 loss，也没有定义什么叫"更好"；本笔记的判断是：整条链的判断质量最终由 improver 一侧的模型判断（editor / composer / selector / reflector，默认 Opus 4.8 一系）兜底，而不是由某个可优化的目标函数保证。
+**读法**：这套形式化的重点是"每一次改动都附带证据记录 $\xi$/$D_{t}$"，把 RSI 的递推从"改结果"变成"改结果 + 留下过程记录"。它没有定义 loss，也没有定义什么叫"更好"；本笔记的判断是：整条链的判断质量最终由 improver 一侧的模型判断（editor / composer / selector / reflector，默认 Opus 4.8 一系）兜底，而不是由某个可优化的目标函数保证。
 
 ## 实验与证据
 
@@ -301,7 +301,7 @@ flowchart LR
 2. **"restores base performance" 说得比数据弱**：§4（p11）写"k=1 攒的库把性能恢复到 base 水平"，但 Figure 7 左的对应值是 73.8/72.6/77.5，对 base（73.4/69.9/74.0）是**全面高于**，Web 与 Office 分别 +2.7/+3.5。同一段对"直接改（不做参考执行/探测、也不读库）"的掉分也只提了 Code/Web，而 Office 实际是从 74.0 升到 77.1。
 3. **同一个 base 数值在两处差 0.1**：Table 1（p8）里 GLM-5/OpenCode 的 Code 是 **58.4**，Figure 12（p24）的 WB-code 基线柱标 **58.5**。不影响结论，但说明两处数值来自不同的运行或聚合口径（具体原因原文未说明）。
 4. **"exceeds … in all four configurations" 的边际**：JobBench 上 36.0 对 35.8（见上），措辞强于证据。
-5. **Fig 14 第一格的口径**：正文说"一个 55 分的输出被选中，而另一个是 95 分"，图里写 `pool candidates score 95, 85, 85, 80 and 55` 且打分是 `96 → 55`；"40 points better" 指 95 与 55 之差，而 base 是 96——三处数字各自成立，但读者容易把 95 当成 base。
+5. **Fig 14 第一格的口径**：正文说"一个 55 分的输出被选中，而另一个是 95 分"，图里写 `pool candidates score 95, 85, 85, 80 and 55` 且打分是 $96 \to 55$；"40 points better" 指 95 与 55 之差，而 base 是 96——三处数字各自成立，但读者容易把 95 当成 base。
 
 ---
 
