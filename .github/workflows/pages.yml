@@ -30,12 +30,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     timeout-minutes: 10
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url || format('https://github.com/{0}', github.repository) }}
     runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.pages.outputs.enabled }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,6 +76,17 @@ jobs:
         with:
           path: _site
 
-      - if: steps.pages.outputs.enabled == 'true'
-        id: deployment
+  # 把部署放到独立 job：upload 与 deploy 在同一个 job 里连续执行时，
+  # deploy-pages 可能在产物元数据尚未可见时就查询，报 "Found 0 artifact(s)"。
+  # 分成两个 job 后，deploy 只在 build 完整结束后启动。
+  deploy:
+    needs: build
+    if: needs.build.outputs.enabled == 'true'
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url || format('https://github.com/{0}', github.repository) }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
         uses: actions/deploy-pages@v4
