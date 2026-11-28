@@ -7,14 +7,14 @@
 | 路径 | 职责 | 谁维护 |
 | --- | --- | --- |
 | `README.md` | 唯一索引：按机构分组，列为 `编号\|论文\|年份\|论文单位\|笔记地址` | 人选读与分组；agent 默认只回写单个单元格（例外见「修改边界」） |
-| `notes/` | 笔记产物（首次实际阅读时创建）：`notes/papers/<...>/note.md`、`notes/blogs/<...>/note.md` | read-paper-blog（生成）、check-paper-note（复核） |
+| `notes/` | 笔记产物（首次实际阅读时创建）：`notes/papers/<...>/note.md`、`notes/blogs/<...>/note.md`；同目录 `audit.md` 为复核档案（不参与站点构建） | read-paper-blog（生成）、check-paper-note（复核） |
 | `docs/` | 跨篇主题汇总 Markdown（如 `docs/rsi-methods.md`）及同名 PDF；阅读页与站点资源在 `site/`，不是逐篇笔记 | summarize-paper-methods（生成与复核） |
 | `site/` | 静态站点源码：`build.py`、`templates/`、`assets/`、`vendor/`；构建到 `_site/` | summarize-paper-methods / site build |
 | `_site/` | GitHub Pages 构建产物，`.gitignore` 忽略，不手改 | `python3 site/build.py` |
 | `papers/` | 非 arXiv 来源的原文归档，命名 `<5位编号>-<短标题>.pdf` | skill 归档新论文；改指 arXiv 时删除（见「PDF 策略」） |
 | `books/` | 书籍归档，独立编号（00001 起） | 人工 |
 
-阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行，跨篇方法汇总的生成与复核按 `skills/summarize-paper-methods/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。独立公式用 ```math 围栏；短行内公式用 `$…$`（站点 MathJax 渲染）；不写单行或列表内的 `$$`；货币符号放行内代码或写「美元」；汇总的静态站点、PDF 与 Pages 发布按 summarize-paper-methods 的〈渲染与发布〉执行，构建命令为 `python3 site/build.py --out _site`。
+阅读、精读、整理笔记一律按 `skills/read-paper-blog/SKILL.md` 执行，复核既有笔记按 `skills/check-paper-note/SKILL.md` 执行，跨篇方法汇总的生成与复核按 `skills/summarize-paper-methods/SKILL.md` 执行；产物路径与回写规则都以对应 SKILL.md 为准。**读者版 / 复核档案分离**：`note.md` 只放读者需要的内容（来源信息、核心结论、问题、核心想法、方法、主要结果、边界与局限），复核记录、版本 diff、原文自身的表述张力、核对凭据、工程实现细节写入同目录 `audit.md`；站点只构建 `note.md`。独立公式用 ```math 围栏；短行内公式用 `$…$`（站点 MathJax 渲染）；不写单行或列表内的 `$$`；货币符号放行内代码或写「美元」；汇总的静态站点、PDF 与 Pages 发布按 summarize-paper-methods 的〈渲染与发布〉执行，构建命令为 `python3 site/build.py --out _site`。
 
 ## 编号
 

@@ -5,256 +5,257 @@
 | 项 | 内容 |
 | --- | --- |
 | 标题 | RRSI: Regularized Recursive Self-Improvement of Agent Harnesses |
-| 作者 | Peng Xia¹²\*, Rujun Han¹, Zifeng Wang¹, Yanfei Chen¹, Yufan Zhuang¹, Yoonho Lee³, Chengsong Huang⁴, Han Yu¹, Zhongying CuiZhu¹, Yifei Ming¹, Huaxiu Yao², Burak Gokturk¹, Tomas Pfister¹, Chen-Yu Lee¹（¹ Google Cloud AI Research；² UNC-Chapel Hill；³ Stanford University；⁴ Washington University in St. Louis；\* 论文 p.1 页底脚注："This work was done while Peng was a Student Researcher at Google Cloud AI Research."，项目页同样标注） |
+| 作者 | Peng Xia¹,²\*, Rujun Han, Zifeng Wang, Yanfei Chen, Yufan Zhuang, Yoonho Lee³, Chengsong Huang⁴, Han Yu, Zhongying CuiZhu, Yifei Ming, Huaxiu Yao², Burak Gokturk, Tomas Pfister, Chen-Yu Lee（¹ Google Cloud AI Research；² UNC-Chapel Hill；³ Stanford；⁴ Washington University in St. Louis；\* p.1 脚注：Peng 在 Google Cloud AI Research 做 Student Researcher 期间完成） |
 | 机构 | Google Cloud AI Research（第一机构） |
-| 来源 | [arXiv:2609.24972v3](https://arxiv.org/abs/2609.24972v3)（cs.LG; cs.AI; cs.CL）；v1 2026-09-21 → **v3 2026-10-04**（本笔记基于 v3，为截至阅读时的最新版；论文未说明版本间改动） |
-| 代码 | <https://github.com/google-research/rrsi>（Apache-2.0，Python；阅读时 ★1284，创建 2026-09-16、最近推送 2026-09-23；仓库含 `rrsi.py` + `rrsi/` 包 + `domains/` + `tests/`） |
-| 项目页 | <https://regularized-rsi.com/>（含 round-by-round 的 Evolution Explorer：每个候选的提案、critic 判定、接受判定与 harness diff） |
+| 来源 | [arXiv:2609.24972v3](https://arxiv.org/abs/2609.24972v3)（cs.LG; cs.AI; cs.CL）；v1 2026-09-21 → v3 2026-10-04，本笔记基于 v3；仓库清单 00212 |
+| 代码 | <https://github.com/google-research/rrsi>（Apache-2.0）；项目页 <https://regularized-rsi.com/> 提供逐轮 Evolution Explorer |
 | 阅读日期 | 2026-10-07 |
-| 仓库编号 | 00212（清单行内标题/年份/单位已核对一致） |
-| 阅读范围 | v3 全文 27 页（PDF 页码），含正文 §1–6 + Limitations + 附录 A–F（评测细节、baseline、方法细节与伪代码、超参、可靠性分析、定性案例）。**已渲染页核对**：公式 (1)–(3)（p.3）、(4)（p.5）、(5)–(7)（p.6）、(8)（p.19）、Algorithm 1/2 与 (9)（p.20）、(10)–(14)（p.21）、(15)–(17)（p.22）；Table 1（p.8）、Table 2/3（p.9）、Table 4（p.10）、Table 5（p.23）、Table 6（p.24）、Table 7（p.25）、Table 8（p.26）、Table 9（p.27）逐格核对；Figure 1（p.2）、Figure 2（p.4）、Figure 3（p.8）、Figure 4（p.10）看图核对。**未做像素测量**：Figure 4(a) 是散点图、数据点只标方法名（无数值标签），本笔记只引用正文/表格给出的数值（2.42M / 3.82M / 1.56M），未从图中读数 |
-| 配图 | `assets/` 下 2 张（Figure 1、Figure 2），自 v3 PDF 渲染页裁剪（220 dpi）：**裁剪框先校验在图像内，成品逐张回看确认无黑边/越界/截断，并与第二次独立渲染的同区域做像素差比对（差异为空集）**。arXiv 版许可为 [arXiv.org perpetual, non-exclusive license 1.0](http://arxiv.org/licenses/nonexclusive-distrib/1.0/)，**不是 CC 协议**，引用请注明出处 |
-| 归档说明 | arXiv 来源，按仓库策略不归档 PDF；清单编号 00212（编号单元格当前指向 arXiv 官方页，归档到上游后再改指 PDF） |
-| 复核记录 | 2026-10-07 依 check-paper-note 复核（基准：重取 arXiv v3，968,169 B / 27 页，与本笔记所用版本一致；独立子 agent 审计）。手段：Table 1–9 与公式 (1)–(17) 全部在渲染页逐格/逐符号核对；两张配图与原文同页同区域**像素差为空集**；原有三条"原文张力"用多组关键词在 PDF+HTML 全文独立复检；元数据（14 位作者顺序、四机构上标、版本 v1→v3、许可、仓库 API 值）逐项核对。本轮修正：①§4.2 的「RRSI consistently outperforms…」归属由"Table 1 题注"改回 §4.2 正文断言，并列 held-out 由"其余四项"改为"其余三项"；②Dwork et al. 2015 的引用位置由"§2 末"改为 §3.2/§3.3（§2 末只提出问题、未带引用）；③Figure 1 的 (b–d) 补上被漏掉的 **prior 平均柱**（82.3/39.4/17.9），并把"唯一给出 baseline 与留出的领域"限定为"逐方法对照"；④核心结论的 OOD 最大值由摘要的 +4.3 改为可复算的 **+4.7（JobBench）**；⑤Figure 1 配图**重裁**——首版底边切到题注首行（违反"无截断"），上收 39 px 后重验（像素差一致、坐标轴标签完整）；⑥阅读范围补 (8)（p.19）、(15)–(17)（p.22）与 Figure 2（p.4），并把 Algorithm 1/2 的页码写准；⑦补 OOD 判分口径（GDPval 胜率/三模型评审团、JobBench 双 judge 均分、APEX 固定 480 分母、Frontier-Eng 38/47 计分）与"同窗口同 judge"的公平性声明；⑧"三种失效→对应正则"表标注右列为笔记归纳；⑨新增张力第 5 条（§D.3 称 $w_{s}, w_{c}, w_{n}$ 在 Table 5，但该表没有这三行） |
 
 ---
 
 ## 核心结论
 
-一句话：**这篇论文把"用 agent 自己跑出来的反馈反复改 harness"这套 RSI 循环的失败模式诊断清楚了——不是搜得不够，而是搜的东西**（有限 evolve set 被反复自适应复用）**会过拟合**——然后用四项来自经典正则化的约束去限制**搜索轨迹**（而非限制编辑空间），在 8 个 benchmark / 3 个领域上换来"evolve 集涨得最少、但留出集涨得最多、token 还更省"的结果。
+一句话：**RRSI 把「用 agent 自己跑出的反馈反复改 harness」这类 RSI 的失败诊断成过拟合——不是搜得不够，而是有限 evolve set 被反复自适应复用——然后用四项来自经典正则化的约束去限制搜索轨迹（而非编辑空间），换来「evolve 涨得最少、留出涨得最多、token 还更省」。**
 
-三条主张（作者）：
-
-1. **问题**：harness 演进（prompts / 控制流 / 工具接口 / 记忆与上下文管理围绕冻结模型的自动改写，见 §2）本质是**在有限 evolve set 上的自适应经验优化**；候选的提出依赖前几轮在同一批任务上的测量，于是会通过三种耦合行为过拟合——**benchmark-specific fitting（写进评测语境的偏方）、noise chasing（追逐评测噪声的赢家）、complexity accumulation（堆复杂度）**（§1）。
-2. **方法**：不限制"能改什么"（$\Omega(H)$ 保持开放，9 类组件都可增删改），只在**提议**与**选择**两侧给搜索轨迹加正则（§3）：提议侧对应 $L_{0}$ / 稀疏更新，选择侧对应 $L_{1}$ 剪枝与 $L_{2}$ 收缩——作者反复强调这是**功能类比**，不是在优化带范数惩罚的目标（§3.1、附录 D 开头）。
-3. **结果**：evolve 集最多 +6.0 分（Terminal-Bench 2.1），**六个留出 split 无一退步**、OOD 最多 **+4.7 分**（JobBench；摘要写的是 +4.3，见下"原文表述张力"）；且是**所有演化臂里最省 token 的**（2.42M vs 无约束演化的 3.80M，即 ≈−36%）。作者的解释是正则化让"留下的改动"从"拟合评测"转向"可复用机制"。
-
-**适合谁看**：在做 agent harness / 自进化 agent、需要一个**可迁移的筛选器**（而不是更强的 proposer）的人；这篇的贡献几乎全部在"接受与拒绝的准则"上，与"用什么模型当 proposer"正交。
-
-![](assets/figure1-overfitting-evidence.png)
-
-*图 1（原文 Figure 1，p.2）：左 (a) 横轴是 evolve 集上的相对涨分、纵轴是 OOD 留出上的相对涨分（agentic workspace 实例，每个方法一个点；粉色区标注 "gain does not transfer"，灰虚线是 1:1 迁移线）——按图注"prior 方法留不下多少 evolve 涨分，其中几个还落在 $H_{0}$ 之下"，RRSI 是唯一在分布外继续放大的点。右 (b–d) 是三个领域的留出分，每个面板三根柱：$H_{0}$ / **四个 baseline 的平均**（82.3 / 39.4 / 17.9）/ RRSI（83.8 / 43.6 / 22.0，均为打印标签）。裁剪自 v3 PDF，许可见来源信息。*
+- **问题**：harness 演进本质是在有限 evolve set 上的自适应经验优化；候选的提出依赖前几轮在同一批任务上的测量，于是会以三种耦合方式过拟合——benchmark-specific fitting、noise chasing、complexity accumulation。
+- **核心想法**：不限制「能改什么」（9 类组件全部开放），只在提议与选择两侧加约束：退火编辑预算对应 $L_0$、结构剪枝对应 Lasso/$L_1$、成本准入对应 Ridge/$L_2$，另有噪声地板与泄漏筛查；这是功能类比，不是带范数惩罚的目标函数。
+- **怎么做到**：一轮 = 分析失败反馈 → 按预算起草 $m=2$ 个候选 → 评测前读 diff 筛查泄漏 → 在完整 evolve set 上评估 → 四项非补偿门槛 → 在可准入者中取分最高者。
+- **关键结果**：Terminal-Bench 2.1 evolve 分 +6.0；六个留出 split 无一退步，OOD 最多 +4.7（JobBench）；是最省的演化臂（2.42M vs 无约束演化的 3.80M policy tokens/trial，约 −36%）。
+- **定位**：贡献几乎全在「接受与拒绝的准则」，与「用什么模型当 proposer」正交；适合需要一个可迁移筛选器的人。
 
 ---
 
-## 问题与动机
+## 问题
 
-### 已有做法与本篇的前提
+「不改权重、只改 harness」是一条被寄望的 RSI 路线：prompts、控制流、工具接口、记忆与上下文管理围绕冻结模型自动改写（§1、§2）。harness 决定 agent 能做什么，所以这条路线理论上能在没有新权重的情况下持续涨分。
 
-- **harness 决定 agent 能做什么**：论文引用的都是"harness 工程而非新权重"这一叙事（§1、§5），并明确把 harness 演进定位为**agent 系统层面的 RSI**——"用当前系统的反馈改进塑造其后续行为的 harness"。
-- **已有方法的共同结构**（§2，式 2）：第 $t$ 轮把当前 harness $H_{t}$ 在 evolve set 上跑出轨迹 → 汇总成反馈 $F_{t}$ → proposer 生成候选 → **在同一批 evolve set 上评估** → 取分最高的当下一轮 incumbent。
-- **关键风险**：这套循环对 $D_{\mathrm{evolve}}$ 的复用是**自适应的**（第 t 轮的候选取决于前几轮在同一批任务上的测量），论文把它类比为"在极其表达力强的搜索空间上做自适应经验优化"——**反复拿同一份留出数据做选择，测量本身会失真**（§2 末提出该问题但未带引用；Dwork et al. 2015 的自适应数据分析结论只在 §3.2 的信用分配与 §3.3 的稳定性接受两处被引）。
-- 论文给的**证据**（Figure 1a、Table 1）：Meta-Harness 在 Harvey LAB 的 evolve 集上 93.0（比 RRSI 的 90.5 高），但 OOD 平均只有 40.6；AHE 与 TTHE 的 OOD 平均甚至**低于未演化的 $H_{0}$**（39.2 / 38.0 vs 39.7）。
+已有方法的共同循环（§2）只有四步：第 $t$ 轮把当前 harness $H_t$ 在 evolve set 上跑出轨迹、汇总失败反馈 $\mathcal{F}_t$ → proposer 生成候选 → **在同一批 evolve set 上评估** → 取分最高者当下一轮 incumbent。
 
-### 三种失效行为（作者的诊断，§1）
+问题出在最后两步。候选的提出条件于前几轮在同一批任务上的测量，所以这是一个**在有限 evolve set 上的自适应经验优化**：同一份数据既参与提议又参与选择，测量本身会被选择行为污染。论文把它类比为「在极强表达力的搜索空间上反复用同一份留出数据做选择」。
 
-失效名称与表现为作者原文；**右列的"对应正则"是笔记的归纳**（论文没有给出这张对应表——例如"编辑预算 ↔ benchmark-specific fitting"就是本文的读法，不是原话）。
+这种复用表现为三种耦合的失效行为（§1）：
 
 | 失效 | 表现 | 对应正则（笔记归纳） |
 | --- | --- | --- |
-| benchmark-specific fitting | 把评测集特有内容（任务名、实体名、任务的评分体系）写进 harness | 泄漏筛查（选择侧）+ 编辑预算（提议侧） |
-| noise chasing | 在有限样本的测量噪声里挑"赢家"，把随机波动固化成永久状态 | 噪声地板 $\delta$（选择侧） |
-| complexity accumulation | 堆上下文与推理成本换 evolve 分 | 成本准入 $\Delta C \le \beta_{0} + \beta_{1}\cdot \Delta S$ + 结构剪枝（选择侧） |
+| benchmark-specific fitting | 把评测集特有内容（任务名、实体名、评分体系）写进 harness | 泄漏筛查 + 编辑预算 |
+| noise chasing | 在有限样本的噪声里挑赢家，把随机波动固化成永久状态 | 噪声地板 $\delta$ |
+| complexity accumulation | 堆上下文与推理成本换 evolve 分 | 成本准入 + 结构剪枝 |
+
+右列不是原文表格，是笔记按 §3 机制归纳的对应关系。
+
+论文的证据是：Meta-Harness 在 Harvey LAB 的 evolve 集上 93.0（高于 RRSI 的 90.5），但 OOD 平均只有 40.6；AHE 与 TTHE 的 OOD 平均甚至低于未演化的 $H_0$（39.2 / 38.0 vs 39.7）。**evolve 分与留出分可以脱钩，而且脱钩方向与「谁更会搜」无关。**
+
+本文的设定有三条前提：策略模型全程冻结；每个领域只在一个 suite 上演化，再原样跑到留出集；「能改什么」不设限——9 类组件都可增删改，$\Omega(H)$ 保持开放。要正则化的是**搜索轨迹**，不是编辑空间。
 
 ---
 
-## 方法与贡献
+## 核心想法
 
-### 总体形状
+### 一句话
 
-把一轮演进写成（附录 D.1，式 8）：
+不是搜得不够，而是搜的东西会过拟合；所以不动「能改什么」，只动「怎么提议、怎么接受」。
+
+### 直觉
+
+harness 演进每一轮都在用同一小批任务做两件事：告诉 proposer 哪里失败、告诉选择器哪个候选更好。轮次一多，这两件事互相喂：上一轮在评测集上有效的偏方被写进 harness，下一轮的测量又在这个偏方上继续做，偏方于是被反复确认。
+
+于是「evolve 分涨」可以来自三种与可迁移性无关的东西：记住了评测集的语境、追到了噪声里的赢家、用更多上下文与推理步骤硬换分。三种都不需要模型变强。
+
+### 为什么这套约束能成立
+
+四项选择侧门槛是**非补偿性**的：每项都必须过，不能被另一项的高分补回来。
+
+- 泄漏筛查在**评估之前**读 diff，把「写进评测语境」的候选直接挡掉，于是它拿不到虚高的 evolve 分，也不会污染后续的信用分配。
+- 噪声地板要求候选不显著低于历史最佳（Eq 5），把「这次多对了几条」的随机波动挡在门外。
+- 成本准入只在涨幅超过噪声带时要求「多涨一分允许多花多少」（Eq 6–7），把复杂度累积变成有价格的行为。
+- 结构剪枝把最近若干轮都没有正增益的组件列为删除目标（Eq 11、14），防止只加不减。
+
+提议侧的退火预算（Eq 4）解决另一个问题：一轮捆了五个改动，涨分也不知道是谁的功劳。把预算从 4 退到 1，后期每次接受都是单一可归因的编辑；台账（Eq 10）再把被否掉的机制留作负证据。停滞时把槽位让给从未被编辑过的组件（Eq 13），是对「只在已验证方向上深化」的对冲。
+
+### 与已有做法的区别
+
+Meta-Harness、AHE、TTHE、HarnessX 主要在**加能力**：更强的提案策略、更细的反馈、更结构化的 harness 表示。RRSI 不加能力，只在候选进入 incumbent 之前加一道筛子；它与「用什么模型当 proposer」正交。
+
+与经典正则化的关系是**功能类比**，不是数学等价：$L_0$ 对应「一次更新的活跃编辑数有上限」，$L_1$ 对应「删掉离散组件」，$L_2$ 对应「抑制整体资源足迹」。作者在 §3.1 与附录 D 开头都强调这一点——这里没有带范数惩罚的目标函数。
+
+### 一个走通的例子
+
+agentic workspace 的 20 轮里共评估 32 个候选，只接受 4 处编辑，全部接在基础 harness 已有的「最终提交前回弹」上：一次覆盖度与深度复查，三个标准库探针（把交付物读回来，指出缺什么，例如未展开的算术简写、某个产出文件里缺失的源值）。
+
+这四个编辑能迁移，是因为探针报告的是**文件的结构性事实**，既不带 rubric 词汇也不带领域词汇；换到 JobBench / GDPval / APEX-Agents 仍然触发。作为对照，Meta-Harness 的 730 词工作法复述了 evolve suite 的评分体系（「交付物按逐条 rubric 打分、只读文件」），TTHE 的 8,500 词协议块里约 1,000 词只在 redline / markup / tracked-changes 这类体裁下触发——前者拟合评分器，后者拟合体裁。
+
+### 代价
+
+- **evolve 分涨得慢**：20 轮只接受 4 处编辑，Harvey LAB 上只涨 1.1，四个 baseline 涨 1.3–3.6。卖点不是更快涨分。
+- **门槛依赖可信的测量**：噪声带 $\delta$ 由未改动 $H_0$ 的重复评测估计，任务量小或 judge 方差大时估计不稳。
+- **需要读 diff 的 critic**：泄漏筛查读的是候选的实际 diff、不是提案说明，要求 critic 能判断「声明的组件是不是 diff 实际改的」。
+- **省 token 部分是设计结果**：成本门槛直接拒绝贵的候选，「更省」与「不接受某些涨分」是同一件事的两面。
+
+---
+
+## 方法
+
+### 符号表
+
+| 符号 | 含义 | 取值 / 维度 |
+| --- | --- | --- |
+| $t$, $T$ | 演化轮次下标、总轮数 | $T=20$（coding / agentic）、40（engineering） |
+| $H_t$ | 第 $t$ 轮的 incumbent harness；$H_0$ 为未演化的基础 harness | 当前被演化的 harness |
+| $H'$ | 候选 harness | $H'\in\Omega(H_t)$ |
+| $\Omega(H_t)$ | 从 $H_t$ 出发可到达的 harness 空间 | 9 类组件可增删改 |
+| $\mathcal{H}_t$ | 本轮提议出的候选集合 | $\lvert\mathcal{H}_t\rvert=m=2$ |
+| $P_{\mathrm{reg}}$ | 受正则约束的提议分布 | 原文 Eq (8) |
+| $\mathcal{F}_t$ | evolve set 上的跨轮失败反馈 | 由 analyst 汇总 |
+| $\mathcal{L}_t$ | 编辑台账 | 七元组：轮次、组件、假设、diff、分数变化、成本变化、是否当轮赢家 |
+| $b_t$ | 一轮可独立归因的编辑数上限 | $b_{\min}=1$，$b_{\max}=3$ 或 4 |
+| $z_t$, $E_t$ | 编辑选择向量、该轮候选编辑池 | $z_t\in\{0,1\}^{\lvert E_t\rvert}$，非零项数 $\le b_t$；$E_t$ 原文未定义；按上下文理解为候选编辑池 |
+| $\mathcal{E}_t$ | 结构化探索的探索指令 | 停滞时启用 |
+| $\mathcal{B}_t$ | 结构剪枝的删除目标组件集合 | 原文 Eq (14) |
+| $\mathcal{A}_t$ | 可准入候选集合 | 四项门槛全过者；为空则原地不动 |
+| $\hat{S}(H')$ | 候选在 evolve set 上的实测分数 | 每任务 $k$ 次 trial |
+| $S^{\star}$ | 历史最佳分 | 只升不降 |
+| $\delta$ | 经验噪声带 | 0.017 / 0.004 / 0.020（三领域） |
+| $\Delta S$, $\Delta C$ | 分数变化、每 trial 策略 token 的相对变化 | 原文未给显式定义；按上下文理解为相对 incumbent 的变化 |
+| $\beta_0$, $\beta_1$ | 零增益时的成本容忍度、每分增益允许的成本斜率 | 0.10 / 44.5 等 |
+| $w_s$, $w_c$, $w_n$ | 带内规则的分数、成本、新颖性权重 | 原文未给数值 |
+| $\nu_t(H')$ | 候选触碰的「从未出现在获胜编辑里」的结构组件计数 | 原文 Eq (15)、(16) |
+| $K$ | 可编辑组件词表 | 9 类，原文 Eq (12) |
+| $\mathcal{T}_t$, $U_t$ | 已被测量编辑过的组件集合、从未被测量编辑过的组件集合 | $U_t=K\setminus\mathcal{T}_t$ |
+| $m$, $m_{\mathrm{draft}}$ | 每轮候选数、其中留给探索的槽位 | 2 / 1 |
+| $w$, $\sigma_t$ | 停滞检测窗口、停滞标志 | $w=3$；$\sigma_t\in\{0,1\}$ |
+| $g_t(\ell)$, $n_{\mathrm{prune}}$ | 组件 $\ell$（组件下标）在最近 $n_{\mathrm{prune}}$ 轮内的最大 $\Delta S$、剪枝窗口 | 4 或 5 |
+| $k$, $a_i$ | 每任务每次评测的 trial 数、第 $i$ 个候选的接受判定 | 2 或 4；$a_i$ 原文未定义，按上下文理解为接受/拒绝判定 |
+
+### 一轮的数据流
+
+按 Algorithm 1/2 与 §4.1 整理（步骤编号是本笔记的重排）：
+
+1. **分析**：Opus 4.8 analyst 在 evolve set 上跑当前 $H_t$，汇总跨轮失败反馈 $\mathcal{F}_t$；
+2. **拟题**：算退火预算 $b_t$（Eq 4）、停滞标志 $\sigma_t$、未探索组件 $U_t$、剪枝目标 $\mathcal{B}_t$，proposer 从约 80 条编辑的池子里起草 $m=2$ 个候选；
+3. **筛**（评测前）：critic 读候选 diff，拒绝含 evolve-suite 特有逻辑或「惰性机械」的候选；
+4. **评**：通过筛查的候选在完整 evolve set 上并行评估 $k$ 次 trial，得到 $\hat{S}(H')$ 与成本；
+5. **准入门**：噪声地板（Eq 5）→ 分支判据（超出噪声带用 Eq 6–7，带内用 Eq 17）→ 领域守卫；
+6. **选择**：可准入者中取分最高者为 $H_{t+1}$，否则保留 $H_t$；更新 $S^{\star}$，把每个编辑连同 $a_i$ 记入台账。
+
+![Figure 2：RRSI 的提议侧与选择侧正则](assets/figure2-rrsi-overview.png)
+
+*图 2（原文 Figure 2，p.4）：A/B/C 为提议侧（退火预算、证据化信用分配、结构化探索），D/E/F/G 为选择侧（泄漏筛查、噪声地板、成本准入、结构剪枝）。*
+
+### 提议侧：受正则约束的提议分布
+
+原文 Eq (8) 把一轮演进写成：
 
 ```math
-\mathcal{H}_t \sim P_{\mathrm{reg}}(\cdot \mid H_t, \mathcal{F}_t, \mathcal{L}_t, b_t, \mathcal{E}_t, \mathcal{B}_t) \subseteq \Omega(H_t), \qquad H_{t+1} = \operatorname*{arg\,max}_{H' \in \mathcal{H}_t \cap \mathcal{A}_t} \hat{S}(H'),
+\mathcal{H}_t \sim P_{\mathrm{reg}}(\cdot \mid H_t, \mathcal{F}_t, \mathcal{L}_t, b_t, \mathcal{E}_t, \mathcal{B}_t) \subseteq \Omega(H_t), \qquad
+H_{t+1} = \operatorname*{arg\,max}_{H' \in \mathcal{H}_t \cap \mathcal{A}_t} \hat{S}(H'),
 ```
 
-即：提议分布 $P_{\mathrm{reg}}$ 受**编辑历史 $L_{t}$、退火预算 $b_t$、探索指令 $E_{t}$、剪枝目标 $B_{t}$** 约束；只有**可准入集合 $A_{t}$** 里的候选才能替换 incumbent；若 $A_{t} = \varnothing$ 则原地不动。
+逐项读法：$P_{\mathrm{reg}}$ 不是新目标函数，而是「在给定反馈、台账、编辑预算、探索指令、剪枝目标时的提议分布」，其中 $\mathcal{F}_t,\mathcal{L}_t$ 支撑证据化信用分配（B），$b_t$ 是退火预算（A），$\mathcal{E}_t$ 是结构化探索指令（C），$\mathcal{B}_t$ 是剪枝目标（G）；$\mathcal{H}_t\subseteq\Omega(H_t)$ 说明候选仍在开放编辑空间里，正则只改提议的偏好；第二式表示只有同时属于候选集与可准入集的 $H'$ 才能成为下一轮 incumbent，若 $\mathcal{A}_t=\varnothing$ 则原地不动。
 
-![](assets/figure2-rrsi-overview.png)
-
-*图 2（原文 Figure 2，p.4）：左侧 A/B/C 是提议侧正则（退火预算、证据化信用分配、结构化探索），右侧 D/E/F/G 是选择侧正则（泄漏筛查、噪声地板、成本准入、结构剪枝）。裁剪自 v3 PDF，许可见来源信息。*
-
-### 提议侧（§3.2，Algorithm 1）
-
-**A. $L_{0}$ 式退火编辑预算**（式 4）：一轮里可独立归因的编辑数上限
+原文 Eq (4) 是预算的退火形状：
 
 ```math
 b_t=\Big\lceil b_{\min}+(b_{\max}-b_{\min})\cdot\tfrac{1}{2}\big(1+\cos(\pi t/T)\big)\Big\rceil,
 ```
 
-从 $b_{\max}$ 退火到 $b_\min=1$：早期允许"几个协同改动一起上"以发现新机制，后期只留**单一可归因**的改动。附录 D.2 把它写成 $z_{t} \in \{0,1\}^{|E_t|}$ 上的基数约束——非零项数不超过 $b_t$（式 9）——注意约束的是**一轮更新里捆绑的编辑数**，不是 harness 能包含哪些组件。
+逐项读法：$b_t$ 是一轮里可独立归因的编辑数上限，从 $b_{\max}$ 余弦退火到 $b_{\min}=1$；$\lceil\cdot\rceil$ 保证取整后至少为 1。早期允许多个协同改动一起上，用于发现新机制；后期只留单一可归因的改动。附录 D.2 把它写成 $z_t$ 的基数约束（Eq 9）：非零项数不超过 $b_t$。注意约束的是**一轮更新里捆绑的编辑数**，不是 harness 能包含哪些组件——后者始终开放。
 
-**B. 证据化信用分配**：每个被评估的候选都记入台账 $L_{t}$（花体 L，式 10，七元组：轮次、组件、假设、源码 diff、分数变化、成本变化、是否被选为当轮赢家）。proposer 在后续轮次条件于**全历史**：被否掉的机制作为负证据保留，成功的机制保留明确信用。作者的直觉：随着预算退火到 1，捆绑编辑继承的是**候选级**测量，归因会越来越清晰。
+### 选择侧：四项非补偿性门槛
 
-**C. 结构化探索**：用「$w$ 轮内进展 $\hat{S}_{t} - \hat{S}_{t- w}$ 不超过噪声带 $\delta$」的 0/1 标志 $\sigma_{t}$ 判定"停滞"，停滞时把 $m_{\mathrm{draft}}$ 个候选槽位留给**从未被测量编辑过的组件**集合 $U_{t}$（从组件词表 $K$ 中去掉已测过的集合 $T_{t}$（花体 T），式 13）。可编辑组件词表固定为 9 类（式 12）：
+原文 Eq (5) 是噪声地板：
 
-```text
-K = {prompt, control_flow, config, output_plumbing, context_mgmt,
-     client_tool, skill, memory, subagent}
+```math
+\hat{S}(H') \ge S^{\star} - \delta .
 ```
 
-### 选择侧（§3.3，Algorithm 2）
+逐项读法：$S^{\star}$ 是历史最佳且只升不降，$\delta$ 是用未改动 $H_0$ 反复评测得到的经验噪声带。这条门槛要求候选不能显著低于历史最佳，防止「这一轮多对了几条」的噪声赢家替换掉已验证的 incumbent。$\delta$ 因此是唯一被标为「不许调」的超参——调低就等于用噪声买 evolve 分。
 
-四项**非补偿性**门槛（每项都必须过，不能被别的项补回来）：
+当增益超过噪声带时，走原文 Eq (6)–(7) 的成本准入（笔记只转写其中的准入不等式）：
+
+```math
+\Delta C \le \beta_0 + \beta_1 \cdot \Delta S .
+```
+
+逐项读法：$\Delta C$ 是每 trial 策略 token 的相对变化，$\Delta S$ 是分数涨幅；$\beta_0$ 是「零增益时还允许多花多少」，$\beta_1$ 是「每多一分增益允许多花多少」。它抑制的是整体资源足迹的增长，不要求删掉任何具体组件，所以作者把它类比 Ridge 而非硬约束。
+
+若增益落在噪声带内（$\Delta S\le\delta$），改用原文 Eq (17)：
+
+```math
+w_s \cdot \Delta S - w_c \cdot \Delta C + w_n \cdot \nu_t(H') > 0 .
+```
+
+逐项读法：$w_s$ 给带内涨分（coding 实例取 $w_s=0$，即带内涨分不算信用）、$w_c$ 惩罚成本、$w_n$ 奖励触碰未用过的结构组件；$\nu_t(H')$ 只统计 `client_tool / skill / memory / subagent` 四类中从未出现在获胜编辑里的组件（Eq 15、16）。也就是说，**省 token 或碰到新结构，二者之一才可能让一个涨分在噪声内的候选过关**。
 
 | 门槛 | 规则 | 位置 |
 | --- | --- | --- |
-| **D. 泄漏筛查** | critic 读**候选的 diff**（不是提案说明），拒绝显式编码任务名/实体名/任务特有取值/答案的逻辑，以及"惰性机械"；**在评估之前**执行，使泄漏候选拿不到虚高的 evolve 分数 | 评测前 |
-| **E. 噪声地板** | 先反复评估未改动的 $H_{0}$ 得到经验噪声带 $\delta$；要求 $\hat{S}(H') \ge S^{\star} - \delta$（式 5），$S^{\star}$ 为历史最佳且只升不降 | 评测后 |
-| **F. 成本准入（Ridge/$L_{2}$ 式）** | 若分数涨幅 $\Delta S$ 超过噪声带 $\delta$：要求成本涨幅 $\Delta C \le \beta_{0} + \beta_{1}\cdot \Delta S$（式 6、7），$\Delta C$ 是每 trial 策略 token 的**相对**变化，$\beta_{0}$ 是"零增益时的容忍度"，$\beta_{1}$ 是"每多一分增益允许多花多少" | 评测后 |
-| **F′. 带内规则** | 若增益落在噪声带内（$\Delta S \le \delta$）：不用式 7，改用 $w_{s}\cdot \Delta S - w_{c}\cdot \Delta C + w_{n}\cdot \nu_{t}(H') > 0$（式 17）——**省 token 或触碰未用过的结构组件**才能准入；$\nu_{t}$ 只统计 `client_tool / skill / memory / subagent` 四类中**从未出现在获胜编辑里**的组件（式 15、16）。coding 实例取 $w_{s} = 0$（带内涨分本身无信用） | 评测后 |
-| **G. 结构剪枝（Lasso/$L_{1}$ 式）** | 组件级近期最好增益 $g_t(\ell)$ 取该组件在最近 $n_{\mathrm{prune}}$ 轮内的最大 $\Delta S_{i}$（式 11）；把 $g_t(\ell) \le 0$ 的组件列入删除目标 $B_{t}$（式 14），交给 proposer 在后续轮里删 | 每轮 |
+| D 泄漏筛查 | critic 读候选 diff（不是提案说明），拒绝显式编码任务名/实体名/任务特有取值/答案的逻辑，以及「惰性机械」 | 评测前 |
+| E 噪声地板 | $\hat{S}(H')\ge S^{\star}-\delta$ | 评测后 |
+| F 成本准入 | 超出噪声带用 Eq (6)–(7)，带内用 Eq (17) | 评测后 |
+| G 结构剪枝 | $g_t(\ell)\le 0$ 的组件列入 $\mathcal{B}_t$，交给 proposer 后续删除 | 每轮 |
 
-最后在可准入候选里取分最高者（Algorithm 2 第 16–18 步），并记 $a_i$ 供后续轮做信用分配。
+G 的 $g_t(\ell)$ 是组件 $\ell$ 在最近 $n_{\mathrm{prune}}$ 轮内的最大 $\Delta S$（Eq 11）；$\mathcal{B}_t$ 是这些非正增益组件的集合（Eq 14）。四项都过之后，才在 $\mathcal{H}_t\cap\mathcal{A}_t$ 里取 $\hat{S}$ 最高者（Algorithm 2 第 16–18 步），并把每个候选的 $a_i$ 记入台账供后续信用分配。
 
-### 与经典正则化的对应（作者自述的边界）
+### 与已有方法的结构差异
 
-| RRSI 机制 | 类比 | 作者明说的差异（§3.1、附录 D） |
+| 维度 | 已有 harness 演化 | RRSI |
 | --- | --- | --- |
-| 退火编辑预算 | $L_{0}$ 基数约束 | 约束的是**一次更新的活跃编辑数**，编辑池每轮重抽，不是固定参数向量上的 $L_{0}$ 惩罚 |
-| 结构剪枝 | Lasso/$L_{1}$ 稀疏化 | 删除的是**离散组件**，不是 $L_{1}$ 惩罚下的连续优化 |
-| 成本准入 | Ridge/$L_{2}$ 收缩 | 抑制的是**整体资源足迹**的增长，不要求删掉任何具体组件；不是平方范数惩罚 |
+| 编辑空间 | 通常限定或提示可改的组件 | 9 类全部开放 |
+| 提议 | 直接由反馈生成候选 | 预算退火 + 台账 + 停滞探索 |
+| 接受 | 取 evolve 分最高 | 四项非补偿门槛，先筛后评、评后再筛 |
+| 正则化位置 | 目标函数 / 梯度 | 离散的提议与选择轨迹 |
 
 ---
 
-## 实验与证据
+## 主要结果
 
-### 设置（§4.1、附录 B）
+**设置**：8 个 benchmark / 3 个领域，每个领域只在一个 suite 上演化，再原样跑到留出集。Coding 在 Terminal-Bench 2.1（89 个容器化终端任务）上演化、OOD 测 SWE-bench Verified；agentic workspace 在 Harvey LAB（120 任务 evolve + 40 任务 pristine held-out）上演化、OOD 测 JobBench / GDPval / APEX-Agents；engineering design 在 EngDesign（61 个设计任务）上演化、OOD 测 Frontier-Eng。策略与 proposer / analyst / critic 全程为 Claude Opus 4.8，对照为 $H_0$ 与 Meta-Harness / AHE / TTHE / HarnessX，同一时间窗口、同工具环境、同 judge、同 trial 数。
 
-- **8 个 benchmark / 3 个领域**，每个领域**只在一个 suite 上演化**，再原样跑到留出集：
-  - **Coding**：Terminal-Bench 2.1（89 个容器化终端任务，任务自带单测，分数精确）→ OOD：SWE-bench Verified
-  - **Agentic workspace**：Harvey LAB（法律工作，**固定切成 120 任务 evolve + 40 任务 pristine held-out**；每个任务 20–100 条独立判定的 rubric，一次完整评测约 14,000 条判定）→ OOD：JobBench、GDPval、APEX-Agents
-  - **Engineering design**：EngDesign（61 个设计任务，**由各自的冻结模拟器/测试台判分**，无 judge 模型）→ OOD：Frontier-Eng（Medal Score）
-- **策略冻结**：全程 Claude Opus 4.8；**proposer、跨轮失败反馈的 analyst、泄漏 critic 也都是 Opus 4.8**。基础 harness：coding 用 Terminus-2，agentic workspace 与 engineering design 用 MCP 工具网关上的 ReAct 循环 + dynamic toolbelt + ReSum 式上下文管理。
-- **Baseline**：$H_{0}$（未演化）+ 4 个近期 harness 演化方法 **Meta-Harness / AHE / TTHE / HarnessX**，全部同 $H_{0}$、同 policy、同 evolve 集、同候选预算；论文声明所有 arm 与 baseline 在**同一时间窗口、同工具环境、同 judge、同 trial 数**下评测（附录 B 开头）。
-- 评测口径：一次评测 = 每个任务 $k$ 次 trial（coding/agentic 用 $k=2$，engineering 用 $k=4$），$T=20$ 或 40 轮，每轮 $m=2$ 个候选（见超参表）。各 OOD 榜的判分方式差别很大，读数字前需注意：**GDPval 是对人工专家交付物的胜率**（185 任务，三名不同来源的模型组成评审团、双向呈现顺序、多数票）；**JobBench 是加权 rubric 分**（judge 取 Gemini 3.5 Flash 与 Claude Opus 4.8 的均分）；**APEX-Agents 用 pass@1、分母固定为全部 480 个任务**（基建失败的 rollout 记失败，防止"崩在难任务上反而好看"）；**Frontier-Eng 的 47 个任务中只有 38 个能计分**（两臂同一批任务，Medal Score）。
+![Figure 1：evolve 涨分与 OOD 涨分的脱钩](assets/figure1-overfitting-evidence.png)
 
-### 主结果（Table 1、Figure 3，均在渲染页核对）
+*图 1（原文 Figure 1，p.2）：(a) 横轴 evolve 相对涨分、纵轴 OOD 相对涨分，RRSI 是唯一在分布外继续放大的点；(b–d) 三领域留出分，柱为 $H_0$ / 四个 baseline 平均 / RRSI。*
 
-**Agentic workspace**（Table 1，p.8；加粗为原文强调列）：
+**Agentic workspace**（原文 Table 1，p.8；加粗为原文强调列）：
 
 | 方法 | Harvey LAB (Evolve) | Harvey LAB (ID held-out) | JobBench (OOD) | GDPval (OOD) | APEX-Agents (OOD) |
-| --- | --- | --- | --- | --- | --- |
-| $H_{0}$（未演化） | 89.4 | 86.9 | 36.0 | 48.8 | 34.2 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| $H_0$ | 89.4 | 86.9 | 36.0 | 48.8 | 34.2 |
 | Meta-Harness | **93.0** | 89.2 | 37.1 | 49.1 | 35.7 |
 | AHE | 90.7 | 88.7 | 37.2 | 47.2 | 33.1 |
 | TTHE | 91.1 | 88.5 | 35.2 | 47.0 | 31.7 |
 | HarnessX | 91.8 | 89.1 | 36.3 | 48.5 | 34.3 |
 | **RRSI** | 90.5 | **89.2** | **40.7** | **52.3** | **37.9** |
 
-三个领域的关键数字（Figure 3 的打印标签 + §4.2）：
+1. **这是唯一给出逐方法对照的领域，也是「以 evolve 换 transfer」最清楚的一处**：RRSI 的 evolve 分只涨 1.1（89.4→90.5），四个 baseline 涨 1.3–3.6；但三个 agentic OOD 全部最高，JobBench / GDPval / APEX-Agents 为 40.7 / 52.3 / 37.9，比 prior 最好的 37.2 / 49.1 / 35.7 高 3.5 / 3.2 / 2.2。ID held-out 上 RRSI 与 Meta-Harness 并列 89.2。
 
-| split | 角色 | $\Delta$（相对 $H_{0}$） | 95% CI（配对 bootstrap，Table 6） |
-| --- | --- | --- | --- |
-| Terminal-Bench 2.1 | Evolve | +6.0 | [+4.3, +9.3] |
-| SWE-bench Verified | OOD | +1.8 | [+1.1, +4.0] |
-| Harvey LAB | Evolve | +1.1 | [+0.8, +2.1] |
-| Harvey LAB ID held-out | 同分布留出 | +2.3 | [+0.9, +3.8] |
-| JobBench | OOD | **+4.7** | [+2.9, +7.4] |
-| GDPval | OOD | +3.5 | [+1.8, +6.9] |
-| APEX-Agents | OOD | +3.7 | [+1.4, +7.5] |
-| EngDesign | Evolve | +4.9 | [+1.8, +9.8] |
-| Frontier-Eng | OOD | +4.3 | [+1.1, +12.1] |
+2. **coding 与 engineering design 只有单点证据**：TB2.1 74.2→80.2（+6.0）、SWE 82.0→83.8（+1.8）；EngDesign +4.9、Frontier-Eng +4.3（RRSI 22.0 vs prior 平均 17.9）。这两处没有逐方法表格，只有 $H_0$ 与 RRSI 的曲线加 prior 平均值，「涨得少、转得多」在两处不能算独立验证。
 
-读法（我的归纳）：**在唯一给出逐方法 baseline 对照的 agentic workspace 领域里，RRSI 是"evolve 涨分最小、留出涨分最大"的那一个**——Harvey LAB 上它只涨 1.1（四个 baseline 涨 1.3–3.6），但三个 agentic OOD 都超过所有 baseline。coding 与 engineering design 没有逐方法的表格对照（Figure 3 只画 $H_{0}$ 与 RRSI），只有 Figure 1(b–d) 给出的 **prior 平均值**可参照（SWE-bench 82.3、Frontier-Eng 17.9，RRSI 分别为 83.8 / 22.0），所以"以 in-distribution 涨分换 transfer"这个模式在两处**只有单点证据**。
+3. **消融说明两组正则各自贡献 transfer，且都不是免费的**：无正则演化 evolve 分 92.8（全表最高），但 OOD 平均 40.3，只比未演化的 39.7 高 0.6，token 3.80M；RRSI 43.6 / 2.42M。去掉提议侧，evolve 只差 0.2 分但 OOD 掉 1.7（41.9）；去掉接受侧，evolve 升到 91.5、OOD 掉到 41.0、token 涨到 3.59M。**「把搜索引到哪儿」即使什么都没拒绝也在起作用。**
 
-### 消融（Table 2，p.9）
+4. **换 policy 与换 backbone 都有正迁移，但证据面窄**：同一 coding harness 换 Gemini 3.5 Flash 演化，TB2.1 64.6→78.7（+14.1）、SWE 76.8→79.0（+2.2）；把 Gemini 3.5 Flash 演化出的 harness 直接跑 Gemini 3.1 Flash Lite，TB2.1 11.2→14.6（+3.4，相对 +30.4%）。搜索重复一遍，九个 split 的最大分歧是 TB2.1 的 1.8 分，其余 ≤0.6。
 
-| 变体 | Harvey (Evolve) | Harvey (ID held-out) | OOD Avg. | Tokens/trial (M) ↓ |
-| --- | --- | --- | --- | --- |
-| $H_{0}$ | 89.4 | 86.9 | 39.7 | 1.56 |
-| 无正则演化（Unregularized） | 92.8 | 88.9 | 40.3 | 3.80 |
-| 去掉提议侧正则 | 90.7 | 88.8 | 41.9 | 2.69 |
-| 去掉接受侧正则 | 91.5 | 88.7 | 41.0 | 3.59 |
-| **RRSI** | 90.5 | **89.2** | **43.6** | **2.42** |
+5. **成本：RRSI 是所有演化臂里最省的**。最终 harness 2.42M policy tokens/trial、26.3 steps/trial；四个 baseline 是 27.3–34.6 steps，AHE 最贵（3.82M，比 RRSI 多 58%，OOD 平均还低 4.4 分）。但未演化的 $H_0$ 是 1.56M / 21.2 steps——**演化本身花了额外推理成本，RRSI 决定的是花多少**。
 
-- 两组正则**各自**贡献转移能力：去掉接受侧，evolve 分从 90.5 升到 91.5、OOD 掉到 41.0、token 涨约一半；去掉提议侧在 evolve 上只差 0.2 分，但在 OOD 上掉 1.7 分——**"把搜索引到哪儿"即使什么都没拒绝也在起作用**。
-- 两个都去掉：evolve 分 92.8（**全表最高**）、OOD 平均 40.3（离未演化 harness 不到 1 分）、3.80M tokens。
-
-### 稳健性（Table 3、Table 4、Table 7）
-
-- **换 policy 家族**（Table 3）：同一 coding harness 分别用 Claude Opus 4.8 与 Gemini 3.5 Flash 独立演化——Opus：TB2.1 74.2→80.2（+6.0）、SWE 82.0→83.8（+1.8）；Gemini 3.5 Flash：TB2.1 64.6→78.7（**+14.1**）、SWE 76.8→79.0（+2.2）。
-- **换到搜索时没用过的弱 backbone**（Table 4）：用 Gemini 3.5 Flash 演化出的 harness，直接跑 Gemini 3.1 Flash Lite：TB2.1 11.2→14.6（+3.4，相对 +30.4%）。
-- **搜索本身重复一遍**（Table 7，p.25）：九个 split 中两轮跑的最大分歧是 TB2.1 的 1.8 分，其余 ≤0.6 分；agentic OOD 平均 43.6 vs 43.7。作者的解释是"轨迹的随机性比选评测任务带来的不确定性小"。
-
-### 成本（Figure 4、§4.3）
-
-- RRSI 的最终 harness 是**所有演化臂里最省的**：2.42M policy tokens/trial、26.3 steps/trial；四个 baseline 是 27.3–34.6 steps，AHE 最贵（3.82M，比 RRSI 多 **58%**，且 OOD 平均低 4.4 分）。
-- 未演化的 $H_{0}$ 是 1.56M / 21.2 steps——**演化确实花了额外推理成本**，RRSI 的作用是决定"花多少"。
-
-### 定性证据：留下的东西不一样（Table 9，p.27）
-
-| 方法 | 最终 harness 累积了什么 | 为什么不过/过不了迁移 |
-| --- | --- | --- |
-| Meta-Harness（93.0 → OOD 40.6） | 730 词的强制工作法，作为常驻系统消息；组织成"条目 × 维度"覆盖矩阵，维度名是 citation / controlling rule / severity / consequence / recommended fix | 不点名任何任务，但**复述了 evolve suite 的评分体系**（"deliverable 按逐条 rubric 打分、只读文件"）——拟合评分器而非任务，evolve 最优、OOD 只 +0.9 |
-| TTHE（91.1 → 38.0） | 十个命名协议块共约 8,500 词，做成"不会被压缩掉"的常驻消息；其中约 1,000 词只在交付物是 redline / markup / tracked-changes 时触发 | 那个交付物体裁是 evolve suite 特有的；换个 benchmark 触发不了却每次都要付上下文——**该臂最终比自己的起点还低 1.7 分** |
-| **RRSI（90.5 → 43.6）** | 20 轮里从 32 个被评估候选中只接受 **4 处**编辑，全部接在基础 harness 已有的"最终提交前回弹"上：一次覆盖度与深度复查，三个标准库探针（把交付物读回来，指出缺什么——如未展开的算术简写、任一产出文件里缺失的源值） | 探针报告的是"文件的结构性事实"，**既不带 rubric 词汇也不带领域词汇**，所以在 JobBench / GDPval / APEX-Agents 上仍然触发 |
-
-论文还给了 critic 的实际判定风格（§附录 F）：**候选可以在"理由"里点名它想修的任务，但同名内容不能进入 diff**；coding 运行 38 个被筛候选中只有 1 个被直接否决（原因是"声明的组件不是 diff 实际改的"）。
+6. **定性上，留下的东西不一样**：20 轮 32 个候选只接受 4 处编辑，全部是「提交前回弹」上的覆盖度复查与三个结构探针；探针报告文件的结构性事实，不带 rubric 或领域词汇，所以在三个 agentic OOD 上仍触发。这条是机制解释，不是独立实验。
 
 ---
 
-## 工程视角
+## 边界与局限
 
-### 一轮 RRSI 的执行序（据 Algorithm 1/2 与 §4.1 整理；这是我的重排，便于实现对照）
+**作者明确讨论的**：只在冻结 backbone 下研究 harness 级 RSI，不更新权重；仍依赖有限 evolve set 与若干正则超参，效果取决于反馈质量与搜索预算；跨领域 / benchmark / policy 的迁移已验证，但更不同的 agent 架构、工具生态与更长程的自改进仍需更广验证。
 
-1. **分析**：用 Opus 4.8 analyst 在 evolve set 上跑当前 $H_{t}$，汇总跨轮失败反馈 $F_{t}$；
-2. **拟题**：算退火预算 $b_t$（式 4）、停滞标志 $\sigma_{t}$、未探索组件 $U_{t}$、剪枝目标 $B_{t}$（式 11/13/14），然后由 Opus 4.8 proposer 从约 **80 条编辑的池子**里起草 $m=2$ 个候选（每个候选只是池的一个子集，$L_{0}$ 约束限其大小）；
-3. **筛**（评测前）：Opus 4.8 critic 读 diff，拒绝含 evolve-suite 特有逻辑或惰性机械的候选；
-4. **评**：通过筛查的候选在**完整 evolve set** 上并行评估（$k$ 次 trial），得到 `Ŝ'`、`Ĉ'`；
-5. **准入门**：噪声地板（式 5）→ 分支判据（增益 $\Delta S$ 超过噪声带 $\delta$ 时用式 7，否则用式 17）→ 领域守卫 `DomainGuard`；
-6. **选择**：可准入者中取分最高者为 $H_{t+1}$，否则保留 $H_{t}$；更新 $S^{\star}$ 并把每个编辑连同 $a_i$ 记入台账。
+**读者判断**：
 
-### 成本与规模（可直接用于估算）
-
-- 一轮 = $m=2$ 个候选 × 完整 evolve set × $k$ 次 trial；agentic workspace 的完整评测一次约 **14,000 条 rubric 判定**（Gemini 3.5 Flash 当 judge），$T=20$ 轮 → 该领域的演化开销主要是"评测"而不是"生成"。
-- 超参（Table 5，p.23；**全部在开跑前固定、无 sweep、不看任何留出/ OOD 集**）：
-
-| 超参 | 含义 | Coding | Agentic workspace | Engineering design |
-| --- | --- | --- | --- | --- |
-| $T$ | 演化轮数 | 20 | 20 | 40 |
-| $k$ | 每任务每次评测 trial 数 | 2 | 2 | 4 |
-| $\delta$ | 经验噪声容忍带 | 0.017（≈89×2 次里的 3 次通过） | 0.004（≈14,100 条判定里的 60 条） | 0.020（≈61×4 里的 5 次） |
-| $b_{\min}$ / $b_{\max}$ | 末轮 / 首轮编辑预算 | 1 / 4 | 1 / 3 | 1 / 4 |
-| $w$ | 停滞检测窗口 | 3 | 3 | 3 |
-| $m_{\mathrm{draft}}$ | 保留的探索槽 | 1（总 $m=2$） | 1 | 1 |
-| $n_{\mathrm{prune}}$ | 剪枝窗口 | 4 | 4 | 5 |
-| $\beta_{0}$ / $\beta_{1}$ | 基础 / 增益相关成本容忍 | 0.10 / 44.5 | 0.10 / 35.4 | 0.15 / 24.4 |
-
-- $\beta_{1}$ 的标定方式值得抄：它是把"允许的成本增长"翻译成评测单位——coding 上 7 次通过额外给 $10 + 7\times 25 = 185\%$ 的增长（而实测 130% 被接受），单次通过只给 35%（同样的成本被拒）。**δ 是唯一"不许调"的超参**（调低就等于用噪声买 evolve 分）。
-- 代码仓库根目录为 `rrsi.py`（CLI 入口）+ `rrsi/` 包（`analyst.py` / `critic.py` / `propose.py` / `selection.py` / `schedule.py` / `calibrate.py` / `history.py` / `components.py` / `loop.py` / `evaluate.py` / `domain.py` 等，与论文组件一一对应）+ `domains/`（`coding` / `eng` / `workspace` 三个领域）+ `tests/`，另有 `assets/`、`third_party/`、`pyproject.toml`；项目页提供逐轮的 Evolution Explorer（提案、critic 判定、接受判定、diff）。**本笔记未运行代码**，仓库内容只按根目录清单与 README 描述。
+- **收益最大的领域恰好全靠 LLM judge**：agentic workspace 的四个 benchmark 都是 judge 打分（Harvey LAB 与 APEX-Agents 用 Gemini 3.5 Flash 逐条判定，JobBench 取两个 judge 的均分，GDPval 用三模型评审团），而 OOD 增益恰在这里最大（+3.5 到 +4.7）。作者用「engineering design 是确定性判分、涨分照旧」反驳「只是学会讨好 judge」，但那只覆盖一个领域。
+- **主实验、消融、可靠性分析全部用 Opus 4.8**：跨 policy 只有 coding 的两点，跨模型迁移只有一个弱 backbone 的一个 benchmark；「不绑定 policy」的证据强度有限。
+- **proposer / analyst / critic 与 policy 同源**：三者都是 Opus 4.8。换更弱的 proposer 后，Eq (17) 的结构新颖性与 critic 的 diff 筛查是否还成立，论文没有实验。
+- **$\delta$ 与评测规模强耦合**：$\delta$ 由 $H_0$ 的重复评测估计（agentic 实例约 14,100 条判定里的 60 条）；任务量小得多或 judge 方差更大的场景，这个估计本身会不稳，论文未做敏感性分析；消融也只在 agentic workspace 一个领域做过。
 
 ---
 
-## 局限与待确认问题
+## 与其他工作的关系
 
-### 作者明确讨论的（Limitations）
+- **Dream-RSI**（00214，[笔记](../dream-rsi/note.md)）：同属「不改权重、只改 harness」的路线。RRSI 正则化的是**筛选准则**，Dream-RSI 改造的是**探索控制器的获取方式**；两者都把「怎么搜」当成一等公民。
+- **Meta-Harness / AHE / TTHE / HarnessX**：本文的直接 baseline，也是「加能力」路线的代表；RRSI 与它们共享 $H_0$、policy、evolve 集与候选预算，只改接受准则。
+- **经典正则化（$L_0$ / Lasso / Ridge）**：作者只做功能类比——离散的编辑预算、组件删除、成本收缩，不是带范数惩罚的目标函数。
 
-1. 只在**冻结 backbone** 的设定下研究 harness 级 RSI，**不涉及演化过程中更新模型权重**；
-2. 仍依赖**有限 evolve set** 与若干正则超参——效果取决于反馈信号质量与搜索预算；
-3. 跨领域/benchmark/policy 的迁移已验证，但**更不同的 agent 架构、工具生态与更长程的自改进**仍需更广验证。
-
-### 我的判断（读者视角）
-
-1. **评测构成对结论很关键**：8 个 benchmark 里，Harvey LAB / JobBench / GDPval / APEX-Agents 都靠 **LLM judge**（Harvey LAB 与 APEX-Agents 用 Gemini 3.5 Flash 逐条判定，JobBench 取 Gemini 3.5 Flash 与 Opus 4.8 的均分，GDPval 用三模型评审团），只有 coding 与 engineering design 是确定性判分。作者用"engineering design 是确定性判分、涨分照旧"来反驳"只是学会了讨好 judge"——这个论证有力，但**只覆盖一个领域**；agentic workspace 的四个 benchmark 仍然全部由 judge 打分，而 RRSI 的收益恰恰在这一领域最大（+3.5~4.7）。
-2. **"RRSI 更省 token"的因果链**：成本规则（式 7、17）**直接**拒绝贵的候选，所以"更省"部分是设计的结果而非涌现的收益；Table 2 里"去掉接受侧正则 → token 涨一半"正是这一点。把它读成"正则有免费收益"要小心：收益与"不接受某些涨分"是同一件事的两面。
-3. **单个 policy 家族占主导**：主实验、消融、可靠性分析**全部**用 Claude Opus 4.8；跨 policy 的只有 coding 领域的两点（Table 3），跨模型迁移只有一个弱 backbone 的一个 benchmark（Table 4）。"不绑定 policy"的证据强度有限。
-4. **proposer/analyst/critic 与 policy 同源**：三者都是 Opus 4.8。若换一个更弱的 proposer，式 17 的"结构新颖性"与 critic 的 diff 筛查是否还成立，论文没有实验。
-5. **$\delta$ 与评测规模强耦合**：$\delta$ 由 $H_{0}$ 的重复评测经验估计（agentic 实例 ≈ 14,100 条判定里的 60 条）。任务量小得多、或 judge 方差更大的场景，$\delta$ 的估计本身会不稳；论文未做该敏感性分析（作者明确说 $\delta$ 不许调，但没有给"估不准时会怎样"）。
-6. **消融只在一个领域**：Table 2 全部在 agentic workspace 实例上，coding 与 engineering design 没有对应消融。
-
-### 原文自身的表述张力（本笔记核对时发现，非本文结论）
-
-1. **"30% fewer policy tokens" 与本论文的表格对不上**：摘要写 "runs on 30% fewer policy tokens than the unregularized evolution"，但 Table 2（p.9）给出的两个数是 3.80M → 2.42M，即 **≈36%**；项目页也写 **−36%**。30% 在正文、附录里找不到任何可复算的依据。
-2. **"up to 4.3 points on the five out-of-distribution benchmarks" 与 JobBench 冲突**：摘要与引言都说 OOD 最多 +4.3，但 Table 1、Figure 3、Table 6（含 95% CI）三处都给出 **JobBench +4.7**，且 §4.2 正文自己也写 "the three out-of-distribution agentic benchmarks gain between 3.5 and 4.7 points"。即"4.3"只对 Frontier-Eng 成立。
-3. **"outperforming the average prior baseline by up to 12.5%" 缺了口径限定**：12.5% 对应 APEX-Agents 相对四个 baseline 平均（37.9 vs 33.7，我按 Table 1 复算）；若按全部留出 split 取最大，Frontier-Eng 的相对提升是 **22.9%**（22.0 vs 17.9，项目页用的正是这个数）。两处数字都对，但正文没有说明"12.5% 只限 agentic 三项"。
-4. **§4.2 的加粗断言「RRSI consistently outperforms baselines on all held-out datasets」有反例**：该句是 **§4.2 正文**（p.7，紧接 Table 1 之前；Table 1 自己的题注只写 "Comparison with prior harness evolution methods on agentic workspace tasks."），而 Harvey LAB 的 ID held-out 上 **RRSI 与 Meta-Harness 同为 89.2**（并列，不是超过）。表内其余三项 held-out（JobBench / GDPval / APEX-Agents）RRSI 确为各列最高；若按全论文的 OOD 口径，SWE-bench（83.8 vs prior 平均 82.3）与 Frontier-Eng（22.0 vs 17.9）也都在 prior 平均之上。
-5. **§D.3 称 $w_s, w_c, w_n$ "are reported in Table 5"，但 Table 5（p.23）里没有这三行**：该表只有 $T, k, \delta, b_{\min}, b_{\max}, w, m_{\mathrm{draft}}, n_{\mathrm{prune}}, \beta_0, \beta_1$。三个权重只在正文里定性描述（coding 取 $w_s = 0$ 等），实际取值全文未给。
-
-以上五条的**处置**：涉及可复算数字时本笔记一律采用**表格/附录里的值**（如 JobBench +4.7），摘要级表述只在标注差异后引用；36% 与 22.9% 是复算值，分别见本节的第 1、3 条；不把摘要的 30% / 4.3 当成事实基础。
-
-### 尚无实验证据的问题
-
-- **正则化换来的 transfer 上限在哪**：论文只证明"约束搜索 → OOD 更好"，没有回答"如果 evolve set 足够大/足够代表性，正则是否仍然必要"。
-- **与"多 evolve set 轮流用"这类朴素替代的对比**：论文把问题归因于"有限 evolve set 的自适应复用"，但没有和"扩大 evolve set""多套 evolve set 轮换""留出集轮换"这些更直接的缓解方式做对照（Dwork et al. 2015 的结论其实指向这类做法）。
-- **9 类组件的归纳是否完备**：组件词表（式 12）是实现的先验，`DomainGuard` 的具体检查内容论文没有展开（只在 Algorithm 2 里一句 "per-domain specific checks"、§D.3 一句 "any domain guard `g(H_t,H')` the instance defines"）。**补充背景**（来自代码仓库 README，非论文正文）：仓库有 `Non-compensatory domain criteria — Domain.guards` 一条线索，engineering 实例的守卫是 "valid-rate drop / no-submission rise"；`rrsi/` 包下 `propose.py`、`critic.py`、`selection.py`、`schedule.py`、`calibrate.py`、`history.py`、`components.py` 与论文组件一一对应。
+<!-- 复核档案见同目录 audit.md（不随站点发布） -->

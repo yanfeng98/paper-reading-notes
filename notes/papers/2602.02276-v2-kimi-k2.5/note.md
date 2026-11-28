@@ -4,68 +4,141 @@
 
 | 项 | 内容 |
 | --- | --- |
-| 标题 | Kimi K2.5: Visual Agentic Intelligence（标记为 Technical Report of Kimi K2.5） |
-| 作者 | Kimi Team（arXiv 提交人 Yulun Du；附录 A 按姓氏字母序列出全部作者，PDF 元数据共 337 个署名条目） |
-| 机构 | Kimi Team（论文无 affiliation 行；模型 checkpoint 发布于 Hugging Face `moonshotai` 组织：<https://huggingface.co/moonshotai/Kimi-K2.5>，本机无法访问验证该链接，字符串与论文脚注一致） |
-| 来源 | [arXiv:2602.02276v2](https://arxiv.org/abs/2602.02276v2)（cs.CL; cs.AI; cs.LG），v2 日期 2026-08-07；arXiv 页面许可 CC BY-NC-ND 4.0 |
-| 版本历史 | v1 2026-02-02 → v2 2026-08-07（本笔记基于 v2，为截至阅读时的最新版；论文未说明 v2 相对 v1 的改动） |
+| 标题 | Kimi K2.5: Visual Agentic Intelligence（Technical Report of Kimi K2.5） |
+| 作者 | Kimi Team（arXiv 提交人 Yulun Du；附录 A 按姓氏字母序列出全部作者） |
+| 机构 | Kimi Team（论文无 affiliation 行；checkpoint 发布于 Hugging Face `moonshotai` 组织） |
+| 来源 | [arXiv:2602.02276v2](https://arxiv.org/abs/2602.02276v2)（cs.CL; cs.AI; cs.LG），v2 日期 2026-08-07，CC BY-NC-ND 4.0 |
+| 版本 | v1 2026-02-02 → v2 2026-08-07；本笔记基于 v2，论文未说明 v2 相对 v1 的改动 |
 | 阅读日期 | 2026-10-05 |
-| 复核记录 | 2026-10-05 依 check-paper-note 对 v2 重新获取原文逐项复核（含独立子 agent 审计）：表 1–6 与正文数字全部比对通过（PDF 版式文本 + 渲染页）；Figure 2/4/7/8 读数改用像素测量重测并修正（含 Figure 4 并行度区间由错误读数改为 ~8.4→~14.3）；修正 PARL 奖励的公式编号、Toggle 证据归属、Figure 7 的 x 轴口径（log(steps)）与 Figure 9 子图数表述；补记 LongBench v2 与 computer-use 评测口径 |
-| 阅读范围 | v2 全文 31 页：正文 §1–6 + 附录 A–F（含 12 张图、表 1–6、全部评测配置与系统提示词）。表格数字经 PDF 版式文本逐项核对；Figure 2/3/4/8/9 已渲染截图存于 `assets/` |
-| 归档说明 | arXiv 来源，按仓库策略不归档 PDF；仓库清单编号 00156（上游 `paper-is-all-you-need` 有归档 PDF，本仓库只记官方链接） |
 
 ---
 
 ## 核心结论
 
-一句话：**K2.5 = Kimi K2（1T MoE 语言底座）+ 原生多模态（MoonViT-3D 视觉编码器，约 15T 图文混合 token 联合预训练）+ Agent Swarm（用 PARL 训练并行多智能体编排）**。论文的两个主张是「文本与视觉联合优化让两个模态互相增强」和「并行 agent 编排把任务复杂度从线性串行变为并行处理」。
+一句话：**K2.5 = Kimi K2（1T MoE 语言底座）+ 原生多模态（MoonViT-3D，约 15T 图文混合 token 联合预训练）+ Agent Swarm（用 PARL 训练并行多智能体编排）**；论文的两个主张是「文本与视觉联合优化让两个模态互相增强」和「并行编排把任务复杂度从线性串行变为并行处理」。
 
-- **文本-视觉联合优化**（§2）：在固定视觉-文本 token 总预算下，**早期融合 + 较低视觉比例**（消融中最低一档为 10%:90%）优于传统的「后期注入 + 高比例」（Table 1）；后训练采用 **zero-vision SFT**（只用纯文本 SFT 数据激活视觉工具使用）与**按能力（而非模态）组织的联合多模态 RL**；作者称视觉 RL 反过来提升了文本指标（MMLU-Pro 84.7→86.4、GPQA-Diamond 84.3→86.4、LongBench v2 56.7→58.9，Table 2）。
-- **Agent Swarm / PARL**（§3）：一个**可训练 orchestrator** + 一组**冻结 subagent**（取自固定中间 checkpoint）；奖励 = 任务结果分 + 子代理实例化奖励 + 子任务完成率奖励（后两项系数退火到 0）；用 **critical steps**（关键路径式步数）而不是总步数约束预算，使「有效并行、缩短最长分支」才被激励。
-- **结果**（§5，Table 4/6）：Agent Swarm 把 BrowseComp 从单 agent 的 60.6% 提到 **78.4%**（超过 GPT-5.2 Pro 的 77.9%）、WideSearch 72.7%→**79.0%**；WideSearch 上达到同一目标 Item-F1 的墙钟时间最多省 **4.5×**（Figure 8）。视觉/视频/文档理解多项为全表最优（论文加粗口径），如 LongVideoBench 79.8、LVBench 75.9、OCRBench 92.3、InfoVQA 92.6、HLE-with-tools 50.2。
-- **落地形态**：开源后训练 checkpoint；同时支持 thinking/instant 模式、chat/agent 形态（引言一句话带过，无实验）。适合场景：多模态 agent 应用（搜索、GUI 操作、文档/长视频理解、可并行分解的重型任务）；纯编码与纯推理赛道相对 Claude/GPT/Gemini 只是「接近」，不是领先（见「实验与证据」）。
-
----
-
-## 问题与动机
-
-### 顺序 agent 的瓶颈（§1、§3）
-
-现有 agentic 模型（含 Kimi K2-Thinking）本质是**串行**执行「思考→调工具→再思考」。步数可以做到几百步，但**推理时间是线性增长**：任务越复杂（大量信息搜集、多分支推理），延迟越不可接受；同时上下文不断累积，单个 agent 的推理深度与工具调用预算被耗尽。§3 开头把问题定义为：任务复杂度和异构性上来之后，串行范式同时撞上**延迟墙**和**上下文墙**。
-
-顺带给出了一个有用的视角（§5.2 末）：已有上下文管理手段（Hide-Tool-Result、Summary、Discard-all）都是**反应式**的——溢出后才压缩/丢弃历史，会牺牲结构信息与中间推理；Agent Swarm 想做的是**主动式上下文管理**（context sharding 而非 context truncation），长任务被拆成语义隔离的并行子任务，每个 subagent 有各自的局部上下文，只有任务相关输出回传 orchestrator。
-
-### 多模态「后融合」的代价（§2）
-
-主流做法是把视觉当作语言能力之上的**事后插件**（late fusion，在训练后段按 50%+ 比例注入视觉 token）。K2.5 的实验（Table 1、附录 B.1）给出相反的观察：固定总 token 预算时，早期、低比例的融合反而最强；晚融合在视觉数据刚引入时会出现文本能力的 **"dip-and-recover"**（先掉后恢复），作者解释为模态域漂移打断了已经成型的语言表征空间（附录 B.1，Figure 9）。
-
-附带问题：**预训练好的 VLM 不会自发地做视觉工具调用**（cold-start），而人工标注/提示工程构造的视觉 CoT 数据多样性差（局限于裁剪、旋转、翻转等原始操作）。
+- **解决什么问题**：串行 agent（思考→调工具→再思考）同时撞上延迟墙与上下文墙；把视觉当事后插件注入会打断已成型的语言表征；预训练好的 VLM 不会自发调用视觉工具。
+- **核心想法**：固定视觉-文本 token 总预算时，**早期融合 + 较低视觉比例**（消融最低一档 10%:90%）优于「后期注入 + 高比例」；后训练只用纯文本 SFT 点亮视觉工具使用（zero-vision SFT），再按**能力**而非模态组织联合多模态 RL；编排层用一个可训练 orchestrator 调度一组冻结 subagent。
+- **怎么做到**：PARL 奖励 = 任务结果分 + 子代理实例化奖励 + 子任务完成率奖励（后两项系数退火到 0）；预算按 **critical steps**（关键路径式步数）而非总步数计，使「有效并行、缩短最长分支」才被激励。
+- **关键结果**：BrowseComp 60.6→**78.4**（超过 GPT-5.2 Pro 的 77.9）、WideSearch 72.7→**79.0**，达到同一目标 Item-F1 的墙钟时间最多省 **4.5×**；视觉/文档/长视频多项全表最优（OCRBench 92.3、InfoVQA 92.6、LVBench 75.9、LongVideoBench 79.8、HLE w/ tools 50.2）。
+- **定位**：视觉与 agentic 搜索是强项；编码与纯推理只是「接近」Claude/GPT/Gemini，编码榜无一项最优。开源的是后训练 checkpoint，不是训练过程。
 
 ---
 
-## 方法与贡献
+## 问题
 
-论文结构上把贡献分为两块（§2 联合优化、§3 Agent Swarm），§4 给方法与基础设施，§5 给评测。下面按机制组织。
+### 串行 agent 的两堵墙
 
-### 1. 原生多模态预训练：早期融合 + 低视觉比例（§2.1、§4.3、附录 B）
+现有 agentic 模型（含 Kimi K2-Thinking）本质是**串行**执行「思考→调工具→再思考」。单次任务可以跑到几百步，但**推理时间随步数线性增长**：任务越复杂（大量信息搜集、多分支推理），延迟越不可接受；同时上下文不断累积，单个 agent 的推理深度与工具调用预算被逐步耗尽。§3 开头把问题定义为：任务复杂度与异构性上来之后，串行范式同时撞上**延迟墙**和**上下文墙**。
 
-消融设计（Table 1）：固定视觉+文本总 token 预算，对比三组「注入时点 × 视觉比例」——Early（训练 0% 处注入，10%:90%）、Mid（50% 处，20%:80%）、Late（80% 处，50%:50%）。测量 6 项能力：
+### 已有上下文管理都是「反应式」的
 
-| 配置 | 视觉知识 | 视觉推理 | OCR | 文本知识 | 文本推理 | 代码 |
-| --- | --- | --- | --- | --- | --- | --- |
-| Early，10:90 | **25.8** | **43.8** | **65.7** | **45.5** | 58.5 | **24.8** |
-| Mid，20:80 | 25.0 | 40.7 | 64.1 | 43.9 | **58.6** | 24.0 |
-| Late，50:50 | 24.2 | 39.0 | 61.5 | 43.1 | 57.8 | 24.0 |
+§5.2 末给出一个有用的视角：Hide-Tool-Result、Summary、Discard-all 这类手段都在上下文**溢出之后**才压缩或丢弃历史，属于反应式管理，代价是牺牲结构信息与中间推理。K2.5 想做的是**主动式上下文管理**——context sharding 而非 context truncation：长任务被拆成语义隔离的并行子任务，每个 subagent 只持有自己的局部上下文，只有任务相关输出回传 orchestrator。
 
-作者结论：「视觉比例本身影响很小，早期融合 + 低比例在固定预算下更好」。据此 K2.5 全程以恒定比例混合图文 token（§1：constant ratio throughout the entire training process；论文未给出生产配方中的具体比例，表中最低一档为 10:90）。
+### 多模态「后融合」的代价
 
-![Figure 9：不同融合时点/比例的预训练曲线](assets/fig9-joint-train-ablation.png)
+主流做法是把视觉当作语言能力之上的**事后插件**（late fusion，训练后段按 50%+ 比例注入视觉 token）。K2.5 的消融（Table 1、附录 B.1）给出相反观察：固定总 token 预算时，早期、低比例的融合反而最强；晚融合在视觉数据刚引入时会出现文本能力的 **"dip-and-recover"**（先掉后恢复），作者解释为模态域漂移打断了已经成型的语言表征空间。
 
-*Figure 9（arXiv:2602.02276v2，CC BY-NC-ND 4.0）：6 个子图（每图 3 条曲线，对应 10:90 / 20:80 / 50:50 三种配置）分别对应上表 6 项能力；据 §B.1 描述，文本三项（下排）中 Mid/Late 配置在视觉数据引入后出现先掉后升（"dip-and-recover"），Early（10:90）曲线最平稳。*
+### 视觉工具的冷启动
 
-**架构**（§4.2）：三件套 = MoonViT-3D 视觉编码器 + MLP projector + Kimi K2 MoE 语言模型。
-- 语言底座 = Kimi K2（1.04T 总参数 / **32B 激活** / 384 专家 / 每 token 激活 8 个 / sparsity 48），文本预训练 15T token，MuonClip 优化器 + QK-Clip；细节引 K2 技术报告。
-- MoonViT-3D：从 SigLIP-SO-400M 初始化，承接 Kimi-VL 的 native-resolution 路线与 NaViT 的 **patch n' pack** 策略（原分辨率切 patch、展平、拼成 1D 序列，从而混训不同分辨率）。视频方向把该思想推广到时间维：**最多 4 个连续帧打包成一个时空体积**，同一套注意力在时空上共用；过 MLP projector 前做**轻量时间池化**，得到 **4× 时间压缩**——同一上下文窗口内可处理 4× 长的视频，且图像/视频编码器**完全共享权重**、共享 embedding 空间，不需要专门的视频模块。
+预训练好的 VLM 不会自发做视觉工具调用；而人工标注或提示工程构造的视觉 CoT 数据多样性差，基本局限于裁剪、旋转、翻转这类原始操作。这构成后训练的第一个问题：怎样在没有高质量视觉轨迹的情况下把视觉推理「点亮」。
+
+### 本文的设定与前提
+
+- 底座是已经训好的 Kimi K2，不是从零开始的语言模型；
+- 视觉与文本在**预训练阶段**就共享一个表征空间（约 15T 图文 token），后训练才有资格只给纯文本数据。
+
+---
+
+## 核心想法
+
+### 一句话
+
+不改底座、不换强化学习算法，而是换三个「配方」：什么时候把视觉混进来、后训练按什么维度分域、以及把并行拆解本身变成可训练的动作。
+
+### 直觉一：早混比晚混好，因为表征空间还没定型
+
+late fusion 先在纯文本上把语言能力训好，再在后段注入 50%+ 的视觉 token。K2.5 的消融显示，视觉数据一进来，文本三项在 Mid/Late 配置上先掉再恢复（"dip-and-recover"）；Early（10:90）曲线最平稳。作者的解释是域漂移打断了已成型表征。换句话说：**表征空间的「地基」一旦按纯文本浇好，再掺另一个模态就要付重建成本**。全程恒定比例混合，代价是训练早期就要为视觉付算力，收益是没有这次重建。
+
+至于「低比例」，消融里 10:90 在六项能力上五项最高（文本推理 58.5 略低于 Mid 的 58.6），作者据此说「视觉比例本身影响很小」，真正起作用的是**注入时点**。这点证据强度有限（见后文），但方向明确：不必为了视觉能力把视觉 token 堆到 50%。
+
+### 直觉二：zero-vision SFT 能成立，靠预训练已经对齐
+
+后训练 SFT 阶段不放任何人工视觉轨迹，全部用纯文本数据；视觉操作通过 IPython 里的程序化操作代理完成（如用二值化估计物体尺寸、计数），相当于把裁剪/旋转这类专用视觉工具泛化成通用代码操作。作者的观察是：纯文本 SFT 就足以「点亮」视觉推理与工具使用，随后接视觉 RL，MMMU-Pro、MathVision、CharXiv(RQ)、OCRBench 一路上升（Figure 2）；反过来，「文本+视觉」混合 SFT 在视觉 agentic 任务上更差。
+
+成立的前提被作者写得很清楚：联合预训练已经建立了图文对齐，能力可以自然跨模态泛化。也就是说，zero-vision SFT 不是「文本数据更万能」，而是「对齐已经在预训练里付过费，后训练不必再付一次」。
+
+### 直觉三：并行不会自发出现，得塑形，还得防刷
+
+把任务交给 orchestrator 自由决定「自己干还是开 subagent」，RL 会收敛到最省事的局部最优：**serial collapse**，永远单 agent 干活。所以 PARL 在结果奖励之外加两项——鼓励实例化的 $r_{\text{parallel}}$ 与鼓励把子任务做完的 $r_{\text{finish}}$。但只鼓励并行又会诱导另一种奖励黑客：**spurious parallelism**，疯狂 spawn 但不做有意义的分解。两项辅助奖励都随训练退火到 0，最终只优化任务结果。
+
+真正让「并行必须有用」的是资源口径：预算按 critical steps 而不是总步数计。开一堆子任务但最长分支没变短，关键路径不变，收益接近零；只有**均衡的分解**才真正缩短关键路径。
+
+### 与已有做法的区别
+
+| 环节 | 常见做法 | K2.5 的做法 |
+| --- | --- | --- |
+| 视觉融合 | 后段注入、50%+ 视觉比例 | 全程恒定比例、早期注入、视觉占比低 |
+| 视觉后训练 | 人工视觉 CoT / 专用视觉工具轨迹 | zero-vision SFT + 程序化视觉操作 |
+| 多模态 RL 分域 | 按输入模态分域 | 按能力分域，每个域专家同时吃文本与多模态 |
+| 多智能体训练 | 端到端共优化所有 agent | 只训 orchestrator，subagent 冻结 |
+| 并行资源口径 | 总步数 / 总 token | critical steps（关键路径） |
+
+### 一个走通的账
+
+WideSearch 上「达到同一目标 Item-F1」的墙钟时间：目标从 30% 抬到 70% 时，单 agent 从约 1.7× 涨到约 7.2×，Agent Swarm 维持在 0.6×~1.6×，图上标注的节省倍数为 ×3.0/×3.0/×3.2/×3.7/×4.5。BrowseComp 上以步数为横轴时，达到 75% 准确率约需 200 步（Swarm）对约 780 步（Discard-all），约 3.8×。
+
+两个账说的是同一件事：收益不在「并行让单步更快」，而在**相同质量下把关键路径压短**。视频侧的 4× 时间压缩是同一逻辑的另一半——MoonViT-3D 把最多 4 个连续帧打包成一个时空体积、过 projector 前做轻量时间池化，于是同一上下文窗口能装 4× 长的视频。
+
+### 代价
+
+- **credit assignment 变粗**：只训 orchestrator，subagent 的好坏只能通过「任务成不成」间接体现，冻结策略的能力上限就是整套系统的上限。
+- **辅助奖励必须退火**：$\lambda_1,\lambda_2\to0$ 是设计的一部分，不退火最终策略会被代理指标带偏。
+- **上下文分片有信息损失**：子任务之间本可以互相启发的线索被隔离在各自局部上下文里，只能靠 orchestrator 汇总。
+
+---
+
+## 方法
+
+### 符号表
+
+| 符号 | 含义 | 维度 / 取值 |
+| --- | --- | --- |
+| $x$ | 一个任务或问题 | — |
+| $y$、$y_j$ | 任务输出/轨迹；式 (1) 中 $y_j$ 为第 $j$ 条采样回复 | — |
+| $K$ | 每个问题采样的回复条数 | 原文未给数值 |
+| $N$ | 式 (1) 中的归一化分母 | 原文未定义；按上下文理解为 token 级归一化常数 |
+| $i,j$ | 下标：$j$ 为回复序号，$i$ 为 token 位置（critical steps 中 $i$ 为 subagent 序号） | $i=1,\dots,\lvert y_j\rvert$ |
+| $y_j^{i}$、$y_j^{0:i}$ | 第 $j$ 条回复的第 $i$ 个 token、其之前的 token 前缀 | — |
+| $\pi_\theta$、$\pi_{\mathrm{old}}$ | 当前策略（参数 $\theta$）、采样时的旧策略 | — |
+| $\alpha,\beta$ | 式 (1) 中 log-ratio 的 clip 下界与上界 | 原文未给数值 |
+| $r(x,y)$ | 任务级奖励 | 标量 |
+| $\bar r(x)$ | batch 内平均奖励（基线） | 标量 |
+| $\tau$ | log-ratio 平方惩罚的系数 | 原文未给数值 |
+| $\mathcal{D}$ | RL 的问题分布 | — |
+| $r_{\mathrm{PARL}}$ | PARL 总奖励 | 标量 |
+| $r_{\text{perf}}$ | 任务级结果奖励（主目标） | 标量 |
+| $r_{\text{parallel}}$ | 子代理实例化奖励 | 标量 |
+| $r_{\text{finish}}$ | 子任务完成率奖励 | 标量 |
+| $\lambda_1,\lambda_2$ | 上两项奖励的系数，训练中退火到 0 | $\ge 0$ |
+| $T$ | 一个任务被分解的阶段数 | — |
+| $S_{\mathrm{main}}^{(t)}$ | 主 agent 在第 $t$ 阶段自身的步数 | 通常为 1 |
+| $S_{\mathrm{sub},i}^{(t)}$ | 第 $t$ 阶段第 $i$ 个 subagent 的步数 | — |
+| $\mathrm{CriticalSteps}$ | 关键路径式累计步数 | 预算与评测口径 |
+| $B$ | 式 (2) 给出的 token 预算 | 标量，训练开始时固定 |
+| $\rho$ | 式 (2) 取分位数的分位点 | 原文未给数值 |
+| $\lambda$ | Toggle Phase 0 施加预算约束的平均正确率阈值 | 原文未给数值 |
+| $m$ | Toggle 两种模式的切换间隔（迭代数） | 原文未给数值 |
+
+### 数据流：三件套 + 三阶段
+
+**架构**（§4.2）：MoonViT-3D 视觉编码器 + MLP projector + Kimi K2 MoE 语言模型。语言底座是 Kimi K2（1.04T 总参数 / 32B 激活 / 384 专家 / 每 token 激活 8 个 / sparsity 48），文本预训练 15T token，优化器 MuonClip + QK-Clip。
+
+MoonViT-3D 从 SigLIP-SO-400M 初始化，承接 Kimi-VL 的 native-resolution 路线与 NaViT 的 **patch n' pack**（原分辨率切 patch、展平、拼成 1D 序列，从而混训不同分辨率）。视频方向把该思想推到时间维：**最多 4 个连续帧打包成一个时空体积**，同一套注意力在时空上共用；过 MLP projector 前做**轻量时间池化**，得到 4× 时间压缩。图像与视频编码器完全共享权重与 embedding 空间，没有专门的视频模块。
+
+![Figure 3：Agent Swarm 架构](assets/fig3-agent-swarm-arch.png)
+
+*Figure 3：orchestrator（左，工具含 create_subagent / assign_task / search / browser）动态创建领域 subagent，再把任务切成并行子任务分派（图中示例一次分派 100 个子任务）。*
 
 **三阶段预训练**（Table 3）：
 
@@ -76,216 +149,131 @@
 | token 量 | 1T | 15T | 500B → 200B |
 | 训练部分 | ViT | ViT & LLM | ViT & LLM |
 
-细节：ViT 阶段只保留**交叉熵 caption loss**（相比 Kimi-VL 去掉了对比损失），两小步——先对齐到 Moonlight-16B-A3B（约 1T token），再用很短一阶段只训 MLP projector 去桥接 1T LLM；联合预训练从「接近训练末端的 K2 checkpoint」续训 15T 图文 token（4K 序列长度）；第三阶段用 YaRN 逐段外推上下文（32K→256K），并混入更高质量 mid-training 数据。
+ViT 阶段只保留交叉熵 caption loss（相比 Kimi-VL 去掉对比损失），先对齐到 Moonlight-16B-A3B（约 1T token），再用很短一阶段只训 MLP projector 桥接 1T LLM；联合预训练从「接近训练末端的 K2 checkpoint」续训 15T 图文 token；第三阶段用 YaRN 逐段外推 32K→256K，并混入更高质量 mid-training 数据。
 
-### 2. Zero-Vision SFT：只用文本 SFT 激活视觉能力（§2.2）
-
-做法：后训练 SFT 阶段**不放任何人工视觉轨迹**，全部用纯文本 SFT 数据；视觉操作通过 IPython 里的程序化操作代理（如用二值化估计物体尺寸、计数），相当于把传统视觉工具（裁剪/旋转）泛化成通用代码操作。作者的观察（只有定性描述，见「局限」）：
-- 纯文本 SFT 就足以「点亮」视觉推理与工具使用；配合后续视觉 RL，视觉基准指标持续上升（Figure 2，下）；
-- 相反，「文本+视觉」混合 SFT 在视觉 agentic 任务上**更差**，作者归因于缺乏高质量视觉数据——因为联合预训练已经建立了图文对齐，能力可以自然跨模态泛化。
-
-![Figure 2：从 zero-vision SFT 出发的视觉 RL 曲线](assets/fig2-zero-vision-rl.png)
-
-*Figure 2：从 minimal zero-vision SFT 起点做视觉 RL。像素测量曲线首末点：MMMU-Pro ≈0.71→0.76、MathVision ≈0.70→0.78、CharXiv(RQ) ≈0.63→0.77、OCRBench ≈0.79→0.91。*
-
-### 3. 联合多模态 RL：按能力组织，跨模态互惠（§2.3、§4.4.2）
-
-- **视觉 RL 的任务域**：visual grounding & counting；chart/document understanding；vision-critical STEM（明确需要视觉输入才可解）。用 outcome-based（可验证结果）奖励，产生的轨迹再喂给拒绝采样微调（RFT），形成自改进数据管线。
-- **跨模态迁移**（Table 2）：视觉 RL 之后文本指标不降反升——MMLU-Pro +1.7、GPQA-Diamond +2.1、LongBench v2 +2.2。作者的机制解释（标为"Analysis suggests"，非实验证明）：视觉 RL 提升了「结构化信息抽取类」问题的校准，降低了类似视觉化推理（计数、OCR）查询上的不确定性。
-- **联合 RL 的组织原则**：不按输入模态分域，而**按能力分域**（knowledge、reasoning、coding、agentic…），每个域专家同时吃纯文本与多模态查询，GRM 也跨模态统一优化，从而让任一模态上学到的能力天然迁移到另一模态。
-
-### 4. Agent Swarm 与 PARL（§3）
-
-架构（Figure 3）：**可训练 orchestrator + 冻结 subagent**（subagent 从固定的中间策略 checkpoint 实例化）。刻意**不做端到端共优化**，理由是两条：credit assignment 模糊（结果对不代表每个 subagent 都对，错也不代表全错）与训练不稳定；把 subagent 输出当作环境观测而非可微决策点，只更新 orchestrator。
-
-![Figure 3：Agent Swarm 架构](assets/fig3-agent-swarm-arch.png)
-
-*Figure 3：Orchestrator（左，工具含 create_subagent / assign_task / search / browser）动态创建领域 subagent（AI/Physics/Life-Sciences/Anthropology Researcher、Fact Checker、Web Developer…），再把任务切成并行子任务分派（图中示例一次分派 100 个子任务）。*
-
-**PARL 奖励**（§3，原文该式未编号）：
+### PARL 奖励（原文该式未编号）
 
 ```math
-r_{\mathrm{PARL}}(x,y)=\lambda_1 \cdot r_{\text{parallel}} + \lambda_2 \cdot r_{\text{finish}} + r_{\text{perf}}(x,y)
+r_{\mathrm{PARL}}(x,y)=\lambda_1\, r_{\text{parallel}}+\lambda_2\, r_{\text{finish}}+r_{\text{perf}}(x,y)
 ```
 
-- $r_{\mathrm{perf}}$：任务级结果奖励（主目标）；
-- $r_{\mathrm{parallel}}$：实例化奖励，对抗 **serial collapse**（局部最优：总是单 agent 干活）；
-- $r_{\mathrm{finish}}$：子任务完成率，对抗 **spurious parallelism**（奖励黑客：疯狂 spawn subagent 但不做有意义的分解）；
-- $\lambda_{1}$、$\lambda_{2}$ 随训练**退火到 0**，保证最终只优化主目标。
+**逐项读法**
 
-**Critical steps 资源约束**（§3）：把「并行组里最慢的那个 subagent」当作该阶段时长，总步数按关键路径累计：
+- $r_{\text{perf}}$：任务级结果奖励，是唯一贯穿全程的主目标；其余两项都是塑形项。
+- $r_{\text{parallel}}$：奖励「确实实例化了子代理」。没有它，orchestrator 会收敛到 serial collapse（永远自己干）。
+- $r_{\text{finish}}$：奖励子任务被真正完成，而不是开出来就丢。没有它，策略会学会 spawn 一堆 subagent 刷实例化奖励（spurious parallelism）。
+- $\lambda_1,\lambda_2$：随训练退火到 0，保证最终策略只对任务结果负责；退火速率原文未给。
+
+这一项的设计关键不在权重，而在「两个塑形项方向相反」——一个推着多开，一个推着做完，中间的可行域才是「有意义的分工」。
+
+### Critical steps 资源约束（原文该式未编号）
 
 ```math
-\text{CriticalSteps}=\sum_{t=1}^{T}\Big(S_{\mathrm{main}}^{(t)}+\max_i S_{\mathrm{sub},i}^{(t)}\Big)
+\mathrm{CriticalSteps}=\sum_{t=1}^{T}\Big(S_{\mathrm{main}}^{(t)}+\max_i S_{\mathrm{sub},i}^{(t)}\Big)
 ```
 
-其中 $S_{\mathrm{main}}^{(t)}$ 是主 agent 在第 $t$ 阶段自己的步数（通常为 1），$S_{\mathrm{sub},i}^{(t)}$ 是第 $i$ 个 subagent 的步数。以 critical steps 而非总步数计预算/评测，意味着「狂开子任务但没缩短最长分支」几乎没有收益，只有**均衡的分解**能真正降低关键路径——这是全文里我认为最精巧的设计：奖励结构使得「并行」必须是有信息价值的。
+**逐项读法**
 
-**Prompt 构造**：合成两类压力 prompt——wide search（许多独立信息源的并行探索）与 deep search（多推理分支+延迟聚合），外加真实工作负载（长文档分析、大批量下载）；**不显式要求并行**，只让任务分布在串行预算下天然完不成，从而让「并行分解」在 RL 探索中自发出现。
+- $T$：任务被分解出的阶段数；每个阶段包含主 agent 的一步决策与它派发的一批子任务。
+- $S_{\mathrm{main}}^{(t)}$：主 agent 在第 $t$ 阶段自己的步数，通常为 1（想清楚怎么拆、派发、收结果）。
+- $\max_i S_{\mathrm{sub},i}^{(t)}$：该阶段里最慢那个 subagent 的步数。取最大值而非求和，等价于把并行组当成整体、按最长分支计时。
+- 外层求和：各阶段串行叠加，得到整条关键路径。
 
-**训练与实现**：先用小尺寸 subagent 训 orchestrator，再过渡到大模型；RL 框架支持动态调整 subagent 与 orchestrator 的推理实例配比。训练动态（Figure 4，像素测量）：训练准确率由 ~37% 平滑升至 ~64%（散点范围约 36%~67%）；平均并行度从 ~8.4 起步、中段回落到 ~7.5 后再度攀升，末段达 ~14.3（散点最低 6.8、末点 13.9）。
+以总步数计预算时，「开 100 个子代理、每个 2 步」和「开 2 个子代理、各 100 步」代价相近；以 critical steps 计时，前者便宜、后者贵。于是奖励结构迫使策略寻找**均衡的分解**——只有把工作切得足够均匀、让最长分支真正变短，预算才会下降。
 
-![Figure 4：PARL 训练动态](assets/fig4-parl-training.png)
-
-*Figure 4：左=训练准确率随 RL flops 上升（轴标注为 RL flops）；右=平均并行度随训练上升，中段有回落。*
-
-**工具接口**（附录 E.8，原文 prompt 摘录）：`create_subagent(name, system_prompt)` 与 `assign_task(agent, prompt)`；步数预算：BrowseComp orchestrator≤15 步、subagent≤100 步；WideSearch 均为 100；In-house Bench orchestrator≤100、subagent≤50。
-
-### 5. 后训练 RL 算法与 token 效率（§4.4.2）
-
-**目标函数**（式(1)）：对每个问题采 $K$ 条回复，逐 token 计算：
+### 后训练 RL 目标（原文 Eq (1)）
 
 ```math
-L_{\mathrm{RL}}(\theta)=\mathbb{E}_{x\sim\mathcal{D}}\Big[\frac{1}{N}\sum_{j=1}^{K}\sum_{i=1}^{|y_j|}\mathrm{Clip}\big(\tfrac{\pi_\theta(y_j^i|x,y_j^{0:i})}{\pi_{\mathrm{old}}(y_j^i|x,y_j^{0:i})},\alpha,\beta\big)\,(r(x,y_j)-\bar r(x))-\tau\big(\log\tfrac{\pi_\theta}{\pi_{\mathrm{old}}}\big)^2\Big]
+L_{\mathrm{RL}}(\theta)=\mathbb{E}_{x\sim\mathcal{D}}\Big[\frac{1}{N}\sum_{j=1}^{K}\sum_{i=1}^{|y_j|}\mathrm{Clip}\Big(\frac{\pi_\theta(y_j^i\mid x,y_j^{0:i})}{\pi_{\mathrm{old}}(y_j^i\mid x,y_j^{0:i})},\alpha,\beta\Big)\big(r(x,y_j)-\bar r(x)\big)-\tau\big(\log\tfrac{\pi_\theta}{\pi_{\mathrm{old}}}\big)^2\Big]
 ```
 
-关键点：Clip 是**基于 log-ratio 的梯度掩码**（比值在 $[\alpha, \beta]$ 外的 token 梯度置零，不看 advantage 符号，区别于 PPO），用于抑制训练/推理框架不一致带来的 off-policy 漂移；另加 $\tau\cdot (\log-ratio)^{2}$ 惩罚项。$\bar{r}$ 为 batch 内平均奖励（类似 GRPO 的基线）。作者称该机制对长程多步工具使用推理的稳定性是必需的；优化器仍用 MuonClip。
+**逐项读法**
 
-**奖励构成**：可验证任务用规则奖励；另加 budget-control 奖励鼓励 token 效率；通用任务用 **GRM**（多种 rubric：helpfulness、response readiness、contextual relevance、细节程度、产物美观度、严格指令遵循；多套 rubric 并存以抗 reward hacking）；视觉任务专用奖励 = grounding 用 IoU 软匹配 F1、点定位用高斯加权距离、多边形分割栅格化后算 IoU、OCR 用归一化编辑距离、计数用绝对差；视觉谜题用 Kimi K2 当 LLM verifier。
+- 外层 $\mathbb{E}_{x\sim\mathcal{D}}$：对问题分布采样；内层对每题 $K$ 条回复、每条回复的每个 token 求和，再除以 $N$。
+- $\pi_\theta(y_j^i\mid x,y_j^{0:i})/\pi_{\mathrm{old}}(\cdot)$：逐 token 的重要性比，衡量当前策略相对采样策略在这一步偏移了多少。
+- $\mathrm{Clip}(\cdot,\alpha,\beta)$：把比值截到 $[\alpha,\beta]$。原文的用法是**基于 log-ratio 的梯度掩码**：比值落在区间外的 token 梯度置零，**不看 advantage 的符号**——这与 PPO 的 clip 不同（PPO 按 advantage 符号只裁一侧）。目的是抑制训练与推理框架不一致带来的 off-policy 漂移。
+- $r(x,y_j)-\bar r(x)$：序列级 advantage，用 batch 内平均奖励做基线（类似 GRPO）。
+- $-\tau(\log\frac{\pi_\theta}{\pi_{\mathrm{old}}})^2$：对 log-ratio 的平方惩罚，把策略拉在采样策略附近；$\tau$ 原文未给数值。
 
-**Toggle：token 效率与推理能力的双目标交替优化**（§4.4.2）：
+作者称这套机制对长程多步工具使用推理的稳定性是必需的；优化器仍用 MuonClip。
 
-- 动机：刚性 token 预算训练会**长度过拟合**——模型学不会在更高算力下花更多 token 解题；
-- 机制：每 $m$ 次迭代在两种模式间切换。Phase 0（预算受限）：仅在**该题平均正确率超过阈值 $\lambda$** 时才施加预算约束；Phase 1（标准缩放）：只给最大 token 上限，鼓励用推理时算力换质量；
-- 预算 = $\operatorname{Percentile}(\{|y_{j}| : r(x,y_{i})=1\}, \rho)$（原文式(2)），即**正确回复** token 长度的 $\rho$ 分位数，训练开始时算一次后固定；
-- 实测（在 **K2 Thinking** 上，Figure 5 及对应正文）：输出长度平均降 **25~30%**，性能影响可忽略；只在数学/代码上训的模型在 GPQA、MMLU-Pro 上也有 token 降幅（域泛化）。
+### Toggle：token 效率与推理能力的交替优化（原文 Eq (2)）
 
-### 6. 训练基础设施（§4.5、附录 C、D）
+**动机**：刚性 token 预算训练会造成**长度过拟合**——模型学不会在更高算力下花更多 token 解题，因为训练里从没允许它这么做。
 
-- **Decoupled Encoder Process（DEP）**：多模态训练中视觉编码器若与文本 embedding 同放 PP Stage-0，会因图片数量/分辨率波动造成负载与峰值内存剧烈波动，被迫定制 PP 配置。DEP 利用编码器「前向起点、反向终点」的拓扑位置，把每个训练步拆成三步：① Balanced Vision Forward——编码器小，**在所有 GPU 上复制**、按负载（图片/patch 数）均摊全局 batch 的视觉前向，丢弃中间激活只留最终输出，结果 gather 回 Stage-0；② Backbone Training——主 transformer 的前反向，此时可完全复用纯文本训练已验证的并行策略，梯度累积在编码器输出处；③ Vision Recomputation & Backward——重算编码器前向并反传求其参数梯度。收益：负载均衡 + 编码器与主干优化解耦，多模态训练效率达纯文本的 **90%**。
-- **并行配置**（附录 C）：NVIDIA H800 集群，节点间 8×400 Gbps RoCE；16-way PP（虚拟 stage）+ 16-way EP + ZeRO-1 DP，节点数须为 32 的倍数；EP all-to-all 用交错 1F1B 与计算重叠；LayerNorm/SwiGLU/MLA up-projection 做选择性重算，不敏感激活压到 FP8-E4M3，其余 offload 到 CPU 并重叠传输。
-- **Agentic RL 环境**（附录 D）：Gym 风格接口；插件化 Toolset / Judge / prompt 模块；每个 agent 任务是一个异步协程，可递归触发子任务 rollout（天然支持 PARL、Agent-as-Judge）；Rollout Manager 单次 RL 最多编排 **100,000 个并发任务**，支持 partial rollout；严格 **Token-in-Token-out** 并记录 log-prob 做训推不一致校正；黑盒环境经 LLM Gateway 代理。
-- **数据侧**（附录 C.1）：原生格式存视觉数据 + 对象存储；支持动态 shuffle/混合/tokenize/loss mask/packing、几何变换下保持 2D 坐标与朝向元数据、完全确定性可断点续训。
+**机制**：每 $m$ 次迭代在两种模式间切换。Phase 0（预算受限）只在**该题平均正确率超过阈值 $\lambda$** 时才施加预算约束；Phase 1（标准缩放）只给最大 token 上限，鼓励用推理时算力换质量。预算定义为：
 
-```mermaid
-flowchart LR
-  A["Balanced Vision Forward<br/>编码器全 GPU 复制·均摊负载<br/>丢中间激活·只留输出"] --> B["Backbone Training<br/>主 transformer 前反向<br/>复用纯文本并行策略"]
-  B --> C["Vision Recomputation & Backward<br/>重算编码器前向<br/>反传编码器参数梯度"]
+```math
+B=\operatorname{Percentile}\big(\{|y_j| : r(x,y_i)=1\},\rho\big)
 ```
 
-*DEP 三步流程（依据 §4.5.1 正文自绘，非原文插图）。*
+**逐项读法**
+
+- $\{|y_j|\}$：回复的 token 长度集合；条件 $r(x,y_i)=1$ 只保留**答对**的回复（原文该式左侧下标为 $y_j$、条件里为 $y_i$，按上下文理解为同一条正确回复）。
+- $\rho$：取哪个分位数，即「正确回复里第 $\rho$ 分位的长度」作为预算；原文未给数值。
+- $B$：训练开始时算一次后固定的预算值，不随训练动态调整。
+
+实测在 **K2 Thinking** 上（不是 K2.5）：输出长度平均降 **25~30%**，性能影响可忽略；只在数学/代码上训练时，模型在 GPQA、MMLU-Pro 上也有 token 降幅（域泛化）。
+
+### 结构差异：与已有做法的三处不同
+
+- **融合**：不是「先语言后视觉」，而是固定总预算下全程恒定比例、早期注入、低视觉占比；视觉编码器与语言主干共享一个 embedding 空间，不需要单独的视频模块。
+- **编排**：不是端到端共优化多智能体，而是**可训练 orchestrator + 冻结 subagent**。理由是 credit assignment 模糊（结果对不代表每个 subagent 都对，错也不代表全错）与训练不稳定；subagent 输出被当作环境观测而非可微决策点。
+- **clip**：不是 PPO 的单侧 clip，而是按 log-ratio 的双侧梯度掩码加平方惩罚，针对的是训推框架不一致而非纯策略更新幅度。
+
+### 训练与实现要点
+
+- **配方顺序**：ViT 对齐 → 15T 图文联合预训练 → 长上下文 mid-training → zero-vision SFT → 按能力分域的联合多模态 RL（含 Toggle 的 token 效率控制）。
+- **Agent Swarm 训练**：先用小尺寸 subagent 训 orchestrator，再过渡到大模型；RL 框架支持动态调整 subagent 与 orchestrator 的推理实例配比。工具接口只有两个：`create_subagent(name, system_prompt)` 与 `assign_task(agent, prompt)`（附录 E.8）。
+- **步数预算**：BrowseComp orchestrator≤15 步、subagent≤100 步；WideSearch 均为 100；In-house Bench orchestrator≤100、subagent≤50。orchestrator 的步数远少于 subagent，职责是「想清楚怎么拆」而不是「自己干」。
+- **Prompt 构造**：合成 wide search（许多独立信息源的并行探索）与 deep search（多推理分支 + 延迟聚合）两类压力 prompt，外加真实工作负载（长文档分析、大批量下载）；**不显式要求并行**，只让任务在串行预算下天然完不成，让并行分解在 RL 探索中自发出现。
+- **多模态训练基础设施**：Decoupled Encoder Process（DEP）把每个训练步拆成「视觉前向（编码器复制到所有 GPU、均摊负载、只留输出）→ 主干训练 → 视觉重算与反传」三步，多模态训练效率达纯文本的 90%（细节见 `audit.md`）。
 
 ---
 
-## 实验与证据
+## 主要结果
 
-### 评测配置（§5.1.1、附录 E）
+**设置**（§5.1.1、附录 E）：默认 temperature 1.0、top-p 0.95、上下文 256k；推理类最长 completion 96k；方差大的任务多次平均（AIME/HMMT Avg@64、GPQA Avg@8、图像/视频 Avg@3、编码 Avg@5）。视频短片段 128 帧，长视频 **2048 帧 / 448 分辨率**。对照模型取各家高性能推理配置（Claude 扩展思考、GPT-5.2 xhigh、Gemini 3 Pro high、DeepSeek-V3.2 thinking、Qwen3-VL thinking）；带 `*` 的为作者复测。
 
-- 默认：temperature 1.0，top-p 0.95，上下文 256k；推理类最长 completion 96k；答案方差大的用多次平均——AIME/HMMT Avg@64、GPQA Avg@8、图像/视频 Avg@3、编码 Avg@5、Seal-0 与 WideSearch Avg@4。
-- 视频采样：短视频（VideoMMMU/MMVU/MotionBench）128 帧、空间分辨率最高 896；长视频（Video-MME/LongVideoBench/LVBench）**2048 帧**、448 分辨率——这是论文「超 2000 帧」说法的来源。
-- 对照模型均取各家高性能推理配置（Claude 扩展思考、GPT-5.2 xhigh、Gemini 3 Pro high、DeepSeek-V3.2 thinking、Qwen3-VL thinking）；带 `*` 的数字是作者**自行复测**，其余取自公开报告/榜单。
-- 若干对结果解读重要的评测条件（附录 E.2/E.3/E.5/E.6/E.7/E.9）：
-  - **GPT-5.2 在视觉评测中约 10% 请求失败**（重试 3 次无输出），失败计为错答——作者自己声明 GPT-5.2 视觉分数可能是保守下界；GPT-5.2 API 不稳定，WideSearch 等昂贵评测被跳过。
-  - 编码类评测：SWE-Bench 三个变体的**峰值出现在 non-thinking 模式**；Terminal Bench 2.0 也跑在 non-thinking（因为 thinking 模式的上下文管理与 Terminus-2 的会话状态处理不兼容）。
-  - BrowseComp 有/无上下文管理两套设置；HLE 工具版用 Hide-Tool-Result 策略；GPT-5.2 的 65.8 为公开报告值（Table 4 中不带 `*`，非作者复测）。
-  - LongBench v2：输入统一截断到约 128k；因 GPT-5.2-xhigh 不遵守多选题输出格式，改报 GPT5.2-high 的结果（Table 4 的 54.5\*）。
-  - OSWorld 中 Claude Opus 4.5 **只给 computer-use 工具**（不含 browser tools），偏离其 System Card 配置；WebArena 用 GPT-4o 判分；GDPVal-AA 引用 Artificial Analysis 官方榜单，截至 2026-01-28。
-  - Computer-use 通用口径：`max_steps_per_episode=100`、temperature 0（OSWorld）/ 0.1（WebArena）、所有模型 one-shot、agent 上下文含最近 3 张历史图像。
+**读数口径**：编码类分数取 non-thinking 模式（SWE 三个变体的峰值出现在该模式，Terminal Bench 2.0 因 thinking 模式的上下文管理与会话状态处理不兼容也跑 non-thinking），与 thinking 模式的对照模型不完全同口径。
 
-### 主结果（Table 4，K2.5 列）
+| 任务 | 单 agent | Agent Swarm | 同表最强对照 |
+| --- | ---: | ---: | --- |
+| BrowseComp | 60.6（有上下文管理 74.9） | **78.4** | GPT-5.2 Pro 77.9；GPT-5.2 单 agent 65.8 |
+| WideSearch | 72.7 | **79.0** | — |
+| In-house Swarm Bench | 41.6 | **58.3** | 内部基准，无公开对照 |
+| WideSearch 达目标 Item-F1 的墙钟 | 约 1.7×→7.2× | 约 0.6×→1.6× | 目标 30%→70%，最多省 4.5× |
 
-| 能力域 | 代表分数 | 同表对照 |
-| --- | --- | --- |
-| 推理/知识 | HLE-Full 30.1（无工具；文本子集 31.5、图像子集 21.3）；HLE w/ tools **50.2**；AIME 2025 96.1；HMMT Feb 95.4；IMO-AnswerBench 81.8；GPQA-D 87.6；MMLU-Pro 87.1；SimpleQA Verified 36.9；AdvancedIF 75.6；LongBench v2 61.0 | GPT-5.2：AIME 100、GPQA 92.4、HLE 34.5；Gemini 3 Pro：HLE 37.5、MMLU-Pro 90.1、SimpleQA 72.1。K2.5 仅在 **HLE w/ tools** 一项为全表最优 |
-| 编码/软件工程 | SWE-bench Verified 76.8；SWE-bench Pro 50.7；SWE-bench Multilingual 73.0；Terminal Bench 2.0 50.8；PaperBench 63.5；CyberGym 41.3；SciCode 48.7；OJBench 57.4；LiveCodeBench v6 85.0 | Claude Opus 4.5：SWE-V 80.9、Terminal 59.3、PaperBench 72.9、CyberGym 50.6；Gemini 3 Pro：SciCode 56.1、LiveCodeBench 87.4。**K2.5 在编码榜无一项最优**，属于「有竞争力的第二梯队」 |
-| Agentic 搜索 | BrowseComp 60.6（有 ctx 管理 74.9；Agent Swarm **78.4**）；WideSearch 72.7（Swarm **79.0**）；DeepSearchQA **77.1**；FinSearchComp T2&T3 **67.8**；Seal-0 **57.4**；GDPVal-AA 41.0 | 单 agent 口径下 BrowseComp 低于 GPT-5.2 的 65.8；上 Swarm 后反超（GPT-5.2 Pro 77.9）。DeepSearchQA/FinSearchComp/Seal-0 均全表最优 |
-| 图像理解 | MMMU-Pro 78.5；CharXiv(RQ) 77.5；MathVision 84.2；MathVista **90.1**；SimpleVQA **71.2**；WorldVQA 46.3；ZeroBench 9 / w/ tools 11；BabyVision 36.5；BLINK **78.9**；MMVP 87.0；OmniDocBench 1.5 **88.8**；OCRBench **92.3**；InfoVQA **92.6** | Gemini 3 Pro 在 MMMU-Pro 81.0、MathVision 86.1、BabyVision 49.7、MMVP 90.0 领先（多为基础感知/学科题）；K2.5 的强项是 OCR/文档/图表与部分知识题 |
-| 视频理解 | VideoMMMU 86.6；MMVU 80.4；MotionBench **70.4**；Video-MME 87.4；LongVideoBench **79.8**；LVBench **75.9** | Gemini 3 Pro 在 VideoMMMU 87.6、Video-MME 88.4 领先，GPT-5.2 在 MMVU 80.8 领先；但长视频两项（>2000 帧）K2.5 拉开差距（LVBench 75.9 vs 73.5\*；LongVideoBench 79.8 vs 77.7\*） |
-| Computer use | OSWorld-Verified 63.3；WebArena 58.9 | Claude Opus 4.5 66.3 / 63.4 领先；K2.5 大幅领先 Qwen3-VL（38.1）与 OpenAI Operator（42.9 / 58.1） |
+**表外两点**：BrowseComp 上达到 75% 准确率约需 200 步（Swarm）对约 780 步（Discard-all），约 3.8×，且 Swarm 的准确率上限更高（末段约 78.4% vs 75.0%）；Figure 6 的词云显示实际涌现出的 subagent 类型（Biography Researcher、Timeline Researcher、Cross Reference Analyst 等）是学出来的，不是预定义的。
 
-论文加粗（global SOTA）的 K2.5 项集中在：HLE w/ tools、BrowseComp（三种口径）、WideSearch(Swarm)、DeepSearchQA、FinSearchComp、Seal-0、MathVista(mini)、SimpleVQA、ZeroBench（与 GPT-5.2 并列）、BLINK、OmniDocBench、OCRBench、InfoVQA、MotionBench、LongVideoBench、LVBench。**摘要「在编码、视觉、推理、agentic 各域取得 SOTA」的措辞比表格呈现的更强**：编码与纯推理没有加粗项（解读/核对结论，非作者原话）。
-
-### Agent Swarm 的证据（Table 6、Figure 7/8）
-
-- 性能：BrowseComp 78.4（单 agent 60.6，+17.8 绝对）、WideSearch 79.0（72.7，+6.3）、In-house Swarm Bench 58.3（41.6；该基准含 WildSearch、Batch Download、WideRead（>100 文档）、Long-Form Writing（>100k 词）四个域）。
-- 延迟：WideSearch 上「达到同一目标 Item-F1」的墙钟时间，目标从 30%→70% 时单 agent 从 ~1.7× 涨到 ~7.2×，Swarm 则维持 0.6×~1.6×（像素测量 ≈0.6×→1.6×，与原文口径一致）；图上标注的节省倍数为 ×3.0/×3.0/×3.2/×3.7/×4.5，对应 30%/40%/50%/60%/70% 目标点（Figure 8）。
-- 上下文管理对比：Figure 7 在 BrowseComp 上比较 Agent Swarm 与 Discard-all，x 轴为 log(steps)（10²–10³ 步；正文表述为 critical steps）。同等性能下 Swarm 所需步数显著更少——达到 75% 时约 200 步 vs 约 780 步（像素测量，约 3.8×），且准确率上限更高（图中末段读数约 78.4% vs 75.0%，与 Table 4 的 78.4/74.9 一致）。
-- 动态性：Figure 6 词云显示实际涌现出的异质 subagent 类型（Biography Researcher、Verification Specialist、Timeline Researcher、Cross Reference Analyst、Historical Researcher…），说明专业化是学出来的而非预定义。
-
-![Figure 8：达到目标 Item-F1 所需执行时间](assets/fig8-exec-time.png)
-
-*Figure 8：WideSearch 上达到同一目标 Item-F1 的执行时间；红=单 agent，蓝=Agent Swarm，标注为各目标点的节省倍数。*
-
-### 证据强度与内部一致性检查（解读，非作者结论）
-
-- §1 说 WideSearch item-F1「从 **72.8%** 到 79.0%」，而 §5.2 与 Table 6 均为 **72.7%**——引言与正文/表格不一致，按表格应以 72.7 为准。
-- §5.1.2 称 ZeroBench「9% 和 11% 大幅领先竞品」（substantially ahead of competing models），但同表 Gemini 3 Pro **有工具版 12% 高于 K2.5 的 11%**（无工具版 8% 低于 K2.5，GPT-5.2 无工具版 9% 与之并列）——「大幅领先」的表述与自家表格不符。
-- 引言（§1）强调「视觉到代码生成（image/video-to-code）SOTA」（摘要未提此项，只说「在各域取得 SOTA」），但这一项**不在 Table 4**，只说是「internal evaluations」，无公开数字与基准名。
-- Toggle 的有效性实验在 **K2 Thinking** 上做（Figure 5），不是 K2.5；Table 5 只是 K2.5 与 K2 Thinking/Gemini/DeepSeek 的推理 token 用量横向对比，未声明 K2.5 训练中是否/如何应用 Toggle。
+1. **并行编排本身是能力来源，不只是加速手段**：单 agent 口径下 BrowseComp 60.6 低于 GPT-5.2 的 65.8；上 Agent Swarm 后 78.4 反超 GPT-5.2 Pro 的 77.9。同一底座、同一工具，差别只在「能不能把任务拆开并行做」。
+2. **视觉、文档与长视频是强项区**：OCRBench 92.3、InfoVQA 92.6、OmniDocBench 1.5 88.8、MathVista 90.1、BLINK 78.9；长视频 LVBench 75.9、LongVideoBench 79.8（2048 帧设置下与 Gemini 3 Pro 的差距拉开）。Gemini 3 Pro 仍在基础感知与学科题上领先（MMMU-Pro 81.0、MathVision 86.1、BabyVision 49.7、MMVP 90.0）。
+3. **编码与纯推理只是「接近」**：SWE-bench Verified 76.8、Terminal Bench 2.0 50.8、PaperBench 63.5 均低于 Claude Opus 4.5（80.9 / 59.3 / 72.9）；AIME 2025 96.1、GPQA-D 87.6 低于 GPT-5.2（100 / 92.4），MMLU-Pro 87.1 低于 Gemini 3 Pro 的 90.1。编码榜无一项最优，无工具的推理项也没有加粗。
+4. **联合优化的收益是双向的**：视觉 RL 之后文本指标不降反升（MMLU-Pro 84.7→86.4、GPQA-Diamond 84.3→86.4、LongBench v2 56.7→58.9）；但这是训练中途快照，机制只有「Analysis suggests」级别的解释。
+5. **效率是设计目标而非副产品**：MoonViT-3D 的 4× 时间压缩让长视频进同一上下文；critical steps 让 Swarm 的收益体现为墙钟（最多 4.5×）。反过来，token 用量对比里 K2.5 每一行都比 Gemini-3.0 Pro / DeepSeek-V3.2 更多，说明分数有一部分来自更长的推理。
+6. **搜索子榜与工具增强推理同样领先**：DeepSearchQA 77.1、FinSearchComp T2&T3 67.8、Seal-0 57.4 均为全表最优；推理/知识行里 K2.5 唯一的全表最优项是 HLE w/ tools 50.2（无工具版 30.1 不是）。
 
 ---
 
-## 工程视角
+## 边界与局限
 
-### 复现与使用要点
+**作者承认**：
 
-- 权重已开源（HF `moonshotai/Kimi-K2.5`，仅后训练 checkpoint），底座 K2 的架构/训练细节需查 K2 技术报告；MoonViT 部分从 SigLIP-SO-400M 初始化。
-- 若复刻 Agent Swarm 形态，最小接口就是两个工具：`create_subagent(name, system_prompt)` 与 `assign_task(agent, prompt)`（schema 见附录 E.8）；系统提示词骨架也给了（E.6 研究型 / E.8 swarm 型 / E.7 GUI agent 型）。步数预算是重要产品参数：orchestrator 步数少（15~100）、subagent 步数多（50~100）意味着 orchestrator 的职责是「想清楚怎么拆」，不是「自己干」。
-- 评测复刻时注意三个易被忽略的设定：256k 上下文、编码类跑 non-thinking、视频 2048 帧/448 分辨率。
-- 训练侧最有复用价值的两个想法（解读）：DEP 的「编码器全复制 + 三相位重算」对任何「小前置模块 + 大主干」的多模态训练管线都成立；PARL 的 critical-steps 约束可直接搬到任何树状/图状 agent 编排训练里当资源口径。
+- GPT-5.2 在视觉评测中约 10% 请求失败、失败计为错答，WideSearch 等昂贵评测因 API 不稳定被跳过——对照数字有系统性噪声。
+- zero-vision SFT 优于 mixed SFT 是「preliminary experiments」，机制解释（缺高质量视觉数据）是猜测；视觉 RL 提升文本的机制是「Analysis suggests」，无因果实验。
+- 编码类评测在 non-thinking 模式报分，与 thinking 模式的对照模型不完全同口径；K2.5 相对 v1 的变更未在报告中说明。
 
-### 成本与规模
+**读者判断（论文无相应实验）**：
 
-- 训练规模：ViT 阶段 1T token + 联合 15T token + 长上下文 500B→200B token；底座 1T 参数 MoE（32B 激活）；H800 集群、16-way PP + 16-way EP + ZeRO-1，节点数 32 的倍数。
-- 推理侧成本被两块设计直接攻击：MoonViT-3D 的 4× 时间压缩（长视频进同一上下文）与 Agent Swarm 的并行墙钟节省（×3~×4.5）。
-- Table 5 给出 token 效率画像：K2.5 比前代 K2 全面更省（7 行里 6 行更少，唯一例外 GPQA 14k vs 13k）；但相对 Gemini-3.0 Pro / DeepSeek-V3.2 在**每一行**都用了更多 token（AIME 25k vs 15k/16k、HMMT Feb 27k vs 16k/19k）。**解读**：K2.5 的分数有相当一部分来自更长的推理，推理侧 token 效率没有追平 Gemini 3 Pro；论文把 token 效率单列为 Toggle 课题，与此一致。
-
-### 失败模式与设计取舍（原文点名的 + 我的归纳）
-
-- **Serial collapse**：不加 $r_{\mathrm{parallel}}$ 时 orchestrator 退化为单 agent——并行不会自发出现，需要奖励塑形。
-- **Spurious parallelism**：只鼓励并行会诱导「狂开 subagent」的奖励黑客，需 $r_{\mathrm{finish}}$ 与 critical-steps 双重约束。
-- **长度过拟合**：刚性预算训练导致模型在更高算力下不会用额外 token（Toggle 的动机）。
-- **反应式上下文管理的代价**：truncation 牺牲结构信息；Swarm 的选择是 context sharding。
-- **zero-vision SFT 依赖前置条件**：作者明确说它成立「likely because joint pretraining already establishes strong vision-text alignment」——没有联合预训练时该结论未必可迁移（解读）。
-- 一个可移植的教训：主奖励之外给辅助塑形奖励时，**务必退火**（$\lambda_{1}, \lambda_{2} \to 0$），否则最终策略会被代理指标带偏。
-
-### 伪代码（解读，非作者实现）
-
-```python
-# Agent Swarm 编排循环（按 §3 与附录 E.8 重构的示意，非原文代码）
-def orchestrate(task):
-    subs = {}
-    while steps_left(orchestrator) > 0:
-        action = orchestrator.step(task)           # LLM 决策：直接调工具 or 并行分派
-        if action.kind == "create_subagent":
-            subs[action.name] = SubAgent(action.system_prompt)   # 冻结，从固定 checkpoint 实例化
-        elif action.kind == "assign_task":          # 可一次多条，并行执行
-            results = run_parallel([subs[a.agent].run(a.prompt) for a in action.tasks])
-            # 只有子任务结论回传 orchestrator，子代理内部轨迹留在局部上下文
-            task = task.update_with(results)
-        else:                                        # search / browser / code 等普通工具
-            task = task.update_with(action.execute())
-    return task.final_answer()
-# 训练时：只有 orchestrator 被 RL 更新；critical-steps 计预算；奖励见 r_PARL（λ 退火）
-```
+- **消融混淆**：Table 1 三行同时改了注入时点与视觉比例（0%↔10%、50%↔20%、80%↔50%），无法分离两个因素；「比例影响很小」只建立在 3 个配置点上，且没有方差与多次运行。
+- **跨模态迁移缺同成本对照**：Table 2 的 +1.7/+2.1/+2.2 是「视觉 RL 前后」，没有「等量文本 RL」对照，收益有多少来自视觉、多少来自继续 RL 无法区分。
+- **Swarm 对照公平性未说明**：GPT-5.2 Pro 的 77.9 是否在同步数/同工具预算下取得、swarm 的步数预算如何影响与单 agent 的可比性，原文未交代；In-house Swarm Bench 与 image-to-code SOTA 声明均无公开数据与评审协议。
+- **开源的边界**：权重已开源（仅后训练 checkpoint），但 15T 联合 token 的视觉:文本比例、SFT 数据规模、PARL 与 Toggle 的超参（$\lambda$、$m$、$\rho$ 等）均未公布。
 
 ---
 
-## 局限与待确认问题
+## 与其他工作的关系
 
-**作者明确承认的**：
-- GPT-5.2 视觉评测约 10% 失败计错、WideSearch 等评测因 API 不稳定被跳过——对照数字有系统性噪声。
-- zero-vision SFT 优于 mixed SFT 的结论是「preliminary experiments」，且机制解释为**猜测**（缺高质量视觉数据）。
-- 视觉 RL 提升文本的机制是「Analysis suggests」，无因果实验。
-- 编码类评测在 non-thinking 模式下报分，与 thinking 模式的对照模型不完全同口径（Terminal Bench 作者自述为技术不兼容，SWE 系列是「峰值出现在 non-thinking」）。
-- K2.5 相对 v1 的变更未在报告中说明。
-
-**读者（本笔记）判断，论文无相应实验**：
-- **消融混淆**：Table 1 三行同时改了「注入时点」与「视觉比例」（0%↔10%、50%↔20%、80%↔50%），无法分离两个因素；「比例影响很小」的推断建立在 3 个配置点上，且未见方差/多次运行。§2.1 行文的「mixes with a constant ratio」也未给出生产配方的比例与调度。
-- **跨模态迁移缺对照**：Table 2 的 +1.7/+2.1/+2.2 是「视觉 RL 前后」，没有「等量文本 RL/继续 RL 前后」的同成本对照，收益有多少来自「视觉」、多少来自「继续 RL 本身」无法区分；MMLU-Pro 后测值 86.4 也低于最终模型在 Table 4 的 87.1，说明该表是训练中途快照，且未说明选点规则。
-- **Agent Swarm 的对照公平性**：Table 6 中 GPT-5.2 Pro 的 77.9 是否在同步数/同工具预算下取得未说明；swarm 评测的步数预算（orchestrator 15 步等）如何影响与单 agent（无此约束）的可比性也不清楚。
-- **内部基准不可复现**：In-house Swarm Bench 与 image-to-code SOTA 声明均无公开数据、指标定义或评审协议。
-- **GRM 细节缺失**：rubric 数量、训练数据、跨域权重、与规则奖励的混合比例都没给。
-- **多处数字/表述不一致**（72.8/72.7；ZeroBench 表述）提示报告在终稿校对上有瑕疵，引用其数字时应以表格为准并交叉核对。
-- **可复现性**：训练数据配比只给了域级描述（附录 B），15T 联合 token 的视觉:文本比例、SFT 数据规模、PARL 与 Toggle 的具体超参（$\lambda$、$m$、$\rho$ 等）均未公布——开源的是权重，不是训练过程。
-
----
-
-## 附：一页速查
-
-- **基座**：Kimi K2（1.04T/32B 激活 MoE，384 专家，MuonClip+QK-Clip）
-- **视觉**：MoonViT-3D（SigLIP-SO-400M 初始化，原生分辨率 + NaViT packing，4 帧时空打包，4× 时间池化压缩，图文共享权重）
-- **预训练**：1T（ViT）→ 15T 图文混合（4K 序列）→ 500B→200B 长上下文（32K→256K，YaRN）
-- **后训练**：zero-vision SFT → 按能力分域的联合多模态 RL（token-clip 目标 + GRM + 规则奖励 + Toggle 效率控制）
-- **Agent Swarm**：PARL（orchestrator 可训、subagent 冻结、λ 退火）+ critical steps + create_subagent/assign_task
-- **招牌数字**：BrowseComp 78.4（+17.8 vs 单 agent）、WideSearch 79.0 / 省时 4.5×、HLE w/ tools 50.2、LVBench 75.9、LongVideoBench 79.8、OCRBench 92.3、SWE-bench V 76.8、OSWorld 63.3、Toggle 省 token 25~30%
+- **Kimi K2**：直接底座，架构与训练细节（MuonClip、QK-Clip、384 专家）引 K2 技术报告；K2.5 在其上加视觉与编排。
+- **Kimi-VL / NaViT / SigLIP**：MoonViT-3D 从 SigLIP-SO-400M 初始化，承接 Kimi-VL 的 native-resolution 路线与 NaViT 的 patch n' pack；视频侧把打包推广到时间维。
+- **PPO / GRPO**：式 (1) 的 clip 与 PPO 不同（按 log-ratio 而非 advantage 符号裁），基线用 batch 平均奖励，接近 GRPO 的思路。
